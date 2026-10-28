@@ -1,0 +1,64 @@
+{{define "conteudo"}}
+<h1>Painel</h1>
+<div class="numeros">
+  <a class="numero" href="/maquinas"><b>{{.D.P.Total}}</b><span>máquinas</span></a>
+  <div class="numero"><b style="color:var(--verde)">{{.D.P.Ativas}}</b><span>ativas (até 7 dias)</span></div>
+  <div class="numero {{if .D.P.Ociosas}}amarelo{{end}}"><b>{{.D.P.Ociosas}}</b><span>ociosas (7 a 14 dias)</span></div>
+  <a class="numero {{if .D.P.Inativas}}vermelho{{end}}" href="/maquinas"><b>{{.D.P.Inativas}}</b><span>inativas (+14 dias)</span></a>
+  <a class="numero {{if .D.NAlertas}}amarelo{{end}}" href="/notificacoes"><b>{{.D.NAlertas}}</b><span>alertas</span></a>
+  <a class="numero {{if .Resumo.MACDuplicados}}vermelho{{end}}" href="/duplicados"><b>{{.Resumo.MACDuplicados}}</b><span>MACs duplicados</span></a>
+</div>
+
+<div class="duas">
+<section class="cartao">
+  <h2>Status das máquinas</h2>
+  {{.D.Rosca}}
+  <p class="sub" style="margin-top:14px">Inativa = sem se comunicar (sem ser ligada) há mais de 14 dias.</p>
+</section>
+<section class="cartao">
+  <h2>Precisam de atenção</h2>
+  <table class="tabela">
+    <tr><td>Disco quase cheio (&lt; 10% livre)</td><td style="text-align:right"><b>{{.D.P.DiscoCheio}}</b></td></tr>
+    <tr><td>Sem setor/responsável no cadastro</td><td style="text-align:right"><b>{{.D.P.SemCadastro}}</b></td></tr>
+    <tr><td>Possíveis nomes genéricos / duplicados</td><td style="text-align:right"><a href="/notificacoes">ver alertas</a></td></tr>
+  </table>
+  <h2 style="margin-top:24px">Exportar</h2>
+  <p><a class="btn primario" href="/exportar/inventario.xlsx">Planilha completa (.xlsx)</a>
+     <a class="btn" href="/exportar/maquinas.csv">Máquinas (.csv)</a>
+     <a class="btn" href="/exportar/usuarios.csv">Usuários (.csv)</a></p>
+</section>
+</div>
+
+<div class="duas">
+<section class="cartao">
+  <h2>Sistemas operacionais</h2>
+  {{if .D.P.SOs}}{{.D.GrafSO}}{{else}}<p class="vazio">Sem dados.</p>{{end}}
+</section>
+<section class="cartao">
+  <h2>Máquinas por setor</h2>
+  {{if .D.P.Setores}}{{.D.GrafSetor}}{{else}}<p class="vazio">Sem dados. Preencha o setor na ficha de cada máquina.</p>{{end}}
+</section>
+</div>
+
+{{if .D.Duplicados}}
+<section class="cartao destaque-erro">
+  <h2>MAC address duplicado</h2>
+  {{range .D.Duplicados}}
+  <div class="grupo"><code>{{.MAC}}</code> →
+    {{range $i, $m := .Maquinas}}{{if $i}}, {{end}}<a href="/maquinas/{{$m.ID}}">{{$m.Hostname}}</a> <small>(#{{$m.ID}}, {{rel $m.UltimoContato}})</small>{{end}}
+  </div>
+  {{end}}
+  <p><a class="btn" href="/duplicados">Resolver duplicados</a></p>
+</section>
+{{end}}
+
+<section class="cartao">
+  <h2>Últimos contatos</h2>
+  <table class="tabela">
+    <tr><th>Máquina</th><th>Último usuário</th><th>Contato</th></tr>
+    {{range .D.Recentes}}
+    <tr><td><span class="ponto {{status .UltimoContato}}"></span><a href="/maquinas/{{.ID}}">{{.Hostname}}</a></td><td>{{.UltimoUsuario}}</td><td>{{rel .UltimoContato}}</td></tr>
+    {{else}}<tr><td colspan="3" class="vazio">Nenhuma máquina ainda. Instale o agente em uma máquina para começar.</td></tr>{{end}}
+  </table>
+</section>
+{{end}}

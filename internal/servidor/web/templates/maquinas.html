@@ -1,0 +1,76 @@
+{{define "conteudo"}}
+<div class="cabecalho">
+  <h1>Máquinas</h1>
+  <div><a class="btn primario" href="/exportar/inventario.xlsx">Exportar .xlsx</a> <a class="btn" href="/exportar/maquinas.csv">Exportar .csv</a></div>
+</div>
+{{$csrf := .Sessao.CSRF}}{{$fsel := .D.Filtro}}
+<form class="busca" method="get">
+  <input name="q" value="{{.D.Q}}" placeholder="Buscar por nome, usuário, IP, MAC, serial, patrimônio, setor, modelo…">
+  <select name="filtro">
+    <option value="">Todas</option>
+    <option value="duplicadas" {{if eq $fsel "duplicadas"}}selected{{end}}>Com MAC duplicado</option>
+    <option value="genericas" {{if eq $fsel "genericas"}}selected{{end}}>Com nome genérico</option>
+    {{if .D.Filtros}}<optgroup label="Filtros salvos">
+      {{range .D.Filtros}}<option value="{{.ID}}" {{if eq $fsel (printf "%d" .ID)}}selected{{end}}>{{.Nome}}</option>{{end}}
+    </optgroup>{{end}}
+  </select>
+  <button class="btn">Filtrar</button>
+</form>
+{{if .D.NomeFiltro}}<p class="sub">Filtro aplicado: <b>{{.D.NomeFiltro}}</b> — {{len .D.Maquinas}} máquina(s). <a href="/maquinas">limpar</a></p>{{end}}
+
+<details class="cartao" style="margin-bottom:14px">
+  <summary style="cursor:pointer;font-weight:600">Criar filtro personalizado</summary>
+  <form method="post" action="/filtros/criar" class="linha-form" style="margin-top:12px">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <input name="nome" placeholder="nome do filtro (ex.: Notebooks EMC)" required style="flex:1">
+    <select name="campo">
+      <option value="hostname">Nome da máquina</option>
+      <option value="usuario">Usuário</option>
+      <option value="so">Sistema</option>
+      <option value="setor">Setor</option>
+      <option value="responsavel">Responsável</option>
+      <option value="ip">IP</option>
+      <option value="mac">MAC</option>
+      <option value="modelo">Modelo</option>
+      <option value="patrimonio">Patrimônio</option>
+    </select>
+    <select name="operador">
+      <option value="contem">contém</option>
+      <option value="nao_contem">não contém</option>
+      <option value="comeca">começa com</option>
+      <option value="igual">é igual a</option>
+    </select>
+    <input name="valor" placeholder="valor (ex.: EMC)" style="flex:1">
+    <button class="btn">Salvar filtro</button>
+  </form>
+  {{if .D.Filtros}}
+  <table class="tabela" style="margin-top:10px">
+    <tr><th>Filtro salvo</th><th>Regra</th><th></th></tr>
+    {{range .D.Filtros}}
+    <tr><td><a href="/maquinas?filtro={{.ID}}">{{.Nome}}</a></td><td><small>{{.Campo}} {{.Operador}} "{{.Valor}}"</small></td>
+      <td><form method="post" action="/filtros/{{.ID}}/excluir"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn link">excluir</button></form></td></tr>
+    {{end}}
+  </table>
+  {{end}}
+</details>
+<div class="rolagem">
+<table class="tabela lista">
+  <tr><th></th><th>Máquina</th><th>Último usuário</th><th>Sistema</th><th>Processador</th><th>RAM</th><th>Disco</th><th>IP</th><th>MAC</th><th>Patrimônio / Setor</th><th>Contato</th></tr>
+  {{range .D.Maquinas}}
+  <tr class="{{if .Duplicada}}linha-dup{{end}}">
+    <td><span class="ponto {{status .UltimoContato}}" title="{{data .UltimoContato}}"></span></td>
+    <td><a href="/maquinas/{{.ID}}"><b>{{.Hostname}}</b></a>{{if .Duplicada}} <span class="selo vermelho">MAC duplicado</span>{{end}}<br><small>{{.Fabricante}} {{.Modelo}}</small></td>
+    <td>{{.UltimoUsuario}}{{if .UltimoUsuarioNome}}<br><small>{{.UltimoUsuarioNome}}</small>{{end}}</td>
+    <td>{{.SO}}<br><small>{{.SOVersao}} {{.SOBuild}}</small></td>
+    <td><small>{{.CPU}}</small></td>
+    <td>{{gb .RAM}}</td>
+    <td>{{gb .DiscoTotal}}</td>
+    <td><small>{{.IPs}}</small></td>
+    <td><small class="mono">{{.MACs}}</small></td>
+    <td>{{.Patrimonio}}<br><small>{{.Setor}}</small></td>
+    <td><small>{{rel .UltimoContato}}</small></td>
+  </tr>
+  {{else}}<tr><td colspan="11" class="vazio">Nenhuma máquina encontrada.</td></tr>{{end}}
+</table>
+</div>
+{{end}}

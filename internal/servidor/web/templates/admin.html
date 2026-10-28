@@ -1,0 +1,132 @@
+{{define "conteudo"}}
+{{$csrf := .Sessao.CSRF}}
+<h1>Administração</h1>
+<div class="duas">
+<section class="cartao">
+  <h2>Instalação do agente</h2>
+  <p>Execute em cada máquina (como administrador):</p>
+  <pre class="codigo">inventario-agente.exe -instalar -servidor {{.D.URL}} -token {{.D.Token}}</pre>
+  <p class="sub">Use o IP ou nome da máquina do servidor que as estações enxergam na rede. O agente envia o inventário a cada 4 horas, a cada logon e na inicialização.</p>
+  <h3>Baixar o instalador</h3>
+  <p class="sub">O pacote já vem com o endereço deste servidor e o token preenchidos. Para instalar em uma máquina, descompacte e execute o <code>instalar.bat</code> como administrador.</p>
+  <p>
+    <a class="btn primario" href="/admin/agente/zip">Baixar pacote (.zip)</a>
+    <a class="btn" href="/admin/agente/exe">Só o agente (.exe)</a>
+    <a class="btn" href="/admin/agente/config">Só o config.json</a>
+  </p>
+  <p class="sub">O pacote inclui um modelo para implantação por GPO e o código para gerar um instalador <code>.msi</code> com o WiX Toolset (instruções no LEIA.txt).</p>
+  <h3>Token dos agentes</h3>
+  <pre class="codigo">{{.D.Token}}</pre>
+  <form method="post" action="/admin/token" onsubmit="return confirm('Gerar um novo token? Os agentes já instalados deixarão de enviar até serem reconfigurados.')">
+    <input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn perigo pequeno">Gerar novo token</button>
+  </form>
+</section>
+<section class="cartao">
+  <h2>Aviso automático (webhook)</h2>
+  <p class="sub">Opcional. Quando um MAC duplicado é detectado, o servidor envia uma mensagem para este endereço (Microsoft Teams, Google Chat, Slack ou Discord — webhook de entrada). O alerta sempre aparece no painel.</p>
+  <form method="post" action="/admin/webhook" class="linha-form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <input name="webhook" value="{{.D.Webhook}}" placeholder="https://..." style="flex:1">
+    <button class="btn">Salvar</button>
+  </form>
+  {{if .D.Webhook}}<form method="post" action="/admin/webhook/testar" style="margin-top:8px"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn link">Enviar mensagem de teste</button></form>{{end}}
+  <h2 style="margin-top:24px">Backup</h2>
+  <p class="sub">Baixa uma cópia completa do banco de dados (pode ser feita com o sistema em uso). Para restaurar, pare o servidor e substitua o arquivo <code>inventario.db</code>.</p>
+  <a class="btn" href="/admin/backup">Baixar backup do banco</a>
+</section>
+</div>
+
+<div class="duas">
+<section class="cartao">
+  <h2>Administradores do painel</h2>
+  <table class="tabela">
+    <tr><th>Usuário</th><th>Criado em</th><th></th></tr>
+    {{range .D.Admins}}
+    <tr><td>{{.Usuario}}</td><td>{{data .CriadoEm}}</td>
+      <td>{{if ne .ID $.Sessao.Admin.ID}}<form method="post" action="/admin/{{.ID}}/excluir" onsubmit="return confirm('Excluir o administrador {{.Usuario}}?')"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn link">excluir</button></form>{{else}}<small>(você)</small>{{end}}</td></tr>
+    {{end}}
+  </table>
+  <h3>Novo administrador</h3>
+  <form method="post" action="/admin/novo" class="linha-form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <input name="usuario" placeholder="usuário" required><input name="senha" type="password" placeholder="senha (mín. 8)" required minlength="8">
+    <button class="btn">Criar</button>
+  </form>
+</section>
+<section class="cartao">
+  <h2>Alterar minha senha</h2>
+  <form method="post" action="/admin/senha" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label>Senha atual<input name="atual" type="password" required autocomplete="current-password"></label>
+    <label>Nova senha<input name="nova" type="password" required minlength="8" autocomplete="new-password"></label>
+    <label>Confirmar nova senha<input name="confirma" type="password" required minlength="8" autocomplete="new-password"></label>
+    <button class="btn primario">Alterar senha</button>
+  </form>
+</section>
+</div>
+
+<section class="cartao">
+  <h2>Atualizar o servidor</h2>
+  <p class="sub">Versão atual: <b>{{.D.Versao}}</b>. Envie um novo <code>inventario-servidor.exe</code> para aplicar a atualização. O servidor guarda uma cópia da versão anterior (<code>inventario-servidor.antigo.exe</code>), troca o arquivo e reinicia sozinho — o banco de dados é preservado.</p>
+  <form method="post" action="/admin/atualizar" enctype="multipart/form-data" class="linha-form" onsubmit="return confirm('Aplicar a atualização agora? O servidor vai reiniciar e ficará fora do ar por alguns segundos.')">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <input type="file" name="arquivo" accept=".exe" required style="flex:1">
+    <button class="btn perigo">Enviar e atualizar</button>
+  </form>
+  <p class="sub">Faça um backup do banco antes, por garantia. Se algo der errado, pare o serviço e renomeie <code>inventario-servidor.antigo.exe</code> de volta para <code>inventario-servidor.exe</code>.</p>
+</section>
+
+<section class="cartao">
+  <h2>Migrar os agentes para outro servidor</h2>
+  <p class="sub">Para mudar o servidor de endereço (por exemplo, para a nuvem) sem tocar em cada máquina: informe o novo endereço e o token dele. Conforme cada agente se comunicar com este servidor, ele receberá o aviso e passará a usar o novo — mas só depois de confirmar que o novo endereço responde. Mantenha este servidor no ar até todas terem migrado.</p>
+  {{if .D.Migracao.Destino}}
+    {{if .D.Migracao.Ativa}}
+    <div class="aviso erro">
+      <b>Migração AUTORIZADA e ativa</b> para <code>{{.D.Migracao.Destino}}</code>.
+      Os agentes estão migrando ao se comunicar. Ainda falando com <b>este</b> servidor (últimas 24 h): <b>{{.D.Migracao.AindaAqui}}</b> máquina(s).
+      Quando chegar a zero, todas as máquinas ativas já migraram e este servidor pode ser desligado.
+      (Este servidor acompanha {{.D.Migracao.Total}} máquina(s); o número de migradas aparece no painel do novo servidor.)
+    </div>
+    <form method="post" action="/admin/migrar/autorizar" style="margin-bottom:12px" onsubmit="return confirm('Pausar a migração? Os agentes que ainda não migraram permanecem neste servidor.')">
+      <input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="pausar" value="1">
+      <button class="btn">Pausar migração</button>
+    </form>
+    {{else}}
+    <div class="aviso alerta">
+      Destino configurado: <code>{{.D.Migracao.Destino}}</code>. A migração está <b>DESATIVADA</b> — nenhum agente será movido até você autorizar abaixo com sua senha.
+    </div>
+    <form method="post" action="/admin/migrar/autorizar" class="linha-form" style="margin-bottom:12px">
+      <input type="hidden" name="csrf" value="{{$csrf}}">
+      <input name="senha" type="password" placeholder="sua senha de administrador" required autocomplete="current-password" style="flex:1">
+      <button class="btn perigo">Autorizar migração</button>
+    </form>
+    {{end}}
+  {{end}}
+  <h3>Destino da migração</h3>
+  <form method="post" action="/admin/migrar" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label>Novo endereço do servidor<input name="destino" value="{{.D.Migracao.Destino}}" placeholder="https://inventario.suaempresa.com.br"></label>
+    <label>Token do novo servidor<input name="token" value="{{.D.MigrarToken}}" placeholder="token do servidor de destino"></label>
+    <label class="cheio">Fase canário (opcional): migrar só estas máquinas primeiro<input name="canario" value="{{.D.Canario}}" placeholder="PC-TI-01, NB-TI-03  (deixe vazio para migrar todas)"></label>
+    <button class="btn primario">Salvar destino</button>
+  </form>
+  <p class="sub">Dica de migração em fases: comece com alguns hostnames no campo canário, autorize, confira que migraram bem, depois limpe o campo (migra todas) e autorize de novo.</p>
+  <p class="sub">Salvar o destino não inicia nada: a migração só começa após a autorização com senha. Trocar o destino exige autorizar de novo.</p>
+  {{if .D.Migracao.Destino}}
+  <form method="post" action="/admin/migrar" style="margin-top:8px" onsubmit="return confirm('Cancelar a migração e apagar o destino? Os agentes permanecem neste servidor.')">
+    <input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="cancelar" value="1">
+    <button class="btn link">Cancelar migração</button>
+  </form>
+  {{end}}
+  <p class="sub">Observação: só funciona com agentes nesta versão em diante. Como alternativa (ou complemento), usar um nome de DNS fixo para o servidor permite trocar o destino só mudando o DNS, sem mexer nos agentes.</p>
+</section>
+
+<section class="cartao">
+  <h2>Registro de ações</h2>
+  <table class="tabela">
+    <tr><th>Quando</th><th>Administrador</th><th>Ação</th><th>Detalhe</th></tr>
+    {{range .D.Auditoria}}<tr><td><small>{{data .Em}}</small></td><td>{{.Admin}}</td><td>{{.Acao}}</td><td><small>{{.Detalhe}}</small></td></tr>
+    {{else}}<tr><td colspan="4" class="vazio">Nada ainda.</td></tr>{{end}}
+  </table>
+</section>
+{{end}}

@@ -1,0 +1,17 @@
+# Dados e segredos de execução (nunca versionar)
+*.db
+*.db-wal
+*.db-shm
+*.log
+*.log.*
+backups/
+senha-admin-inicial.txt
+config.json
+dados-agente/
+inventario-servidor.antigo.exe
+inventario-servidor.novo.exe
+*.antigo.exe
+*.novo
+
+# Saídas de build locais
+/bin/

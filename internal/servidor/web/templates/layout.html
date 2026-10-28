@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Titulo}} · Inventário</title>
+<link rel="stylesheet" href="/static/estilo.css">
+</head>
+<body>
+{{if .Sessao}}
+<header class="topo">
+  <div class="marca">Inventário <span>de máquinas</span></div>
+  <nav>
+    <a href="/" class="{{if eq .Menu "painel"}}ativo{{end}}">Painel</a>
+    <a href="/maquinas" class="{{if eq .Menu "maquinas"}}ativo{{end}}">Máquinas <b>{{.Resumo.Maquinas}}</b></a>
+    <a href="/usuarios" class="{{if eq .Menu "usuarios"}}ativo{{end}}">Usuários <b>{{.Resumo.Usuarios}}</b></a>
+    <a href="/duplicados" class="{{if eq .Menu "duplicados"}}ativo{{end}}">Duplicados {{if .Resumo.MACDuplicados}}<b class="alerta">{{.Resumo.MACDuplicados}}</b>{{end}}</a>
+    <a href="/notificacoes" class="{{if eq .Menu "notificacoes"}}ativo{{end}}">Notificações</a>
+    <a href="/admin" class="{{if eq .Menu "admin"}}ativo{{end}}">Administração</a>
+  </nav>
+  <form method="post" action="/sair" class="sair">
+    <input type="hidden" name="csrf" value="{{.Sessao.CSRF}}">
+    <span>{{.Sessao.Admin.Usuario}}</span><button class="btn link">Sair</button>
+  </form>
+</header>
+{{if .Resumo.MACDuplicados}}
+<div class="faixa-alerta">⚠ Existem <b>{{.Resumo.MACDuplicados}}</b> MAC address duplicado(s) entre máquinas. <a href="/duplicados">Verificar agora</a></div>
+{{end}}
+<main>
+  {{if .Msg}}<div class="aviso ok">{{.Msg}}</div>{{end}}
+  {{if .Erro}}<div class="aviso erro">{{.Erro}}</div>{{end}}
+  {{template "conteudo" .}}
+</main>
+<footer>Inventário v{{.Versao}}</footer>
+{{else}}
+<main class="sozinho">
+  {{if .Msg}}<div class="aviso ok">{{.Msg}}</div>{{end}}
+  {{if .Erro}}<div class="aviso erro">{{.Erro}}</div>{{end}}
+  {{template "conteudo" .}}
+</main>
+{{end}}
+</body>
+</html>

@@ -1,0 +1,9 @@
+{{define "conteudo"}}
+<div class="cartao login" style="text-align:center">
+  <h1>Atualizando o servidor…</h1>
+  <p class="sub">O servidor está aplicando a atualização e reiniciando. Isso leva cerca de 15 segundos.</p>
+  <p>Esta página tenta voltar ao painel sozinha.</p>
+  <p><a class="btn primario" href="/">Voltar ao painel</a></p>
+  <script>setTimeout(function(){ location.href='/'; }, 15000);</script>
+</div>
+{{end}}

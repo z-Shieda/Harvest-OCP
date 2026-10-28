@@ -1,0 +1,51 @@
+{{define "conteudo"}}
+{{$csrf := .Sessao.CSRF}}
+<h1>Notificações</h1>
+<p class="sub">Configure os avisos abaixo. A lista mostra, ao vivo, as máquinas que se encaixam em cada regra ligada.</p>
+
+<section class="cartao">
+  <h2>Configurar avisos</h2>
+  <form method="post" action="/notificacoes" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label class="cheio" style="display:flex;align-items:center;gap:8px"><input type="checkbox" name="generico" value="1" style="width:auto" {{if .D.LigGenerico}}checked{{end}}> Avisar sobre nomes genéricos (ex.: DESKTOP-A1B2C3D, WIN-XXXX)</label>
+    <label class="cheio">Padrões extras de nome genérico (separe por vírgula; use * como curinga)<input name="padroes" value="{{.D.PadroesGen}}" placeholder="PC-*, NOTE-*, sem-nome"></label>
+    <label>Avisar máquinas inativas há mais de (dias; 0 = desligado)<input name="dias_inativa" type="number" min="0" value="{{.D.DiasInativa}}" placeholder="14"></label>
+    <label>Avisar disco com menos de (% livre; 0 = desligado)<input name="disco_pct" type="number" min="0" max="99" value="{{.D.PctDisco}}" placeholder="10"></label>
+    <button class="btn primario">Salvar</button>
+  </form>
+  <p class="sub">Dica: o aviso de MAC duplicado continua na página <a href="/duplicados">Duplicados</a> e pode ir para o Teams/Slack pelo webhook (em Administração).</p>
+</section>
+
+<section class="cartao">
+  <h2>Nomes genéricos {{if .D.Genericos}}<span class="selo vermelho">{{len .D.Genericos}}</span>{{end}}</h2>
+  {{if .D.LigGenerico}}
+  <table class="tabela">
+    <tr><th>Máquina</th><th>Último usuário</th><th>Detalhe</th></tr>
+    {{range .D.Genericos}}<tr><td><a href="/maquinas/{{.Maquina.ID}}">{{.Maquina.Hostname}}</a></td><td>{{.Maquina.UltimoUsuario}}</td><td><small>{{.Detalhe}}</small></td></tr>
+    {{else}}<tr><td colspan="3" class="ok-texto">✔ Nenhuma máquina com nome genérico.</td></tr>{{end}}
+  </table>
+  {{else}}<p class="vazio">Aviso desligado.</p>{{end}}
+</section>
+
+<section class="cartao">
+  <h2>Máquinas inativas {{if .D.Inativas}}<span class="selo vermelho">{{len .D.Inativas}}</span>{{end}}</h2>
+  {{if .D.DiasInativa}}
+  <table class="tabela">
+    <tr><th>Máquina</th><th>Último usuário</th><th>Detalhe</th></tr>
+    {{range .D.Inativas}}<tr><td><a href="/maquinas/{{.Maquina.ID}}">{{.Maquina.Hostname}}</a></td><td>{{.Maquina.UltimoUsuario}}</td><td><small>{{.Detalhe}}</small></td></tr>
+    {{else}}<tr><td colspan="3" class="ok-texto">✔ Nenhuma máquina inativa nesse período.</td></tr>{{end}}
+  </table>
+  {{else}}<p class="vazio">Aviso desligado.</p>{{end}}
+</section>
+
+<section class="cartao">
+  <h2>Disco quase cheio {{if .D.Discos}}<span class="selo vermelho">{{len .D.Discos}}</span>{{end}}</h2>
+  {{if .D.PctDisco}}
+  <table class="tabela">
+    <tr><th>Máquina</th><th>Último usuário</th><th>Detalhe</th></tr>
+    {{range .D.Discos}}<tr><td><a href="/maquinas/{{.Maquina.ID}}">{{.Maquina.Hostname}}</a></td><td>{{.Maquina.UltimoUsuario}}</td><td><small>{{.Detalhe}}</small></td></tr>
+    {{else}}<tr><td colspan="3" class="ok-texto">✔ Nenhum disco abaixo do limite.</td></tr>{{end}}
+  </table>
+  {{else}}<p class="vazio">Aviso desligado.</p>{{end}}
+</section>
+{{end}}

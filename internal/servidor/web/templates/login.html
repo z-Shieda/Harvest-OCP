@@ -1,0 +1,11 @@
+{{define "conteudo"}}
+<div class="cartao login">
+  <h1>Inventário</h1>
+  <p class="sub">Acesso restrito à equipe de TI</p>
+  <form method="post" action="/login">
+    <label>Usuário<input name="usuario" autofocus required autocomplete="username"></label>
+    <label>Senha<input name="senha" type="password" required autocomplete="current-password"></label>
+    <button class="btn primario largo">Entrar</button>
+  </form>
+</div>
+{{end}}
