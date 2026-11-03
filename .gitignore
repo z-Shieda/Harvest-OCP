@@ -1,17 +1,18 @@
-# Dados e segredos de execução (nunca versionar)
+# binários gerados por compilar.sh / compilar.ps1
+bin/
+internal/servidor/payload/*.exe
+*.exe
+# dados locais (banco, backups, logs) — nunca versionar
 *.db
-*.db-wal
 *.db-shm
-*.log
-*.log.*
+*.db-wal
 backups/
+*.log
 senha-admin-inicial.txt
-config.json
+inventario-importar.*
 dados-agente/
-inventario-servidor.antigo.exe
-inventario-servidor.novo.exe
-*.antigo.exe
-*.novo
-
-# Saídas de build locais
-/bin/
+# editores / sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

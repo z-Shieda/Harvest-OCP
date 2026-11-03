@@ -1,9 +1,9 @@
-# Compila o agente e o servidor para Windows (64 bits). Requer Go 1.24+: https://go.dev/dl/
+﻿# Compila o agente e o servidor para Windows (64 bits). Requer Go 1.24+: https://go.dev/dl/
 #   .\compilar.ps1
 # Servidor e token do agente avulso (deixe em branco para um agente sem dados embutidos):
 param(
-    [string]$Servidor = "",   # ex.: http://192.168.0.10:8080
-    [string]$Token    = ""    # token exibido no painel (Administracao)
+    [string]$Servidor = "",
+    [string]$Token    = ""
 )
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
@@ -15,8 +15,11 @@ New-Item -ItemType Directory -Force -Path bin, internal\servidor\payload | Out-N
 go build -trimpath -ldflags "-s -w -H=windowsgui" -o internal\servidor\payload\inventario-agente.exe .\cmd\agente
 if ($LASTEXITCODE -ne 0) { throw "Falha ao compilar o agente embutido." }
 
-# 2) Servidor (embute o agente do passo 1).
-go build -trimpath -ldflags "-s -w" -o bin\inventario-servidor.exe .\cmd\servidor
+# 2) Servidor (embute o agente do passo 1). A versao do agente embutido e lida de
+#    cmd\agente\main.go e gravada no servidor (o auto-update compara com ela).
+$vag = (Select-String -Path .\cmd\agente\main.go -Pattern '^\s*versao\s*=\s*"([0-9.]+)"' | Select-Object -First 1).Matches[0].Groups[1].Value
+if (-not $vag) { throw "Nao achei a versao do agente em cmd\agente\main.go." }
+go build -trimpath -ldflags "-s -w -X inventario/internal/servidor.VersaoAgente=$vag" -o bin\inventario-servidor.exe .\cmd\servidor
 if ($LASTEXITCODE -ne 0) { throw "Falha ao compilar o servidor." }
 
 # 3) Agente avulso para instalar direto numa maquina.

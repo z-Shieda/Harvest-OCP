@@ -1,59 +1,64 @@
-# Inventário de máquinas
+# Harvest — Inventário Ocupacional TI
 
-Sistema interno de inventário para computadores Windows, em duas partes:
+> Desenvolvido por **[Daniel Costa](https://www.linkedin.com/in/ccostadaniel/)** — T.I Ocupacional.
 
-| Componente | Onde roda | O que faz |
-|---|---|---|
-| **Servidor** (`inventario-servidor.exe`) | 1 máquina da rede | Recebe os inventários, guarda em banco SQLite (arquivo único) e oferece o painel web com login |
-| **Agente** (`inventario-agente.exe`) | Cada estação | Coleta hardware, sistema, rede e usuários e envia ao servidor (a cada 4 h, no logon e na inicialização) |
+Sistema interno da TI da **Ocupacional** para **inventário de máquinas Windows**, **chamados (helpdesk)**,
+**ramais (MicroSIP)** e **acesso remoto (AnyDesk)**. Escrito em **Go**, com banco **SQLite** embutido:
+o servidor é **um único executável** (Windows ou Linux) e o agente é **um executável de ~8 MB** em cada estação.
 
-Ambos são executáveis únicos em Go: não precisam de runtime, banco externo nem IIS.
+> Versão atual: **servidor 1.18.0 / agente 1.17.0** — histórico completo em [`PATCH-NOTES.md`](PATCH-NOTES.md).
 
-## O que coleta
+## O que faz
 
-Configuração completa da máquina (CPU, RAM por pente, discos SSD/HDD/NVMe, espaço livre,
-vídeo, versão do Windows, número de série, rede/MAC) e os usuários (quem está logado, o último
-logon, histórico por máquina e perfis). Detecta **MAC duplicado** (máquina reinstalada/clonada),
-gera planilha Excel/CSV, painel com gráficos, filtros personalizados e notificações.
+| Área | Destaques |
+|---|---|
+| **Inventário** | hardware, SO, discos, rede/MAC, usuários e logons, programas instalados; nível de saúde (OK/Alerta/Crítico); MAC e nomes duplicados; filtros personalizados; exportação .xlsx/.csv |
+| **Agente** | coleta como SYSTEM a cada 1 h, no logon e no boot; **serviço em tempo real** (SSE) que recebe atualizações e ordens de migração na hora; **auto-update** sem pedir administrador |
+| **Chamados** | página **sem login** para os funcionários (máquina reconhecida pelo IP), SLA por prioridade, linha do tempo, notas internas, anexos (colar print), relatórios, **aviso sonoro** no navegador e **e-mail** (SMTP/M365) |
+| **Acesso remoto** | lê o **ID do AnyDesk** de cada máquina, avisa quem não tem e **anexa o ID ao chamado** (botão Conectar) |
+| **Ramais** | lê o **MicroSIP** de cada perfil (nunca a senha), associa ramal ↔ pessoa ↔ setor, aviso de **ramal duplicado** |
+| **Programa monitorado** | confere se o **Work Monitor** (ou outro programa configurável) está instalado e **rodando** |
+| **Administração** | perfis admin/técnico/usuário, auditoria, backup/importação do banco, **Lixeira** com restaurar/excluir permanente, migração de agentes para outro servidor, tokens anteriores aceitos, diagnóstico do auto-update, **Conexões** com teste de atualização |
+| **Personalização** | tema claro/escuro, menu no topo ou lateral, lista de setores |
 
-## Pastas
+## Fluxogramas
 
-```
-cmd/agente/        código do agente (coleta.ps1 = script de coleta embutido)
-cmd/servidor/      código do servidor
-internal/modelo/   formato do relatório trocado entre agente e servidor
-internal/servidor/ banco SQLite, painel web, gráficos, exportação, migração, atualização
-compilado/         binários prontos (Windows + Linux) — genéricos, sem token
-PATCH-NOTES.md     histórico de versões
-PLANO-CHAMADOS.md  plano para evoluir para sistema de chamados + Active Directory
-LEIA-ME.md         guia de instalação e uso
-```
+![Desenvolvimento, versão a versão](docs/Harvest-fluxograma-desenvolvimento.png)
+![Atendimento de um chamado](docs/Harvest-fluxograma-atendimento.png)
 
-## Compilar a partir do código
+## Compilar
 
-Requer [Go 1.24+](https://go.dev/dl/).
+Requer **Go 1.24+**. Os scripts geram o agente primeiro (ele vai **embutido** no servidor para o auto-update):
 
-```
-./compilar.sh                 # Linux/macOS (gera Windows + Linux)
-.\compilar.ps1                # Windows
+```sh
+sh compilar.sh          # Linux/macOS → bin/inventario-servidor.exe, bin/inventario-servidor-linux, bin/inventario-agente.exe
+.\compilar.ps1          # Windows (PowerShell)
 ```
 
-Os binários saem em `bin/`. Opcionalmente, `compilar.ps1 -Servidor http://IP:8080 -Token XXXX`
-embute o endereço e o token no agente (para instalação com duplo clique).
+> `go build ./...` direto não funciona sem o agente em `internal/servidor/payload/` — use os scripts.
 
-## Instalar (resumo)
+## Instalar / atualizar
 
-1. **Servidor:** copie `inventario-servidor.exe` para uma pasta fixa e rode como administrador
-   `inventario-servidor.exe -instalar`. A senha inicial do `admin` fica em
-   `senha-admin-inicial.txt`. Acesse `http://IP-DO-SERVIDOR:8080`.
-2. **Agente:** baixe o pacote pelo painel (Administração → Baixar o instalador) — já vem com o
-   endereço e o token preenchidos — e rode `instalar.bat` como administrador em cada máquina.
+- **Servidor (Windows):** kit `INSTALAR-SERVIDOR.bat` de cada versão (pergunta IP, porta, pasta, mantém
+  os dados, faz backup e volta atrás se falhar). Manual: `inventario-servidor.exe -instalar -porta 8080 -endereco http://IP:8080`.
+- **Servidor (Linux):** serviço systemd — ver [`LEIA-ME.md`](LEIA-ME.md).
+- **Agentes:** pacote em Administração → Baixar instalador; depois se atualizam sozinhos.
+- **Ir para a nuvem sem parar:** [`MIGRAR-PARA-NUVEM.md`](MIGRAR-PARA-NUVEM.md).
 
-O guia completo está em `LEIA-ME.md`.
+## Estrutura
 
-## Observações de segurança
+```
+cmd/servidor/        executável do servidor (flags, instalação como tarefa/serviço)
+cmd/agente/          agente Windows (coleta, MicroSIP, AnyDesk, programa monitorado, serviço SSE, auto-update)
+internal/modelo/     formato do relatório agente → servidor
+internal/servidor/   HTTP, banco SQLite, chamados, e-mail, eventos SSE, lixeira, migração
+internal/servidor/web/  templates HTML + CSS/JS (tema "Bento lima", fontes embutidas)
+docs/                notas de desenvolvimento
+```
 
-- Os binários em `compilado/` são **genéricos**: não contêm token nem endereço. O token é gerado
-  pelo servidor e entregue no `config.json` ao baixar o agente pelo painel.
-- Não versione `inventario.db`, logs, backups nem `config.json` (já estão no `.gitignore`).
-- HTTPS ainda não está ativo (aguardando certificado); na rede interna o tráfego é HTTP.
+## Segurança
+
+- O repositório **não** contém binários, banco de dados, senhas nem o token dos agentes (`.gitignore`).
+  O token fica só no banco do servidor (Administração).
+- O agente nunca lê senhas (MicroSIP/AnyDesk: só ramal/ID). Atualizações do agente rodam como SYSTEM;
+  recomendação futura: assinar os executáveis (ed25519) e usar HTTPS.
