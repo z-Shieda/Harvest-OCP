@@ -1,0 +1,42 @@
+{{define "conteudo"}}
+{{$csrf := .Sessao.CSRF}}{{$adm := .D.EhAdmin}}
+<div class="cabecalho"><h1>Lixeira</h1></div>
+<p class="sub">Máquinas e ramais excluídos ficam aqui e podem ser <b>restaurados</b>. Enquanto uma máquina estiver na lixeira, o agente
+  dela continua podendo enviar, mas ela <b>não volta sozinha</b> para o inventário. <b>Excluir permanentemente</b> (só administrador) apaga a cópia de vez.</p>
+
+<section class="cartao" id="maquinas">
+  <h2>Máquinas excluídas {{if .D.Maquinas}}<span class="selo">{{len .D.Maquinas}}</span>{{end}}</h2>
+  <div class="rolagem">
+  <table class="tabela lista">
+    <tr><th>Máquina</th><th>Excluída</th><th>Agente</th><th></th></tr>
+    {{range .D.Maquinas}}<tr>
+      <td><b>{{.Hostname}}</b> <small>#{{.ID}}</small>{{if .UltimoUsuario}}<br><small>último usuário: {{.UltimoUsuario}}</small>{{end}}</td>
+      <td><small>{{data .ExcluidaEm}} por {{.ExcluidaPor}}</small></td>
+      <td>{{if .AindaEnviando}}<span class="selo contorno-amar">ainda enviando</span><br><small>{{.EnviosDepois}} envio(s) ignorado(s), último {{rel .UltimoEnvio}} — desinstale o agente se a máquina saiu de uso</small>{{else}}<small>sem envios desde a exclusão</small>{{end}}</td>
+      <td style="white-space:nowrap;text-align:right">
+        <form method="post" action="/lixeira/maquinas/{{.ID}}/restaurar" style="display:inline"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn pequeno primario">Restaurar</button></form>
+        {{if $adm}}<form method="post" action="/lixeira/maquinas/{{.ID}}/apagar" style="display:inline" onsubmit="return confirm('Excluir PERMANENTEMENTE {{.Hostname}}? Não dá para desfazer.{{if .AindaEnviando}} O agente ainda está instalado: no próximo envio ela será cadastrada de novo como máquina nova.{{end}}')"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn pequeno perigo">Excluir permanentemente</button></form>{{end}}
+      </td>
+    </tr>{{else}}<tr><td colspan="4" class="vazio">Nenhuma máquina na lixeira.</td></tr>{{end}}
+  </table>
+  </div>
+</section>
+
+<section class="cartao" id="ramais">
+  <h2>Ramais excluídos {{if .D.Ramais}}<span class="selo">{{len .D.Ramais}}</span>{{end}}</h2>
+  <div class="rolagem">
+  <table class="tabela lista">
+    <tr><th>Ramal</th><th>Onde estava</th><th>Excluído</th><th></th></tr>
+    {{range .D.Ramais}}<tr>
+      <td><b>Ramal {{.Numero}}</b>{{if .NomeSIP}}<br><small>{{.NomeSIP}}</small>{{end}}</td>
+      <td><a href="/maquinas/{{.MaquinaID}}">{{.Hostname}}</a>{{if .Perfil}}<br><small>usuário do Windows: {{.Perfil}}</small>{{end}}</td>
+      <td><small>{{data .ExcluidoEm}} por {{.ExcluidoPor}}</small>{{if .AindaAtivo}}<br><small>o MicroSIP da máquina ainda tem essa conta</small>{{end}}</td>
+      <td style="white-space:nowrap;text-align:right">
+        <form method="post" action="/lixeira/ramais/{{.ID}}/restaurar" style="display:inline"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn pequeno primario">Restaurar</button></form>
+        {{if $adm}}<form method="post" action="/lixeira/ramais/{{.ID}}/apagar" style="display:inline" onsubmit="return confirm('Excluir PERMANENTEMENTE o ramal {{.Numero}} de {{.Hostname}}?{{if .AindaAtivo}} O MicroSIP da máquina ainda tem essa conta: no próximo envio ela volta como ramal ativo.{{end}}')"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn pequeno perigo">Excluir permanentemente</button></form>{{end}}
+      </td>
+    </tr>{{else}}<tr><td colspan="4" class="vazio">Nenhum ramal na lixeira.</td></tr>{{end}}
+  </table>
+  </div>
+</section>
+{{end}}

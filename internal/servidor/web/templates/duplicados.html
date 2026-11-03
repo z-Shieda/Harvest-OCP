@@ -1,0 +1,79 @@
+{{define "conteudo"}}
+{{$csrf := .Sessao.CSRF}}
+<h1>Duplicados</h1>
+
+<section class="cartao {{if .D.MACs}}destaque-erro{{end}}">
+  <h2>MAC address duplicado {{if .D.MACs}}<span class="selo vermelho">{{len .D.MACs}}</span>{{end}}</h2>
+  <p class="sub">Mesmo MAC físico informado por registros diferentes. Causas comuns: Windows reinstalado (o registro antigo fica para trás), imagem clonada, ou adaptador compartilhado (dock/adaptador USB). Para a mesma máquina, clique em <b>Manter este</b> no registro correto — os demais serão mesclados nele. Se forem máquinas diferentes com adaptador compartilhado, ignore o MAC.</p>
+  {{range .D.MACs}}{{$g := .}}
+  <div class="grupo-dup">
+    <div class="grupo-topo"><code>{{.MAC}}</code>
+      <form method="post" action="/macs/ignorar" class="linha-form">
+        <input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="mac" value="{{.MAC}}">
+        <input name="motivo" placeholder="motivo (ex.: dock da sala 2)"><button class="btn link">Ignorar este MAC</button>
+      </form>
+    </div>
+    <table class="tabela">
+      <tr><th>Registro</th><th>Serial</th><th>Último usuário</th><th>Cadastrado</th><th>Último contato</th><th></th></tr>
+      {{range $i, $m := .Maquinas}}
+      <tr><td><a href="/maquinas/{{$m.ID}}"><b>{{$m.Hostname}}</b></a> <small>#{{$m.ID}}</small>{{if eq $i 0}} <span class="selo verde">mais recente</span>{{end}}<br><small>{{$m.SO}} {{$m.SOVersao}}</small></td>
+        <td class="mono"><small>{{$m.Serial}}</small></td><td>{{$m.UltimoUsuario}}</td><td><small>{{data $m.PrimeiroContato}}</small></td><td><small>{{rel $m.UltimoContato}}</small></td>
+        <td class="acoes">
+          <form method="post" action="/duplicados/resolver" onsubmit="return confirm('Manter {{$m.Hostname}} (#{{$m.ID}}) e mesclar os demais registros deste MAC nele?')">
+            <input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="destino" value="{{$m.ID}}">
+            {{range $g.Maquinas}}{{if ne .ID $m.ID}}<input type="hidden" name="origem" value="{{.ID}}">{{end}}{{end}}
+            <button class="btn primario pequeno">Manter este</button>
+          </form>
+          <form method="post" action="/maquinas/{{$m.ID}}/excluir" onsubmit="return confirm('Mover {{$m.Hostname}} (#{{$m.ID}}) para a Lixeira?')">
+            <input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="voltar" value="/duplicados">
+            <button class="btn perigo pequeno">Excluir</button>
+          </form>
+        </td></tr>
+      {{end}}
+    </table>
+  </div>
+  {{else}}<p class="ok-texto">✔ Nenhum MAC duplicado.</p>{{end}}
+</section>
+
+<section class="cartao">
+  <h2>Mesmo nome de máquina</h2>
+  {{range .D.Nomes}}
+  <div class="grupo"><b>{{.Hostname}}</b>: {{range $i, $m := .Maquinas}}{{if $i}}, {{end}}<a href="/maquinas/{{$m.ID}}">#{{$m.ID}}</a> <small>({{$m.Serial}}, {{rel $m.UltimoContato}})</small>{{end}}</div>
+  {{else}}<p class="ok-texto">✔ Nenhum nome repetido.</p>{{end}}
+</section>
+
+<section class="cartao" id="usuarios">
+  <h2>Possíveis usuários duplicados</h2>
+  <p class="sub">Logins com o mesmo nome em formatos diferentes (ex.: <code>EMPRESA\joao</code>, <code>joao</code>, <code>joao@empresa.com</code>). Escolha qual cadastro manter; os outros viram apelidos dele.</p>
+  {{range .D.Usuarios}}{{$grupo := .}}
+  <div class="grupo-dup">
+    <table class="tabela">
+      <tr><th>Login</th><th>Nome</th><th>Máquinas</th><th>Último visto</th><th></th></tr>
+      {{range $u := .}}
+      <tr><td><a href="/usuarios/{{$u.ID}}"><b>{{$u.Login}}</b></a></td><td>{{$u.Nome}}</td><td><small>{{$u.Maquinas}}</small></td><td><small>{{rel $u.UltimoVisto}}</small></td>
+        <td class="acoes"><form method="post" action="/usuarios/resolver" onsubmit="return confirm('Manter {{$u.Login}} e mesclar os demais nele?')">
+          <input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="destino" value="{{$u.ID}}">
+          {{range $grupo}}{{if ne .ID $u.ID}}<input type="hidden" name="origem" value="{{.ID}}">{{end}}{{end}}
+          <button class="btn primario pequeno">Manter este</button></form></td></tr>
+      {{end}}
+    </table>
+  </div>
+  {{else}}<p class="ok-texto">✔ Nenhum usuário duplicado aparente.</p>{{end}}
+</section>
+
+<section class="cartao">
+  <h2>MACs ignorados</h2>
+  <p class="sub">Esses MACs não geram alerta de duplicidade (docks, adaptadores USB compartilhados, MACs virtuais).</p>
+  <table class="tabela">
+    <tr><th>MAC</th><th>Motivo</th><th>Desde</th><th></th></tr>
+    {{range .D.Ignorados}}
+    <tr><td class="mono">{{.MAC}}</td><td>{{.Motivo}}</td><td>{{data .CriadoEm}}</td>
+      <td><form method="post" action="/macs/remover"><input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="mac" value="{{.MAC}}"><button class="btn link">voltar a monitorar</button></form></td></tr>
+    {{else}}<tr><td colspan="4" class="vazio">Nenhum.</td></tr>{{end}}
+  </table>
+  <form method="post" action="/macs/ignorar" class="linha-form" style="margin-top:12px">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <input name="mac" placeholder="AA:BB:CC:DD:EE:FF" required><input name="motivo" placeholder="motivo"><button class="btn">Adicionar</button>
+  </form>
+</section>
+{{end}}

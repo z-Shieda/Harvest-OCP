@@ -1,0 +1,45 @@
+{{define "conteudo"}}
+<div class="publico">
+<div class="marca-pub"><img src="/static/logo-claro.svg" alt="Ocupacional — A evolução da gestão de SST"> <a href="/abrir-chamado" class="sub">Abrir outro chamado</a></div>
+{{if .D.NaoEncontrado}}
+<section class="cartao"><h1>Chamado não encontrado</h1><p>O link pode estar incompleto. Confira o endereço ou fale com a TI.</p></section>
+{{else}}
+{{$c := .D.C}}{{$base := printf "/acompanhar/%s/anexos" .D.Token}}
+<section class="cartao">
+  <div class="cabecalho"><h1 style="margin:0">#{{$c.ID}} · {{$c.Titulo}}</h1><div>{{template "selo_status" $c.Status}}</div></div>
+  <p class="sub">Aberto por {{$c.Solicitante}} em {{data $c.CriadoEm}} · {{if $c.AtribuidoNome}}em atendimento por <b>{{$c.AtribuidoNome}}</b>{{else}}aguardando um técnico{{end}}{{if $c.MaquinaHostname}} · computador {{$c.MaquinaHostname}}{{end}}</p>
+  <div style="white-space:pre-wrap;word-break:break-word">{{if $c.Descricao}}{{$c.Descricao}}{{else}}<span class="vazio">Sem descrição.</span>{{end}}</div>
+  {{template "anexos" (dict "Lista" .D.AnexosAbertura "Base" $base)}}
+  <div class="aviso alerta" style="margin:14px 0 0">
+    <b>Guarde este link</b> para acompanhar e responder (quem tiver o link vê este chamado):
+    <div class="caixa-link" style="margin-top:6px"><input id="link-acomp" value="{{.D.Link}}" readonly><button type="button" class="btn pequeno" data-copiar="link-acomp">Copiar</button></div>
+  </div>
+</section>
+
+<section class="cartao">
+  <h2>Andamento</h2>
+  <ul class="linha-tempo">
+  {{range .D.Linha}}
+    {{if .Evento}}<li class="evento">{{template "texto_evento" .Evento}} · <small>{{data .Em}}</small></li>
+    {{else}}{{with .Comentario}}
+    <li class="coment{{if .DoSolicitante}} solicitante{{end}}">
+      <div class="sub"><b>{{.AutorNome}}</b>{{if not .DoSolicitante}} <span class="selo azul">TI</span>{{end}} · {{data .CriadoEm}}</div>
+      <div class="balao">{{if .Texto}}<div class="texto">{{.Texto}}</div>{{end}}{{template "anexos" (dict "Lista" .Anexos "Base" $base)}}</div>
+    </li>{{end}}{{end}}
+  {{end}}
+  </ul>
+  <a id="fim"></a>
+  {{if eq $c.Status "fechado"}}
+  <p class="vazio">Este chamado foi fechado. Se o problema voltou, <a href="/abrir-chamado">abra um novo chamado</a>.</p>
+  {{else}}
+  <form method="post" action="/acompanhar/{{.D.Token}}/comentar" class="form" enctype="multipart/form-data" data-anexos data-max-arquivos="{{.D.MaxAnexos}}" data-max-mb="{{.D.MaxAnexoMB}}">
+    <div class="isca" aria-hidden="true"><label>Site<input name="site" tabindex="-1" autocomplete="off"></label></div>
+    <label class="cheio">Responder para a TI<textarea name="texto" rows="3" placeholder="Mais detalhes, resposta a uma pergunta da TI…"></textarea></label>
+    {{template "zona_anexos" .D}}
+    <div class="cheio"><button class="btn primario">Enviar</button>{{if eq $c.Status "resolvido"}} <span class="dica">Responder reabre o chamado.</span>{{end}}</div>
+  </form>
+  {{end}}
+</section>
+{{end}}
+</div>
+{{end}}

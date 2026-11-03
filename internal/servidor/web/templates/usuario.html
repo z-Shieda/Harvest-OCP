@@ -1,0 +1,71 @@
+{{define "conteudo"}}
+{{$u := .D.U}}{{$csrf := .Sessao.CSRF}}
+<p><a href="/usuarios">← Usuários</a></p>
+<div class="cabecalho"><h1>{{$u.Login}} {{if $u.Ignorado}}<span class="selo">usuário local (ignorado)</span>{{end}}</h1><div class="sub">#{{$u.ID}} · visto pela primeira vez em {{data $u.PrimeiroVisto}} · último {{rel $u.UltimoVisto}}</div></div>
+
+{{if and .D.Sugeridos (not $u.Ignorado)}}
+<div class="aviso alerta">Possível duplicado de: {{range $i, $x := .D.Sugeridos}}{{if $i}}, {{end}}<a href="/usuarios/{{$x.ID}}">{{$x.Login}}</a>{{end}}. Use <b>Mesclar</b> para unir os cadastros — ou, se for um usuário padrão do Windows, marque como local abaixo.</div>
+{{end}}
+
+<section class="cartao">
+  <h2>Usuário local / padrão do Windows</h2>
+  {{if $u.Ignorado}}
+  <p class="sub">Este usuário está marcado como <b>local</b>: não entra na checagem de usuários duplicados (útil para contas como Administrador, Convidado, defaultuser0 etc.).</p>
+  <form method="post" action="/usuarios/{{$u.ID}}/ignorar"><input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="ignorar" value="0"><button class="btn">Voltar a considerar nos duplicados</button></form>
+  {{else}}
+  <p class="sub">Marque se este for um usuário padrão do Windows (Administrador, Convidado, etc.). Ele deixa de contar como duplicado.</p>
+  <form method="post" action="/usuarios/{{$u.ID}}/ignorar"><input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="ignorar" value="1"><button class="btn">Marcar como usuário local (ignorar nos duplicados)</button></form>
+  {{end}}
+</section>
+
+<div class="duas">
+<section class="cartao">
+  <h2>Editar</h2>
+  <form method="post" action="/usuarios/{{$u.ID}}/editar" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label>Login<input name="login" value="{{$u.Login}}" required></label>
+    <label>Nome completo<input name="nome" value="{{$u.Nome}}"></label>
+    <label>E-mail<input name="email" type="email" value="{{$u.Email}}"></label>
+    <label>Setor{{template "campo_setor" (dict "Valor" $u.Setor "Placeholder" "" "Lista" false "Obrigatorio" false)}}</label>
+    <label class="cheio">Observações<textarea name="observacoes" rows="3">{{$u.Obs}}</textarea></label>
+    <button class="btn primario">Salvar</button>
+  </form>
+  <p class="sub">Ao trocar o login, o login antigo vira um apelido: os próximos relatórios com o nome antigo serão atribuídos a este cadastro.</p>
+  {{if .D.Apelidos}}
+  <h3>Apelidos (logins que apontam para este usuário)</h3>
+  {{range .D.Apelidos}}
+  <form method="post" action="/usuarios/{{$u.ID}}/apelido/remover" class="linha-form">
+    <input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="apelido" value="{{.}}">
+    <code>{{.}}</code> <button class="btn link">remover</button>
+  </form>
+  {{end}}
+  {{end}}
+</section>
+<section class="cartao">
+  <h2>Máquinas usadas</h2>
+  <table class="tabela">
+    <tr><th>Máquina</th><th>Primeiro registro</th><th>Último registro</th></tr>
+    {{range .D.Logins}}<tr><td><a href="/maquinas/{{.MaquinaID}}">{{.Hostname}}</a></td><td>{{data .Primeiro}}</td><td>{{data .Ultimo}}</td></tr>
+    {{else}}<tr><td colspan="3" class="vazio">Nenhuma.</td></tr>{{end}}
+  </table>
+
+  <h2 style="margin-top:24px">Mesclar (usuário duplicado)</h2>
+  <p>Une <b>{{$u.Login}}</b> ao usuário escolhido: os logins são transferidos, este cadastro é excluído e "{{$u.Login}}" passa a ser apelido do destino.</p>
+  <form method="post" action="/usuarios/{{$u.ID}}/mesclar" class="linha-form" onsubmit="return confirm('Mesclar {{$u.Login}} no usuário selecionado?')">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <select name="destino" required>
+      <option value="">Escolha o usuário que vai permanecer…</option>
+      {{range .D.Sugeridos}}<option value="{{.ID}}">★ {{.Login}}{{if .Nome}} — {{.Nome}}{{end}}</option>{{end}}
+      {{range .D.Outros}}<option value="{{.ID}}">{{.Login}}{{if .Nome}} — {{.Nome}}{{end}}</option>{{end}}
+    </select>
+    <button class="btn">Mesclar</button>
+  </form>
+
+  <h2 style="margin-top:24px">Excluir</h2>
+  <form method="post" action="/usuarios/{{$u.ID}}/excluir" onsubmit="return confirm('Excluir o usuário {{$u.Login}}?')">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <button class="btn perigo">Excluir usuário</button>
+  </form>
+</section>
+</div>
+{{end}}

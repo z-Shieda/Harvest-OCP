@@ -1,0 +1,48 @@
+{{define "conteudo"}}
+{{$csrf := .Sessao.CSRF}}
+<p><a href="/chamados">← Chamados</a></p>
+<h1>Novo chamado</h1>
+<section class="cartao">
+  <form method="post" action="/chamados/novo" class="form" enctype="multipart/form-data" data-anexos data-max-arquivos="{{.D.MaxAnexos}}" data-max-mb="{{.D.MaxAnexoMB}}">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    {{if .D.PodeGerenciar}}
+    <label>Solicitante <small class="sub">(deixe vazio se for você)</small>
+      <input name="solicitante" list="pessoas" placeholder="Comece a digitar o nome ou login" autocomplete="off">
+    </label>
+    <label>Setor
+      {{template "campo_setor" (dict "Valor" "" "Placeholder" "Preenchido pelo cadastro, se houver" "Lista" true "Obrigatorio" false)}}
+    </label>
+    <datalist id="pessoas">{{range .D.Pessoas}}<option value="{{.Rotulo}}">{{if .Setor}}{{.Setor}}{{end}}</option>{{end}}</datalist>
+    <datalist id="setores">{{range .D.Setores}}<option value="{{.}}">{{end}}</datalist>
+    {{end}}
+    <label class="cheio">Título<input name="titulo" required maxlength="200" placeholder="Resumo do problema (ex.: Impressora do RH não imprime)"></label>
+    <label class="cheio">Descrição<textarea name="descricao" rows="5" placeholder="Detalhe o que está acontecendo, mensagens de erro, quando começou…"></textarea></label>
+    <label>Categoria
+      <select name="categoria">
+        {{range .D.Categorias}}<option value="{{.}}">{{.}}</option>{{end}}
+      </select>
+    </label>
+    <label>Prioridade
+      <select name="prioridade">
+        {{range .D.Prioridades}}{{if or $.D.PodeGerenciar (ne . "urgente")}}<option value="{{.}}" {{if eq . "normal"}}selected{{end}}>{{template "rotulo_prioridade" .}}</option>{{end}}{{end}}
+      </select>
+    </label>
+    {{if .D.PodeGerenciar}}
+    <label>Atribuir a
+      <select name="atribuido_a">
+        <option value="">— ninguém por enquanto —</option>
+        {{range .D.Tecnicos}}<option value="{{.ID}}" {{if eq .ID $.Sessao.Admin.ID}}selected{{end}}>{{if .Nome}}{{.Nome}}{{else}}{{.Usuario}}{{end}} ({{.RotuloPapel}})</option>{{end}}
+      </select>
+    </label>
+    <label>Máquina relacionada
+      <select name="maquina_id">
+        <option value="">— automática (último login do solicitante) —</option>
+        {{range .D.Maquinas}}<option value="{{.ID}}">{{.Hostname}}</option>{{end}}
+      </select>
+    </label>
+    {{end}}
+    {{template "zona_anexos" .D}}
+    <div class="cheio"><button class="btn primario">Abrir chamado</button> <a class="btn" href="/chamados">Cancelar</a></div>
+  </form>
+</section>
+{{end}}

@@ -1,0 +1,89 @@
+{{define "conteudo"}}
+<h1>Painel</h1>
+<div class="numeros">
+  <a class="numero" href="/maquinas"><b>{{.D.P.Total}}</b><span>máquinas</span></a>
+  <div class="numero"><b style="color:var(--verde)">{{.D.P.Ativas}}</b><span>ativas (até 7 dias)</span></div>
+  <div class="numero {{if .D.P.Ociosas}}amarelo{{end}}"><b>{{.D.P.Ociosas}}</b><span>ociosas (7 a 14 dias)</span></div>
+  <a class="numero {{if .D.P.Inativas}}vermelho{{end}}" href="/maquinas"><b>{{.D.P.Inativas}}</b><span>inativas (+14 dias)</span></a>
+  <a class="numero {{if .D.NAlertas}}amarelo{{end}}" href="/notificacoes"><b>{{.D.NAlertas}}</b><span>alertas</span></a>
+  <a class="numero {{if .D.Desatualizados}}amarelo{{end}}" href="/maquinas?filtro=desatualizadas"><b>{{.D.Desatualizados}}</b><span>agentes desatualizados</span></a>
+  <a class="numero {{if .D.SemAnyDesk}}vermelho{{end}}" href="/maquinas?filtro=sem_anydesk"><b>{{.D.SemAnyDesk}}</b><span>sem AnyDesk</span></a>
+</div>
+
+<div class="duas">
+<section class="cartao">
+  <h2>Nível do parque (saúde das máquinas)</h2>
+  {{.D.RoscaNivel}}
+  <p class="sub" style="margin-top:14px">
+    <a href="/maquinas?filtro=nivel_ok">OK: {{.D.NOK}}</a> ·
+    <a href="/maquinas?filtro=nivel_alerta">Alerta: {{.D.NAlerta}}</a> ·
+    <a href="/maquinas?filtro=nivel_critico">Crítico: {{.D.NCritico}}</a>.
+    Pontuação por processador, memória e disco. Ajuste os critérios em <a href="/admin">Administração</a>.
+  </p>
+</section>
+<section class="cartao">
+  <h2>Status das máquinas</h2>
+  {{.D.Rosca}}
+  <p class="sub" style="margin-top:14px">Inativa = sem se comunicar (sem ser ligada) há mais de 14 dias.</p>
+</section>
+<section class="cartao">
+  <h2>Precisam de atenção</h2>
+  <table class="tabela">
+    <tr><td>Disco quase cheio (&lt; 10% livre)</td><td style="text-align:right"><b>{{.D.P.DiscoCheio}}</b></td></tr>
+    <tr><td>Sem setor/responsável no cadastro</td><td style="text-align:right"><b>{{.D.P.SemCadastro}}</b></td></tr>
+    <tr><td>Sem AnyDesk instalado</td><td style="text-align:right">{{if .D.SemAnyDesk}}<a href="/maquinas?filtro=sem_anydesk" style="color:var(--vermelho);font-weight:700">{{.D.SemAnyDesk}}</a>{{else}}<b style="color:var(--verde)">0</b>{{end}}</td></tr>
+    <tr><td>Agentes desatualizados</td><td style="text-align:right"><a href="/maquinas?filtro=desatualizadas">{{.D.Desatualizados}}</a></td></tr>
+    <tr><td>Possíveis nomes genéricos / duplicados</td><td style="text-align:right"><a href="/notificacoes">ver alertas</a></td></tr>
+    {{if monitoradoAtivo}}<tr><td>Sem <b>{{.D.Monitorado}}</b> ou com ele parado</td><td style="text-align:right">{{if .D.SemMonitorado}}<a href="/maquinas?filtro=sem_monitorado" style="color:var(--vermelho);font-weight:700">{{.D.SemMonitorado}}</a>{{else}}<b style="color:var(--verde)">0</b>{{end}}</td></tr>{{end}}
+  </table>
+  {{if monitoradoAtivo}}<p class="sub" style="margin-top:8px">Monitoramento: <b>{{.D.SemMonitorado}}</b> de {{.D.TotalMaq}} máquina(s) estão <b>sem {{.D.Monitorado}}</b> ou com ele parado. <a href="/maquinas?filtro=com_monitorado">ver quem tem</a> · ajuste o programa em <a href="/configuracoes#monitor">Configurações</a>.</p>{{end}}
+</section>
+</div>
+
+<div class="duas">
+<section class="cartao">
+  <h2>Sistemas operacionais</h2>
+  {{if .D.P.SOs}}{{.D.GrafSO}}{{else}}<p class="vazio">Sem dados.</p>{{end}}
+</section>
+<section class="cartao">
+  <h2>Máquinas por setor</h2>
+  {{if .D.P.Setores}}{{.D.GrafSetor}}{{else}}<p class="vazio">Sem dados. Preencha o setor na ficha de cada máquina.</p>{{end}}
+</section>
+</div>
+
+<div class="duas">
+<section class="cartao">
+  <h2>Versões do agente <span class="selo">atual v{{.D.VersaoAgente}}</span></h2>
+  {{.D.GrafVersoes}}
+  <p class="sub" style="margin-top:12px">Verde = na versão atual. {{if .D.Desatualizados}}<a href="/maquinas?filtro=desatualizadas">{{.D.Desatualizados}} máquina(s) desatualizada(s)</a> — <a href="/admin#auto-update">ver em que etapa cada uma parou</a>.{{else}}Todas as máquinas estão na versão atual.{{end}}</p>
+</section>
+<section class="cartao">
+  <h2>Exportar</h2>
+  <p><a class="btn primario" href="/exportar/inventario.xlsx">Planilha completa (.xlsx)</a>
+     <a class="btn" href="/exportar/maquinas.csv">Máquinas (.csv)</a>
+     <a class="btn" href="/exportar/usuarios.csv">Usuários (.csv)</a></p>
+</section>
+</div>
+
+{{if .D.Duplicados}}
+<section class="cartao destaque-erro">
+  <h2>MAC address duplicado</h2>
+  {{range .D.Duplicados}}
+  <div class="grupo"><code>{{.MAC}}</code> →
+    {{range $i, $m := .Maquinas}}{{if $i}}, {{end}}<a href="/maquinas/{{$m.ID}}">{{$m.Hostname}}</a> <small>(#{{$m.ID}}, {{rel $m.UltimoContato}})</small>{{end}}
+  </div>
+  {{end}}
+  <p><a class="btn" href="/duplicados">Resolver duplicados</a></p>
+</section>
+{{end}}
+
+<section class="cartao">
+  <h2>Últimos contatos</h2>
+  <table class="tabela">
+    <tr><th>Máquina</th><th>Último usuário</th><th>Contato</th></tr>
+    {{range .D.Recentes}}
+    <tr><td><span class="ponto {{status .UltimoContato}}"></span><a href="/maquinas/{{.ID}}">{{.Hostname}}</a></td><td>{{.UltimoUsuario}}</td><td>{{rel .UltimoContato}}</td></tr>
+    {{else}}<tr><td colspan="3" class="vazio">Nenhuma máquina ainda. Instale o agente em uma máquina para começar.</td></tr>{{end}}
+  </table>
+</section>
+{{end}}

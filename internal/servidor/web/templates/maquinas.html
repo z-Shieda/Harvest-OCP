@@ -1,0 +1,99 @@
+{{define "conteudo"}}
+<div class="cabecalho">
+  <h1>Máquinas</h1>
+  <div><a class="btn primario" href="/exportar/inventario.xlsx">Exportar .xlsx</a> <a class="btn" href="/exportar/maquinas.csv">Exportar .csv</a></div>
+</div>
+{{$csrf := .Sessao.CSRF}}{{$fsel := .D.Filtro}}
+<form class="busca" method="get">
+  <input name="q" value="{{.D.Q}}" placeholder="Buscar por nome, usuário, IP, MAC, serial, patrimônio, setor, modelo…">
+  <select name="filtro">
+    <option value="">Todas</option>
+    <option value="duplicadas" {{if eq $fsel "duplicadas"}}selected{{end}}>Com MAC duplicado</option>
+    <option value="genericas" {{if eq $fsel "genericas"}}selected{{end}}>Com nome genérico</option>
+    <option value="desatualizadas" {{if eq $fsel "desatualizadas"}}selected{{end}}>Agente desatualizado</option>
+    <option value="nivel_ok" {{if eq $fsel "nivel_ok"}}selected{{end}}>Nível: OK</option>
+    <option value="nivel_alerta" {{if eq $fsel "nivel_alerta"}}selected{{end}}>Nível: Alerta</option>
+    <option value="nivel_critico" {{if eq $fsel "nivel_critico"}}selected{{end}}>Nível: Crítico</option>
+    {{if monitoradoAtivo}}<option value="sem_monitorado" {{if eq $fsel "sem_monitorado"}}selected{{end}}>Sem {{.D.Monitorado}}</option>
+    <option value="com_monitorado" {{if eq $fsel "com_monitorado"}}selected{{end}}>Com {{.D.Monitorado}}</option>{{end}}
+    {{if .D.Filtros}}<optgroup label="Filtros salvos">
+      {{range .D.Filtros}}<option value="{{.ID}}" {{if eq $fsel (printf "%d" .ID)}}selected{{end}}>{{.Nome}}</option>{{end}}
+    </optgroup>{{end}}
+  </select>
+  <button class="btn">Filtrar</button>
+</form>
+{{if .D.NomeFiltro}}<p class="sub">Filtro aplicado: <b>{{.D.NomeFiltro}}</b> — {{len .D.Maquinas}} máquina(s). <a href="/maquinas">limpar</a></p>{{end}}
+
+<details class="cartao" style="margin-bottom:14px">
+  <summary style="cursor:pointer;font-weight:600">Criar filtro personalizado</summary>
+  <form method="post" action="/filtros/criar" class="linha-form" style="margin-top:12px">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <input name="nome" placeholder="nome do filtro (ex.: Notebooks EMC)" required style="flex:1">
+    <select name="campo">
+      <optgroup label="Texto">
+        <option value="hostname">Nome da máquina</option>
+        <option value="usuario">Usuário</option>
+        <option value="so">Sistema</option>
+        <option value="setor">Setor</option>
+        <option value="responsavel">Responsável</option>
+        <option value="ip">IP</option>
+        <option value="mac">MAC</option>
+        <option value="modelo">Modelo</option>
+        <option value="patrimonio">Patrimônio</option>
+        <option value="cpu">Processador</option>
+        <option value="ssd">Tem SSD (sim/nao)</option>
+        <option value="programa">Programa instalado</option>
+      </optgroup>
+      <optgroup label="Número">
+        <option value="ram">RAM (GB)</option>
+        <option value="disco">Disco total (GB)</option>
+        <option value="nucleos">Núcleos da CPU</option>
+      </optgroup>
+    </select>
+    <select name="operador">
+      <option value="contem">contém</option>
+      <option value="nao_contem">não contém</option>
+      <option value="comeca">começa com</option>
+      <option value="igual">é igual a</option>
+      <option value="maior_igual">≥ (número)</option>
+      <option value="menor_igual">≤ (número)</option>
+    </select>
+    <input name="valor" placeholder="valor (ex.: EMC, i7, 8, sim)" style="flex:1">
+    <button class="btn">Salvar filtro</button>
+  </form>
+  {{if .D.Filtros}}
+  <table class="tabela" style="margin-top:10px">
+    <tr><th>Filtro salvo</th><th>Regra</th><th></th></tr>
+    {{range .D.Filtros}}
+    <tr><td><a href="/maquinas?filtro={{.ID}}">{{.Nome}}</a></td><td><small>{{.Campo}} {{.Operador}} "{{.Valor}}"</small></td>
+      <td><form method="post" action="/filtros/{{.ID}}/excluir"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn link">excluir</button></form></td></tr>
+    {{end}}
+  </table>
+  {{end}}
+</details>
+<div class="rolagem">
+<table class="tabela lista">
+  <tr><th></th><th>Máquina</th><th>Nível</th><th>Agente</th><th>Último usuário</th><th>Sistema</th><th>Processador</th><th>RAM</th><th>Disco</th><th>IP</th><th>MAC</th><th>Patrimônio / Setor</th><th>Contato</th></tr>
+  {{range .D.Maquinas}}
+  <tr class="{{if .Duplicada}}linha-dup{{end}}">
+    <td><span class="ponto {{status .UltimoContato}}" title="{{data .UltimoContato}}"></span></td>
+    <td><a href="/maquinas/{{.ID}}"><b>{{.Hostname}}</b></a>{{if .Duplicada}} <span class="selo vermelho">MAC duplicado</span>{{end}}<br><small>{{.Fabricante}} {{.Modelo}}</small>
+      {{if .AnyDeskID}}<br><small title="AnyDesk {{rotuloAnyDesk .AnyDeskSituacao}}">AnyDesk <span class="mono">{{anydesk .AnyDeskID}}</span>{{if eq .AnyDeskSituacao "portatil"}} <span class="selo contorno-amar">portátil</span>{{end}}</small>
+      {{else if anydeskAusente .AnyDeskSituacao}}<br><span class="selo contorno-verm">sem AnyDesk</span>{{end}}
+      {{if monitoradoAtivo}}{{if eq .MonitorSituacao "sem"}} <span class="selo contorno-verm">sem {{$.D.Monitorado}}</span>{{else if eq .MonitorSituacao "parado"}} <span class="selo contorno-amar">{{$.D.Monitorado}} parado</span>{{end}}{{end}}</td>
+    <td>{{$av := index $.D.Aval .ID}}{{if eq $av.Classe "OK"}}<span class="selo verde">OK</span>{{else if eq $av.Classe "Alerta"}}<span class="selo amarelo">Alerta</span>{{else}}<span class="selo vermelho">Crítico</span>{{end}}<br><small>{{$av.Pontos}}/10</small></td>
+    <td>{{if .VersaoAgente}}{{if eq (serie .VersaoAgente) (serie $.D.Versao)}}<span class="selo verde">v{{.VersaoAgente}}</span>{{else}}<span class="selo" title="versão atual: v{{$.D.Versao}}">v{{.VersaoAgente}} ⚠</span>{{end}}{{else}}<span class="selo">—</span>{{end}}</td>
+    <td>{{.UltimoUsuario}}{{if .UltimoUsuarioNome}}<br><small>{{.UltimoUsuarioNome}}</small>{{end}}</td>
+    <td>{{.SO}}<br><small>{{.SOVersao}} {{.SOBuild}}</small></td>
+    <td><small>{{.CPU}}</small></td>
+    <td>{{gb .RAM}}</td>
+    <td>{{gb .DiscoTotal}}</td>
+    <td><small>{{.IPs}}</small></td>
+    <td><small class="mono">{{.MACs}}</small></td>
+    <td>{{.Patrimonio}}<br><small>{{.Setor}}</small></td>
+    <td><small>{{rel .UltimoContato}}</small></td>
+  </tr>
+  {{else}}<tr><td colspan="13" class="vazio">Nenhuma máquina encontrada.</td></tr>{{end}}
+</table>
+</div>
+{{end}}

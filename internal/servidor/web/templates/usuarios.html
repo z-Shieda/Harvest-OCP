@@ -1,0 +1,30 @@
+{{define "conteudo"}}
+<div class="cabecalho">
+  <h1>Usuários</h1>
+  <div><a class="btn" href="/exportar/usuarios.csv">Exportar .csv</a></div>
+</div>
+{{if .D.Duplicados}}
+<section class="cartao destaque-aviso">
+  <h2>Possíveis duplicados</h2>
+  <p>Logins com o mesmo nome em domínios/formatos diferentes. Abra um deles para editar, mesclar ou excluir.</p>
+  {{range .D.Duplicados}}<div class="grupo">{{range $i, $u := .}}{{if $i}} · {{end}}<a href="/usuarios/{{$u.ID}}">{{$u.Login}}</a> <small>({{$u.QtdMaquinas}} máq.)</small>{{end}}</div>{{end}}
+</section>
+{{end}}
+<form method="post" action="/usuarios/locais" style="margin:0 0 12px">
+  <input type="hidden" name="csrf" value="{{.Sessao.CSRF}}">
+  <label class="chave"><input type="checkbox" name="ocultar" value="1" {{if .D.Ocultar}}checked{{end}} onchange="this.form.requestSubmit()"><span class="trilho-chave" aria-hidden="true"></span><span class="rotulo-chave"><b>Esconder usuários locais</b><small>contas da própria máquina (PC-XX\Usuario, .\Admin, sem domínio) e as marcadas como local{{if .D.Locais}} — {{.D.Locais}} {{if .D.Ocultar}}escondido(s){{else}}na lista{{end}}{{end}}</small></span></label>
+</form>
+<form class="busca" method="get">
+  <input name="q" value="{{.D.Q}}" placeholder="Buscar por login, nome, e-mail ou setor…">
+  <button class="btn">Buscar</button>
+</form>
+<div class="rolagem">
+<table class="tabela lista">
+  <tr><th>Login</th><th>Nome</th><th>Setor</th><th>E-mail</th><th>Máquinas</th><th>Último visto</th></tr>
+  {{range .D.Usuarios}}
+  <tr><td><a href="/usuarios/{{.ID}}"><b>{{.Login}}</b></a>{{if .Local}} <span class="selo">local</span>{{end}}{{if .Apelidos}}<br><small>também: {{.Apelidos}}</small>{{end}}</td><td>{{.Nome}}</td><td>{{.Setor}}</td><td>{{.Email}}</td>
+    <td><small>{{.Maquinas}}</small></td><td><small>{{rel .UltimoVisto}}</small></td></tr>
+  {{else}}<tr><td colspan="6" class="vazio">Nenhum usuário.</td></tr>{{end}}
+</table>
+</div>
+{{end}}

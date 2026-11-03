@@ -1,0 +1,323 @@
+{{define "conteudo"}}
+{{$csrf := .Sessao.CSRF}}
+<h1>Administração</h1>
+<div class="duas">
+<section class="cartao">
+  <h2>Instalação do agente</h2>
+  <p>Execute em cada máquina (como administrador):</p>
+  <pre class="codigo">inventario-agente.exe -instalar -servidor {{.D.URL}} -token {{.D.Token}}</pre>
+  <p class="sub">Use o IP ou nome da máquina do servidor que as estações enxergam na rede. O agente envia o inventário a cada 4 horas, a cada logon e na inicialização.</p>
+  <h3>Endereço do servidor para os agentes</h3>
+  <p class="sub">Defina aqui o endereço fixo que as estações usam para falar com o servidor (ex.: <code>http://10.100.21.114:8080</code> ou, no futuro, o endereço da nuvem). Se ficar vazio, o instalador usa o endereço pelo qual você abriu o painel — por isso, abrindo em <code>localhost</code>, o agente sairia apontando para localhost. <b>Preencha para corrigir isso.</b></p>
+  <form method="post" action="/admin/endereco" class="linha-form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <input name="endereco" value="{{.D.EnderecoFixo}}" placeholder="http://10.100.21.114:8080" style="flex:1">
+    <button class="btn">Salvar endereço</button>
+  </form>
+  <h3>Baixar o instalador <span class="selo">agente v{{.D.VersaoAgente}}</span></h3>
+  <p class="sub">O pacote já vem com o endereço deste servidor e o token preenchidos. Para instalar em uma máquina, descompacte e execute o <code>instalar.bat</code> como administrador.</p>
+  <p>
+    <a class="btn primario" href="/admin/agente/zip">Baixar pacote (.zip)</a>
+    <a class="btn" href="/admin/agente/exe">Só o agente (.exe)</a>
+    <a class="btn" href="/admin/agente/config">Só o config.json</a>
+  </p>
+  <p class="sub">O pacote inclui um modelo para implantação por GPO e o código para gerar um instalador <code>.msi</code> com o WiX Toolset (instruções no LEIA.txt).</p>
+  <h3 id="token">Token dos agentes</h3>
+  <pre class="codigo">{{.D.Token}}</pre>
+  <form method="post" action="/admin/token" onsubmit="return confirm('Gerar um novo token? Os agentes já instalados deixarão de enviar até serem reconfigurados.')">
+    <input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn perigo pequeno">Gerar novo token</button>
+  </form>
+  {{if .D.TokensRecusados}}
+  <div class="aviso erro" style="margin-top:14px"><b>Máquinas sendo recusadas por token inválido</b> (últimos 30 dias). Elas não conseguem mandar inventário nem receber o auto-update.
+    Se o token é de uma instalação anterior deste servidor, clique em <b>Aceitar</b>: elas voltam a enviar no próximo contato.</div>
+  <div class="rolagem"><table class="tabela lista">
+    <tr><th>Token</th><th>Máquina</th><th>IP</th><th>Agente</th><th>Tentativas</th><th>Última</th><th></th></tr>
+    {{range .D.TokensRecusados}}<tr><td><code>{{.Prefixo}}</code></td><td>{{if .Hostnames}}<b>{{.Hostnames}}</b>{{else}}<small>?</small>{{end}}</td><td><small>{{.IP}}</small></td><td><small>{{if .Versao}}v{{.Versao}}{{end}}</small></td><td>{{.Tentativas}}</td><td><small>{{rel .Ultimo}}</small></td>
+      <td><form method="post" action="/admin/token/aceitar" onsubmit="return confirm('Aceitar o token {{.Prefixo}}? Qualquer agente com esse token poderá enviar inventário.')"><input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="id" value="{{.ID}}"><button class="btn primario pequeno">Aceitar</button></form></td></tr>{{end}}
+  </table></div>
+  {{end}}
+  {{if .D.TokensAceitos}}
+  <p class="sub" style="margin-top:12px">Tokens anteriores também aceitos:
+    {{range .D.TokensAceitos}}<form method="post" action="/admin/token/remover" style="display:inline" onsubmit="return confirm('Remover? Agentes antigos (antes da 1.11.2) com esse token voltam a ser recusados.')"><input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="i" value="{{.I}}"><code>{{.Prefixo}}</code> <button class="btn link">remover</button></form> {{end}}
+    <br>Agentes 1.11.2+ passam sozinhos para o token atual; remova o antigo quando nenhuma máquina aparecer recusada.</p>
+  {{end}}
+</section>
+<section class="cartao">
+  <h2>Aviso automático (webhook)</h2>
+  <p class="sub">Opcional. Quando um MAC duplicado é detectado, o servidor envia uma mensagem para este endereço (Microsoft Teams, Google Chat, Slack ou Discord — webhook de entrada). O alerta sempre aparece no painel.</p>
+  <form method="post" action="/admin/webhook" class="linha-form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <input name="webhook" value="{{.D.Webhook}}" placeholder="https://..." style="flex:1">
+    <button class="btn">Salvar</button>
+  </form>
+  {{if .D.Webhook}}<form method="post" action="/admin/webhook/testar" style="margin-top:8px"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn link">Enviar mensagem de teste</button></form>{{end}}
+  <h2 style="margin-top:24px">Backup</h2>
+  <p class="sub">Baixa uma cópia completa do banco de dados (pode ser feita com o sistema em uso). Para restaurar, pare o servidor e substitua o arquivo <code>inventario.db</code>.</p>
+  <a class="btn" href="/admin/backup">Baixar backup do banco</a>
+
+  <h2 style="margin-top:24px" id="importar">Importar banco de outro servidor</h2>
+  <p class="sub">Para levar tudo para um servidor novo (ex.: nuvem): no servidor antigo clique em <b>Baixar backup do banco</b>; aqui, no
+    servidor novo, envie o arquivo. Ele é conferido, o banco atual deste servidor vai para <code>backups\antes-de-importar-…</code> e o
+    servidor reinicia usando o importado — mesmos usuários e senhas, token dos agentes, chamados e inventário. O endereço deste
+    servidor é mantido.</p>
+  <form method="post" action="/admin/importar-banco" enctype="multipart/form-data" class="linha-form" onsubmit="return confirm('Substituir TODOS os dados deste servidor pelo banco enviado? O atual fica guardado em backups.')">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <input type="file" name="arquivo" accept=".db" required style="flex:1">
+    <input type="password" name="senha" placeholder="sua senha (confirmação)" required autocomplete="current-password">
+    <button class="btn perigo">Importar e reiniciar</button>
+  </form>
+</section>
+</div>
+
+<section class="cartao" id="chamados">
+  <h2>Chamados</h2>
+  <form method="post" action="/admin/chamados" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <div class="cheio">
+      <label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" name="publico" value="1" style="width:auto" {{if .D.ChamadosPublico}}checked{{end}}> Permitir abrir chamado sem login (rede interna)</label>
+      <div class="caixa-link" style="margin-top:6px"><input id="link-pub-admin" value="{{.D.LinkPublico}}" readonly><button type="button" class="btn pequeno" data-copiar="link-pub-admin">Copiar link</button></div>
+      <p class="dica">Divulgue este link (atalho na área de trabalho, intranet, e-mail). A pessoa escolhe o nome da lista do inventário e o computador é vinculado sozinho pelo IP. Limite: 10 chamados por hora por computador. Quando o login Microsoft/AD estiver pronto, esta página poderá exigir login.</p>
+    </div>
+    <div class="cheio"><b>Prazos de atendimento (SLA), em horas corridas</b></div>
+    {{range .D.SLA}}<label>{{.Rotulo}}<input name="sla_{{.Prioridade}}" type="number" min="1" max="2160" value="{{.Horas}}"></label>{{end}}
+    <div class="cheio">
+      <label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" name="avisar" value="1" style="width:auto" {{if .D.AvisarChamados}}checked{{end}}> Avisar no webhook: chamado novo, atribuição, resolução e resposta do solicitante</label>
+      <label style="margin-top:6px">Webhook só dos chamados <small class="sub">(opcional — vazio usa o mesmo do aviso de MAC duplicado)</small>
+        <input name="webhook_chamados" value="{{.D.WebhookChamados}}" placeholder="https://... (ex.: canal de suporte no Teams)"></label>
+    </div>
+    <div class="cheio"><button class="btn primario">Salvar configurações de chamados</button></div>
+  </form>
+  {{if or .D.WebhookChamados .D.Webhook}}<form method="post" action="/admin/chamados/testar" style="margin-top:8px"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn link">Enviar mensagem de teste para o webhook dos chamados</button></form>{{end}}
+</section>
+
+<section class="cartao" id="email">
+  <h2>E-mail dos chamados</h2>
+  <p class="sub">Use o SMTP do e-mail da empresa. Microsoft 365: <code>smtp.office365.com</code>, porta <code>587</code>, STARTTLS, com uma conta que tenha "SMTP autenticado" liberado. Gmail/Google Workspace: <code>smtp.gmail.com</code>, 587, com senha de app.</p>
+  <form method="post" action="/admin/email" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label>Servidor SMTP<input name="smtp_host" value="{{.D.SMTP.Host}}" placeholder="smtp.office365.com"></label>
+    <label>Porta<input name="smtp_porta" type="number" min="1" max="65535" value="{{.D.SMTP.Porta}}"></label>
+    <label>Segurança
+      <select name="smtp_seguranca">
+        <option value="starttls" {{if eq .D.SMTP.Seguranca "starttls"}}selected{{end}}>STARTTLS (porta 587)</option>
+        <option value="tls" {{if eq .D.SMTP.Seguranca "tls"}}selected{{end}}>TLS direto (porta 465)</option>
+        <option value="nenhuma" {{if eq .D.SMTP.Seguranca "nenhuma"}}selected{{end}}>Nenhuma (só relay interno, sem login)</option>
+      </select></label>
+    <label>Remetente (De)<input name="smtp_de" value="{{.D.SMTP.De}}" placeholder="Chamados TI &lt;ti@ocupacional.com.br&gt;"></label>
+    <label>Usuário do SMTP<input name="smtp_usuario" value="{{.D.SMTP.Usuario}}" placeholder="ti@ocupacional.com.br" autocomplete="off"></label>
+    <label>Senha do SMTP<input name="smtp_senha" type="password" placeholder="{{if .D.SMTPSenhaSalva}}•••••• (salva — deixe vazio para manter){{else}}senha ou senha de app{{end}}" autocomplete="new-password"></label>
+    <div class="cheio" style="border-top:1px solid var(--borda);padding-top:14px">
+      <label class="chave"><input type="checkbox" name="email_atribuicao" value="1" {{if .D.EmailAtribuicao}}checked{{end}}><span class="trilho-chave" aria-hidden="true"></span><span class="rotulo-chave"><b>E-mail para o responsável</b><small>quando um chamado é direcionado para alguém (inclusive o responsável automático)</small></span></label>
+      <label class="chave" style="margin-top:6px"><input type="checkbox" name="email_equipe" value="1" {{if .D.EmailEquipe}}checked{{end}}><span class="trilho-chave" aria-hidden="true"></span><span class="rotulo-chave"><b>E-mail para toda a equipe</b><small>todo chamado novo vai para admins e técnicos com e-mail cadastrado</small></span></label>
+    </div>
+    <label class="cheio">Responsável automático para chamados novos
+      <select name="responsavel_padrao">
+        <option value="">— ninguém (ficam sem responsável) —</option>
+        {{range .D.Tecnicos}}<option value="{{.ID}}" {{if eq .ID $.D.RespPadrao}}selected{{end}}>{{if .Nome}}{{.Nome}}{{else}}{{.Usuario}}{{end}}{{if .Email}} · {{.Email}}{{else}} · sem e-mail{{end}}</option>{{end}}
+      </select>
+      <span class="dica">Chamados abertos sem responsável (inclusive pela página sem login) já chegam atribuídos a essa pessoa, que recebe o e-mail.</span></label>
+    {{if .D.SMTPSenhaSalva}}<label class="cheio" style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="smtp_apagar_senha" value="1"> Apagar a senha salva</label>{{end}}
+    <div class="cheio"><button class="btn primario">Salvar e-mail</button></div>
+  </form>
+  <form method="post" action="/admin/email/testar" class="linha-form" style="margin-top:12px">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <input name="para" type="email" value="{{.D.MeuEmail}}" placeholder="enviar teste para…" aria-label="E-mail para o teste">
+    <button class="btn">Enviar e-mail de teste</button>
+  </form>
+  <p class="sub" style="margin-top:8px">Cada pessoa cadastra o próprio e-mail em <a href="/conta">Minha conta</a> (ou você edita na lista de usuários abaixo).</p>
+  <h3 style="margin-top:18px">Últimos envios</h3>
+  {{if .D.Envios}}
+  <div style="overflow-x:auto"><table class="tabela">
+    <tr><th>Quando</th><th>Situação</th><th>Para</th><th>Assunto</th></tr>
+    {{range .D.Envios}}<tr>
+      <td><small>{{data .Em}}</small></td>
+      <td>{{if .OK}}<span class="selo verde">enviado</span>{{else}}<span class="selo vermelho">falhou</span>{{end}}</td>
+      <td><small>{{.Para}}</small></td>
+      <td><small>{{if .ChamadoID}}<a href="/chamados/{{.ChamadoID}}">{{.Assunto}}</a>{{else}}{{.Assunto}}{{end}}</small>{{if .Erro}}<br><small style="color:var(--vermelho)">{{.Erro}}</small>{{end}}</td>
+    </tr>{{end}}
+  </table></div>
+  {{else}}<p class="vazio">Nenhum e-mail enviado ainda. Use "Enviar e-mail de teste" para conferir a configuração.</p>{{end}}
+  <p class="sub" style="margin-top:8px">"Enviado" significa que o servidor SMTP aceitou a mensagem. Se não chegar, olhe o spam e o rastreamento de mensagens do Microsoft 365.</p>
+</section>
+
+<div class="duas">
+<section class="cartao">
+  <h2 id="usuarios">Usuários e perfis</h2>
+  <p class="sub">Perfis: <b>Administrador</b> (tudo), <b>Técnico</b> (vê inventário e gerencia chamados) e <b>Usuário</b> (só abre/vê os próprios chamados, sem inventário). Por enquanto todos são contas locais; a estrutura já está pronta para o login com e-mail Microsoft no futuro.</p>
+  <table class="tabela">
+    <tr><th>Usuário</th><th>Perfil</th><th>Login</th><th></th></tr>
+    {{range .D.Admins}}
+    <tr>
+      <td><b>{{.Usuario}}</b>
+        <details style="margin-top:4px"><summary class="sub" style="cursor:pointer;font-size:12px">{{if .Nome}}{{.Nome}}{{else}}sem nome{{end}} · {{if .Email}}{{.Email}}{{else}}sem e-mail{{end}}</summary>
+          <form method="post" action="/admin/{{.ID}}/dados" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;min-width:220px">
+            <input type="hidden" name="csrf" value="{{$csrf}}">
+            <input name="nome" value="{{.Nome}}" placeholder="Nome completo" aria-label="Nome de {{.Usuario}}">
+            <input name="email" type="email" value="{{.Email}}" placeholder="e-mail para avisos" aria-label="E-mail de {{.Usuario}}">
+            <button class="btn pequeno">Salvar</button>
+          </form></details></td>
+      <td>
+        <form method="post" action="/admin/{{.ID}}/papel" class="linha-form">
+          <input type="hidden" name="csrf" value="{{$csrf}}">
+          <select name="papel" onchange="this.form.submit()">
+            <option value="admin" {{if eq .Papel "admin"}}selected{{end}}>Administrador</option>
+            <option value="tecnico" {{if eq .Papel "tecnico"}}selected{{end}}>Técnico</option>
+            <option value="usuario" {{if eq .Papel "usuario"}}selected{{end}}>Usuário</option>
+          </select>
+          <noscript><button class="btn pequeno">ok</button></noscript>
+        </form>
+      </td>
+      <td><small>{{if eq .Provedor "microsoft"}}Microsoft{{else}}local{{end}}</small></td>
+      <td>{{if ne .ID $.D.MeuID}}<form method="post" action="/admin/{{.ID}}/excluir" onsubmit="return confirm('Excluir o usuário {{.Usuario}}?')"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn link">excluir</button></form>{{else}}<small>(você)</small>{{end}}</td>
+    </tr>
+    {{end}}
+  </table>
+  <h3>Novo usuário</h3>
+  <form method="post" action="/admin/novo" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label>Usuário (login)<input name="usuario" placeholder="ex.: joao.silva" required></label>
+    <label>Senha (mín. 8)<input name="senha" type="password" required minlength="8"></label>
+    <label>Nome completo<input name="nome" placeholder="João da Silva"></label>
+    <label>E-mail corporativo<input name="email" type="email" placeholder="joao@ocupacional.com.br"></label>
+    <label>Perfil
+      <select name="papel">
+        <option value="tecnico">Técnico</option>
+        <option value="admin">Administrador</option>
+        <option value="usuario">Usuário</option>
+      </select>
+    </label>
+    <div class="cheio"><button class="btn primario">Criar usuário</button></div>
+  </form>
+  <p class="sub">Dica: o e-mail já pode ser o corporativo — quando ligarmos o login Microsoft, o usuário entra com esse mesmo e-mail e mantém o perfil.</p>
+</section>
+<section class="cartao">
+  <h2>Alterar minha senha</h2>
+  <form method="post" action="/admin/senha" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label>Senha atual<input name="atual" type="password" required autocomplete="current-password"></label>
+    <label>Nova senha<input name="nova" type="password" required minlength="8" autocomplete="new-password"></label>
+    <label>Confirmar nova senha<input name="confirma" type="password" required minlength="8" autocomplete="new-password"></label>
+    <button class="btn primario">Alterar senha</button>
+  </form>
+</section>
+</div>
+
+<section class="cartao">
+  <h2>Atualizar o servidor</h2>
+  <p class="sub">Versão atual: <b>{{.D.Versao}}</b>. Envie um novo <code>inventario-servidor.exe</code> para aplicar a atualização. O servidor guarda uma cópia da versão anterior (<code>inventario-servidor.antigo.exe</code>), troca o arquivo e reinicia sozinho — o banco de dados é preservado.</p>
+  <form method="post" action="/admin/atualizar" enctype="multipart/form-data" class="linha-form" onsubmit="return confirm('Aplicar a atualização agora? O servidor vai reiniciar e ficará fora do ar por alguns segundos.')">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <input type="file" name="arquivo" accept=".exe" required style="flex:1">
+    <button class="btn perigo">Enviar e atualizar</button>
+  </form>
+  <p class="sub">Faça um backup do banco antes, por garantia. Se algo der errado, pare o serviço e renomeie <code>inventario-servidor.antigo.exe</code> de volta para <code>inventario-servidor.exe</code>.</p>
+
+  <h3>Auto-update dos agentes</h3>
+  <p class="sub">Quando <b>ligado</b>, cada agente que entra em contato e está numa versão anterior
+    baixa e troca o próprio executável sozinho (na próxima execução da tarefa). Assim, basta
+    atualizar <b>este servidor</b> que as máquinas se atualizam sem reinstalação. O agente contata
+    o servidor a cada 1&nbsp;hora, no logon e na inicialização — então a frota migra sozinha ao
+    longo de algumas horas / no próximo logon.</p>
+  <form method="post" action="/admin/auto-update" class="linha-form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    {{if .D.AutoUpdate}}
+      <span class="selo verde">Ligado</span>
+      <input type="hidden" name="ativar" value="0">
+      <button class="btn">Desligar auto-update</button>
+    {{else}}
+      <span class="selo">Desligado</span>
+      <input type="hidden" name="ativar" value="1">
+      <button class="btn primario">Ligar auto-update</button>
+    {{end}}
+  </form>
+  <p><a class="btn" href="/admin/conexoes">Conexões em tempo real e teste de atualização →</a></p>
+  <h3 id="auto-update">Diagnóstico do auto-update <span class="selo">agente distribuído: v{{.D.VersaoAgente}}</span></h3>
+  {{if not .D.PayloadOK}}<div class="aviso erro">Este servidor não tem o agente v{{.D.VersaoAgente}} embutido — o auto-update está suspenso. Use o .exe do servidor entregue (ou compile com compilar.sh/compilar.ps1).</div>{{end}}
+  {{if .D.DiagAU}}
+  <p class="sub">Máquinas com agente anterior ao v{{.D.VersaoAgente}} e em que etapa cada uma parou. Atualiza a cada inventário recebido. Agentes 1.11+ também mandam o erro exato.</p>
+  <div class="rolagem">
+  <table class="tabela lista">
+    <tr><th>Máquina</th><th>Versão</th><th>Último contato</th><th>Situação</th></tr>
+    {{range .D.DiagAU}}<tr>
+      <td><a href="/maquinas/{{.ID}}"><b>{{.Hostname}}</b></a></td>
+      <td>v{{.Versao}}</td>
+      <td><small>{{rel .UltimoContato}}</small></td>
+      <td>{{if .Grave}}<span class="selo contorno-verm">{{.Etapa}}</span>{{else}}<span class="selo contorno-amar">{{.Etapa}}</span>{{end}}<br><small>{{.Texto}}</small></td>
+    </tr>{{end}}
+  </table>
+  </div>
+  {{else}}<p class="ok-texto">Todas as máquinas estão no agente v{{.D.VersaoAgente}}.</p>{{end}}
+</section>
+
+<section class="cartao" id="migrar">
+  <h2>Migrar os agentes para outro servidor</h2>
+  <p class="sub">Para mudar o servidor de endereço (por exemplo, para a nuvem) sem tocar em cada máquina: informe o novo endereço e o token dele. Conforme cada agente se comunicar com este servidor, ele receberá o aviso e passará a usar o novo — mas só depois de confirmar que o novo endereço responde. Mantenha este servidor no ar até todas terem migrado.</p>
+  {{if .D.Migracao.Destino}}
+    {{if .D.Migracao.Ativa}}
+    <div class="aviso erro">
+      <b>Migração AUTORIZADA e ativa</b> para <code>{{.D.Migracao.Destino}}</code>.
+      Os agentes estão migrando ao se comunicar. Ainda falando com <b>este</b> servidor (últimas 24 h): <b>{{.D.Migracao.AindaAqui}}</b> máquina(s).
+      Quando chegar a zero, todas as máquinas ativas já migraram e este servidor pode ser desligado.
+      (Este servidor acompanha {{.D.Migracao.Total}} máquina(s); o número de migradas aparece no painel do novo servidor.)
+    </div>
+    <form method="post" action="/admin/migrar/autorizar" style="margin-bottom:12px" onsubmit="return confirm('Pausar a migração? Os agentes que ainda não migraram permanecem neste servidor.')">
+      <input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="pausar" value="1">
+      <button class="btn">Pausar migração</button>
+    </form>
+    {{else}}
+    <div class="aviso alerta">
+      Destino configurado: <code>{{.D.Migracao.Destino}}</code>. A migração está <b>DESATIVADA</b> — nenhum agente será movido até você autorizar abaixo com sua senha.
+    </div>
+    <form method="post" action="/admin/migrar/autorizar" class="linha-form" style="margin-bottom:12px">
+      <input type="hidden" name="csrf" value="{{$csrf}}">
+      <input name="senha" type="password" placeholder="sua senha de administrador" required autocomplete="current-password" style="flex:1">
+      <button class="btn perigo">Autorizar migração</button>
+    </form>
+    {{end}}
+  {{end}}
+  <h3>Destino da migração</h3>
+  <form method="post" action="/admin/migrar" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label>Novo endereço do servidor<input name="destino" value="{{.D.Migracao.Destino}}" placeholder="https://inventario.suaempresa.com.br"></label>
+    <label>Token do novo servidor<input name="token" value="{{.D.MigrarToken}}" placeholder="token do servidor de destino"></label>
+    <label class="cheio">Fase canário (opcional): migrar só estas máquinas primeiro<input name="canario" value="{{.D.Canario}}" placeholder="PC-TI-01, NB-TI-03  (deixe vazio para migrar todas)"></label>
+    <button class="btn primario">Salvar destino</button>
+  </form>
+  <p class="sub">Dica de migração em fases: comece com alguns hostnames no campo canário, autorize, confira que migraram bem, depois limpe o campo (migra todas) e autorize de novo.</p>
+  <p class="sub">Salvar o destino não inicia nada: a migração só começa após a autorização com senha. Trocar o destino exige autorizar de novo.</p>
+  {{if .D.Migracao.Destino}}
+  <form method="post" action="/admin/migrar" style="margin-top:8px" onsubmit="return confirm('Cancelar a migração e apagar o destino? Os agentes permanecem neste servidor.')">
+    <input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="cancelar" value="1">
+    <button class="btn link">Cancelar migração</button>
+  </form>
+  {{end}}
+  <p class="sub">Observação: só funciona com agentes nesta versão em diante. Como alternativa (ou complemento), usar um nome de DNS fixo para o servidor permite trocar o destino só mudando o DNS, sem mexer nos agentes.</p>
+</section>
+
+<section class="cartao">
+  <h2>Critérios de nível das máquinas</h2>
+  <p class="sub">Define quando uma máquina é OK, Alerta ou Crítica no relatório do painel. A pontuação (máx. 10) soma: geração do processador (0–3), linha i3/i5/i7 (0–2), RAM (0–3) e armazenamento/SSD (0–2).</p>
+  <form method="post" action="/admin/criterios-nivel" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label>OK — pontuação mínima<input name="ok_min" type="number" min="1" max="10" value="{{.D.Nivel.OKMin}}"></label>
+    <label>Alerta — pontuação mínima<input name="alerta_min" type="number" min="1" max="10" value="{{.D.Nivel.AlertaMin}}"></label>
+    <label>RAM que força Crítico (GB, ≤)<input name="ram_critico" type="number" min="0" max="64" value="{{.D.Nivel.RAMCritico}}"></label>
+    <button class="btn primario">Salvar critérios</button>
+  </form>
+  <p class="sub">Padrão: OK ≥ 6, Alerta ≥ 4, Crítico &lt; 4 ou RAM ≤ 4 GB. As regras de pontos podem ser ajustadas no código em uma versão futura, se necessário.</p>
+</section>
+
+<section class="cartao">
+  <h2>Programa monitorado</h2>
+  <p class="sub">Agora fica em <a href="/configuracoes#monitor">Configurações → Programa monitorado</a>.</p>
+</section>
+
+<section class="cartao">
+  <h2>Registro de ações</h2>
+  <table class="tabela">
+    <tr><th>Quando</th><th>Administrador</th><th>Ação</th><th>Detalhe</th></tr>
+    {{range .D.Auditoria}}<tr><td><small>{{data .Em}}</small></td><td>{{.Admin}}</td><td>{{.Acao}}</td><td><small>{{.Detalhe}}</small></td></tr>
+    {{else}}<tr><td colspan="4" class="vazio">Nada ainda.</td></tr>{{end}}
+  </table>
+</section>
+{{end}}

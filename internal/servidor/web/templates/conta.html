@@ -1,0 +1,37 @@
+{{define "conteudo"}}
+{{$csrf := .Sessao.CSRF}}
+<h1>Minha conta</h1>
+<section class="cartao">
+  <table class="kv">
+    <tr><th>Usuário</th><td>{{.Sessao.Admin.Usuario}}</td></tr>
+    {{if .Sessao.Admin.Nome}}<tr><th>Nome</th><td>{{.Sessao.Admin.Nome}}</td></tr>{{end}}
+    {{if .Sessao.Admin.Email}}<tr><th>E-mail</th><td>{{.Sessao.Admin.Email}}</td></tr>{{end}}
+    <tr><th>Perfil</th><td>{{.Sessao.Admin.RotuloPapel}}</td></tr>
+  </table>
+</section>
+<section class="cartao">
+  <h2>Meus dados</h2>
+  <form method="post" action="/conta/dados" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label>Nome<input name="nome" value="{{.Sessao.Admin.Nome}}" placeholder="Seu nome"></label>
+    <label>E-mail (recebe os avisos de chamado)<input name="email" type="email" value="{{.Sessao.Admin.Email}}" placeholder="voce@ocupacional.com.br"></label>
+    <button class="btn primario">Salvar</button>
+  </form>
+</section>
+<section class="cartao">
+  <h2>Avisos no navegador</h2>
+  <p>O botão de alto-falante no topo liga ou desliga o <b>som e o aviso na tela</b> quando chega um chamado novo (com a página do sistema aberta em alguma aba).</p>
+  <p class="sub">A notificação do Windows (fora do navegador) só é permitida pelos navegadores em endereços <b>https</b>. Enquanto o sistema roda em http, o aviso aparece dentro da página, com som, e o título da aba pisca com a contagem.</p>
+</section>
+<section class="cartao">
+  <h2>Alterar minha senha</h2>
+  <form method="post" action="/conta/senha" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <input type="hidden" name="voltar" value="/conta">
+    <label>Senha atual<input name="atual" type="password" required autocomplete="current-password"></label>
+    <label>Nova senha<input name="nova" type="password" required minlength="8" autocomplete="new-password"></label>
+    <label>Confirmar nova senha<input name="confirma" type="password" required minlength="8" autocomplete="new-password"></label>
+    <button class="btn primario">Alterar senha</button>
+  </form>
+</section>
+{{end}}

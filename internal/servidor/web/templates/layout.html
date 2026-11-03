@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR"{{if .Sessao}}{{if .Sessao.Admin.TemaClaro}} data-tema="claro"{{end}}{{end}}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Titulo}} · Ocupacional TI</title>
+<link rel="icon" href="/static/simbolo-cor.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/estilo.css">
+<meta name="harvest-versao" content="{{.Versao}}">
+</head>
+<body{{if .Sessao}}{{if .Sessao.Admin.MenuLateral}} class="menu-lateral"{{end}}{{end}}>
+{{if .Sessao}}
+<header class="topo">
+  <a class="marca" href="/" aria-label="Início"><img src="/static/{{if .Sessao.Admin.TemaClaro}}logo-cor{{else}}logo-claro{{end}}.svg" alt="Ocupacional — A evolução da gestão de SST"></a>
+  <nav class="abas" aria-label="Menu principal">
+    {{if .Sessao.Admin.PodeGerenciarChamados}}<a href="/" class="{{if eq .Secao "inicio"}}ativo{{end}}">Início</a>{{end}}
+    <a href="/chamados" class="{{if eq .Secao "chamados"}}ativo{{end}}">Chamados{{if .Resumo.ChamadosAbertos}} <b>{{.Resumo.ChamadosAbertos}}</b>{{end}}</a>
+    {{if .Sessao.Admin.PodeInventario}}<a href="/inventario" class="{{if eq .Secao "inventario"}}ativo{{end}}">Inventário</a>{{end}}
+    {{if .Sessao.Admin.PodeInventario}}<a href="/ramais" class="{{if eq .Secao "ramais"}}ativo{{end}}">Ramais</a>{{end}}
+    {{if .Sessao.Admin.PodeGerenciarChamados}}<a href="/chamados/relatorios" class="{{if eq .Secao "relatorios"}}ativo{{end}}">Relatórios</a>{{end}}
+    {{if .Sessao.Admin.EhAdmin}}<a href="/admin" class="{{if eq .Secao "admin"}}ativo{{end}}">Administração</a>{{end}}
+    <a href="/configuracoes" class="{{if eq .Secao "config"}}ativo{{end}}" title="Configurações" aria-label="Configurações"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="rotulo-cfg">Configurações</span></a>
+  </nav>
+  <div class="usuario">
+    {{if .Sessao.Admin.PodeInventario}}<a class="icone-btn" href="/notificacoes" aria-label="Notificações"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>{{if .Resumo.MACDuplicados}}<span class="ponto-alerta"></span>{{end}}</a>{{end}}
+    {{if .Sessao.Admin.PodeGerenciarChamados}}<button type="button" class="icone-btn" id="btn-avisos" aria-label="Avisos de chamado novo (som)" title="Avisos de chamado novo"><svg class="som-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg><svg class="som-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg></button>{{end}}
+    <span class="avatar" aria-hidden="true">{{inicial .Sessao.Admin}}</span>
+    <div class="menu-usuario">
+      <b>{{if .Sessao.Admin.Nome}}{{.Sessao.Admin.Nome}}{{else}}{{.Sessao.Admin.Usuario}}{{end}}</b>
+      <span>{{.Sessao.Admin.RotuloPapel}}</span>
+      <div class="links"><a href="/conta">Minha conta</a>
+        <form method="post" action="/sair" class="sair"><input type="hidden" name="csrf" value="{{.Sessao.CSRF}}"><button class="btn link">Sair</button></form></div>
+    </div>
+  </div>
+</header>
+<nav class="subnav" aria-label="Seções">
+  {{if or (eq .Secao "chamados") (eq .Secao "relatorios")}}
+    <a href="/chamados" class="{{if eq .Menu "chamados"}}ativo{{end}}">Lista de chamados</a>
+    <a href="/chamados/novo" class="{{if eq .Menu "chamados_novo"}}ativo{{end}}">Novo chamado</a>
+    {{if .Sessao.Admin.PodeGerenciarChamados}}<a href="/chamados/relatorios" class="{{if eq .Menu "chamados_relatorio"}}ativo{{end}}">Relatórios</a>{{end}}
+    {{if .Sessao.Admin.EhAdmin}}<a href="/admin#chamados">Configurar chamados</a>{{end}}
+  {{else if or (eq .Secao "inventario") (eq .Secao "admin")}}
+    <a href="/inventario" class="{{if eq .Menu "painel"}}ativo{{end}}">Painel</a>
+    <a href="/maquinas" class="{{if eq .Menu "maquinas"}}ativo{{end}}">Máquinas <b>{{.Resumo.Maquinas}}</b></a>
+    <a href="/usuarios" class="{{if eq .Menu "usuarios"}}ativo{{end}}">Usuários <b>{{.Resumo.Usuarios}}</b></a>
+    <a href="/duplicados" class="{{if eq .Menu "duplicados"}}ativo{{end}}">Duplicados {{if .Resumo.MACDuplicados}}<b class="alerta">{{.Resumo.MACDuplicados}}</b>{{end}}</a>
+    <a href="/notificacoes" class="{{if eq .Menu "notificacoes"}}ativo{{end}}">Notificações</a>
+    <a href="/lixeira" class="{{if eq .Menu "lixeira"}}ativo{{end}}">Lixeira{{if .Resumo.Lixeira}} <b>{{.Resumo.Lixeira}}</b>{{end}}</a>
+    {{if .Sessao.Admin.EhAdmin}}<a href="/admin" class="{{if eq .Menu "admin"}}ativo{{end}}">Administração</a>
+    <a href="/admin/conexoes" class="{{if eq .Menu "admin_conexoes"}}ativo{{end}}">Conexões</a>{{end}}
+  {{end}}
+</nav>
+{{if .MigrandoPara}}<div class="faixa-alerta">Migração em andamento: as máquinas estão passando para <b>{{.MigrandoPara}}</b>. Abra chamados e use o painel no <a href="{{.MigrandoPara}}">servidor novo</a>; este fica no ar até a última máquina migrar.{{if .Sessao.Admin.EhAdmin}} <a href="/admin#migrar">ver andamento</a>{{end}}</div>{{end}}
+{{if and .Resumo.MACDuplicados .Sessao.Admin.PodeInventario (ne .Secao "inicio")}}
+<div class="faixa-alerta">Existem <b>{{.Resumo.MACDuplicados}}</b> MAC address duplicado(s) entre máquinas. <a href="/duplicados">Verificar agora</a></div>
+{{end}}
+<main>
+  {{if .Msg}}<div class="aviso ok">{{.Msg}}</div>{{end}}
+  {{if .Erro}}<div class="aviso erro">{{.Erro}}</div>{{end}}
+  {{template "conteudo" .}}
+</main>
+<footer>Ocupacional · Harvest v{{.Versao}} · desenvolvido por <a class="assinatura" href="https://www.linkedin.com/in/ccostadaniel/" target="_blank" rel="noopener">Daniel Costa</a> — T.I</footer>
+{{else}}
+<main class="sozinho">
+  {{if .Msg}}<div class="aviso ok">{{.Msg}}</div>{{end}}
+  {{if .Erro}}<div class="aviso erro">{{.Erro}}</div>{{end}}
+  {{template "conteudo" .}}
+</main>
+{{end}}
+<script src="/static/anexos.js" defer></script>
+<script src="/static/harvest.js" defer></script>
+{{if .Sessao}}{{if .Sessao.Admin.PodeGerenciarChamados}}<script src="/static/avisos.js" defer></script>{{end}}{{end}}
+</body>
+</html>
+
+{{/* ---------- partes reutilizadas pelas páginas de chamados ---------- */}}
+{{define "anexos"}}{{if .Lista}}<div class="anexos">{{range .Lista}}
+  {{if .EhImagem}}<a class="anexo img" href="{{$.Base}}/{{.ID}}" target="_blank" rel="noopener"><img src="{{$.Base}}/{{.ID}}" alt="{{.Nome}}" loading="lazy"><small>{{.Nome}} · {{.TamanhoTexto}}</small></a>
+  {{else}}<a class="anexo" href="{{$.Base}}/{{.ID}}?baixar=1">📎 {{.Nome}} <small>{{.TamanhoTexto}}</small></a>{{end}}
+{{end}}</div>{{end}}{{end}}
+
+{{define "zona_anexos"}}<div class="zona-anexos cheio">
+  <b>Anexos</b> <span>(opcional — até {{.MaxAnexos}} arquivos de {{.MaxAnexoMB}} MB; dá para <b>colar um print com Ctrl+V</b> ou arrastar arquivos aqui)</span><br>
+  <input type="file" name="anexos" multiple>
+  <div class="lista-arquivos"></div>
+</div>{{end}}
+
+{{define "selo_status"}}{{if eq . "aberto"}}<span class="selo vermelho">Aberto</span>{{else if eq . "em_andamento"}}<span class="selo amarelo">Em andamento</span>{{else if eq . "resolvido"}}<span class="selo verde">Resolvido</span>{{else}}<span class="selo">Fechado</span>{{end}}{{end}}
+
+{{define "selo_prioridade"}}{{if eq . "urgente"}}<span class="selo vermelho">Urgente</span>{{else if eq . "alta"}}<span class="selo amarelo">Alta</span>{{else if eq . "baixa"}}<span class="selo">Baixa</span>{{else}}<span class="selo">Normal</span>{{end}}{{end}}
+
+{{define "selo_prazo"}}{{$s := .SituacaoPrazo}}{{if eq $s "atrasado"}}<span class="selo contorno-verm" title="prazo: {{data .Prazo}}">⏰ {{.TextoPrazo}}</span>{{else if eq $s "vence"}}<span class="selo contorno-amar" title="prazo: {{data .Prazo}}">⏳ {{.TextoPrazo}}</span>{{else if eq $s "ok"}}<span class="selo" title="prazo: {{data .Prazo}}">{{.TextoPrazo}}</span>{{else if eq $s "cumprido"}}<span class="selo contorno-verde">✓ no prazo</span>{{else if eq $s "estourado"}}<span class="selo contorno-verm">fora do prazo</span>{{end}}{{end}}
+
+{{define "rotulo_status"}}{{if eq . "aberto"}}Aberto{{else if eq . "em_andamento"}}Em andamento{{else if eq . "resolvido"}}Resolvido{{else if eq . "fechado"}}Fechado{{else}}{{.}}{{end}}{{end}}
+{{define "rotulo_prioridade"}}{{if eq . "urgente"}}Urgente{{else if eq . "alta"}}Alta{{else if eq . "normal"}}Normal{{else if eq . "baixa"}}Baixa{{else}}{{.}}{{end}}{{end}}
+{{define "texto_evento"}}{{if eq .Tipo "criado"}}🆕 Chamado aberto ({{.Detalhe}}){{else if eq .Tipo "status"}}🔄 Status: {{.Detalhe}}{{else if eq .Tipo "prioridade"}}⚑ Prioridade: {{.Detalhe}}{{else if eq .Tipo "responsavel"}}👤 {{.Detalhe}}{{else if eq .Tipo "categoria"}}🏷 Categoria: {{.Detalhe}}{{else if eq .Tipo "maquina"}}🖥 {{.Detalhe}}{{else if eq .Tipo "anexo"}}📎 Anexo: {{.Detalhe}}{{else if eq .Tipo "email"}}✉ {{.Detalhe}}{{else if eq .Tipo "anydesk"}}🖥 {{.Detalhe}}{{else}}{{.Detalhe}}{{end}}{{end}}
+
+{{/* campo de setor: lista fechada (Configurações → Setores) ou texto livre */}}
+{{define "campo_setor"}}{{$fixos := setoresFixos}}{{if $fixos}}<select name="setor"{{if .Obrigatorio}} required{{end}}>
+  <option value="">{{if .Placeholder}}{{.Placeholder}}{{else}}— escolha o setor —{{end}}</option>
+  {{range $fixos}}<option{{if eq . $.Valor}} selected{{end}}>{{.}}</option>{{end}}
+  {{if and .Valor (not (contem $fixos .Valor))}}<option selected value="{{.Valor}}">{{.Valor}} (fora da lista)</option>{{end}}
+</select>{{else}}<input name="setor" value="{{.Valor}}"{{if .Placeholder}} placeholder="{{.Placeholder}}"{{end}}{{if .Lista}} list="setores" autocomplete="off"{{end}}>{{end}}{{end}}

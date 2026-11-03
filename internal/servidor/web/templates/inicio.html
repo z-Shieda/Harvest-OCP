@@ -1,0 +1,107 @@
+{{define "conteudo"}}
+{{$d := .D}}
+<h1 style="position:absolute;left:-9999px">Início</h1>
+<div class="bento">
+
+  <section class="heroi">
+    <img class="marca-dagua" src="/static/simbolo-cor.svg" alt="" aria-hidden="true">
+    <div style="position:relative">
+      <p class="saudacao">{{$d.Saudacao}}, {{$d.Nome}} · {{$d.Data}}</p>
+      <p class="grande">{{$d.Abertos}}</p>
+      <p class="legenda">{{if eq $d.Abertos 1}}chamado em aberto{{else}}chamados em aberto{{end}}</p>
+      <p class="detalhe">{{$d.Detalhes}}</p>
+    </div>
+    <div class="botoes">
+      <a class="btn-escuro" href="/chamados?status=abertos">Abrir a fila</a>
+      <a class="btn-contorno" href="/chamados/novo">+ Novo chamado</a>
+    </div>
+  </section>
+
+  <section class="cartao" style="display:flex;flex-direction:column;justify-content:space-between">
+    <h2>No prazo · 30 dias</h2>
+    {{if ge $d.PctPrazo 0}}
+    <p class="valor">{{$d.PctPrazo}}<span class="acento">%</span></p>
+    <div class="progresso" role="img" aria-label="{{$d.PctPrazo}}% resolvidos dentro do prazo"><span style="width:{{$d.PctPrazo}}%"></span></div>
+    {{else}}
+    <p class="valor">—</p>
+    <div class="progresso"><span style="width:0"></span></div>
+    {{end}}
+    <p class="sub" style="margin:12px 0 0;font-size:13px">{{$d.Resolvidos}} resolvidos · média {{$d.Media}}</p>
+  </section>
+
+  <section class="cartao" style="display:flex;flex-direction:column;gap:8px">
+    <h2>Servidor</h2>
+    <div style="display:flex;align-items:center;gap:10px"><span class="status-on"></span><b style="font:700 22px Montserrat,sans-serif">Online</b></div>
+    <p class="sub" style="margin:0;font-size:13px;word-break:break-all">v{{$d.Versao}} · {{$d.Endereco}}</p>
+    <p class="sub" style="margin:0;font-size:13px">Último backup: {{if $d.UltimoBackup}}{{rel $d.UltimoBackup}}{{else}}ainda não feito{{end}}</p>
+    <p class="sub" style="margin:0;font-size:13px">Agentes em dia (24 h): <b style="color:var(--texto)">{{$d.EmDia}}%</b></p>
+  </section>
+
+  <section class="cartao">
+    <h2>Parque</h2>
+    <p class="valor" style="font-size:48px">{{$d.Maquinas}} <small>máquinas</small></p>
+    <div class="empilhada" role="img" aria-label="Nível das máquinas: {{$d.NOK}} OK, {{$d.NAlerta}} alerta, {{$d.NCritico}} crítico">
+      {{if $d.NOK}}<span style="flex:{{$d.NOK}};background:var(--pri)"></span>{{end}}
+      {{if $d.NAlerta}}<span style="flex:{{$d.NAlerta}};background:var(--amarelo)"></span>{{end}}
+      {{if $d.NCritico}}<span style="flex:{{$d.NCritico}};background:var(--vermelho)"></span>{{end}}
+      {{if not $d.Maquinas}}<span style="flex:1;background:var(--borda)"></span>{{end}}
+    </div>
+    <div class="legenda-linha">
+      <a href="/maquinas?filtro=nivel_ok" style="color:inherit">OK {{$d.NOK}}</a>
+      <a href="/maquinas?filtro=nivel_alerta" style="color:inherit">Alerta {{$d.NAlerta}}</a>
+      <a href="/maquinas?filtro=nivel_critico" style="color:inherit">Crítico {{$d.NCritico}}</a>
+    </div>
+  </section>
+
+  <section class="cartao">
+    <h2>Pedem atenção</h2>
+    <div class="lista-atencao">
+      <a href="/duplicados"><span>MAC duplicado</span><b style="color:{{if $d.MACDup}}var(--amarelo){{else}}var(--sub){{end}}">{{$d.MACDup}}</b></a>
+      {{if monitoradoAtivo}}<a href="/maquinas?filtro=sem_monitorado"><span>Sem {{$d.Monitorado}}</span><b style="color:{{if $d.SemMonitorado}}var(--amarelo){{else}}var(--sub){{end}}">{{$d.SemMonitorado}}</b></a>
+      {{else}}<a href="/maquinas?filtro=desatualizadas"><span>Agente desatualizado</span><b style="color:{{if $d.Desatualizados}}var(--amarelo){{else}}var(--sub){{end}}">{{$d.Desatualizados}}</b></a>{{end}}
+      <a href="/notificacoes"><span>Disco com menos de 10%</span><b style="color:{{if $d.DiscoCheio}}var(--vermelho){{else}}var(--sub){{end}}">{{$d.DiscoCheio}}</b></a>
+      <a href="/maquinas?filtro=sem_anydesk"><span>Sem AnyDesk</span><b style="color:{{if $d.SemAnyDesk}}var(--amarelo){{else}}var(--sub){{end}}">{{$d.SemAnyDesk}}</b></a>
+      <a href="/maquinas?filtro=genericas"><span>Nome genérico (DESKTOP-…)</span><b style="color:{{if $d.Genericos}}var(--amarelo){{else}}var(--sub){{end}}">{{$d.Genericos}}</b></a>
+    </div>
+  </section>
+
+  <section class="cartao b2 fila">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h2 style="margin:0">Fila</h2><a href="/chamados?status=abertos" style="font-size:13px;font-weight:600">Ver todos →</a></div>
+    {{range $d.Fila}}
+    <a class="item" href="/chamados/{{.C.ID}}">
+      <span class="marcador {{.Situacao}}"></span>
+      <span style="flex:1;min-width:0"><b>#{{.C.ID}} {{.C.Titulo}}</b><br><small>{{.C.Solicitante}}{{if .C.MaquinaHostname}} · {{.C.MaquinaHostname}}{{end}} · {{.Responsavel}}</small></span>
+      <span class="prazo {{.Situacao}}">{{.PrazoCurto}}</span>
+    </a>
+    {{else}}<p class="vazio" style="border-top:1px solid var(--borda);padding-top:12px;margin:0">Nenhum chamado em aberto. Tudo em dia!</p>{{end}}
+  </section>
+
+  <section class="cartao b2">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">Semana</h2><span class="sub" style="font-size:13px">chamados abertos por dia</span></div>
+    <div class="colunas" role="img" aria-label="Chamados abertos por dia nesta semana: {{range $i, $x := $d.Semana}}{{if $i}}, {{end}}{{$x.Rotulo}} {{$x.Qtd}}{{end}}">
+      {{range $d.Semana}}<div class="dia{{if .Hoje}} hoje{{end}}"><b>{{.Qtd}}</b><div class="col" style="height:{{.Altura}}px"></div><span>{{.Rotulo}}</span></div>{{end}}
+    </div>
+  </section>
+
+  <section class="cartao b2">
+    <h2>Atalhos</h2>
+    <div class="grade-atalhos">
+      <a class="atalho" href="/exportar/inventario.xlsx"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ADDA23" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8l8 8M16 8l-8 8"/></svg>Exportar Excel</a>
+      <a class="atalho" href="/duplicados"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ADDA23" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>Duplicados</a>
+      {{if $d.EhAdmin}}<a class="atalho" href="/admin/agente/zip"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ADDA23" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>Baixar agente</a>
+      <a class="atalho" href="/admin/backup"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ADDA23" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>Backup</a>{{end}}
+      {{if $d.PublicoAtivo}}<button type="button" class="atalho" data-copiar-texto="{{$d.LinkPublico}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ADDA23" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><span>Copiar link de chamados</span></button>{{end}}
+      <a class="atalho" href="/chamados/relatorios"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ADDA23" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Relatórios</a>
+    </div>
+  </section>
+
+  <section class="cartao b2">
+    <h2>Por categoria · 30 dias</h2>
+    {{if $d.Categorias}}
+    <div class="barras-h">
+      {{range $d.Categorias}}<div class="l"><span>{{.Rotulo}}</span><span class="t"><i style="width:{{.Pct}}%"></i></span><b>{{.Qtd}}</b></div>{{end}}
+    </div>
+    {{else}}<p class="vazio" style="margin:0">Nenhum chamado aberto nos últimos 30 dias.</p>{{end}}
+  </section>
+</div>
+{{end}}

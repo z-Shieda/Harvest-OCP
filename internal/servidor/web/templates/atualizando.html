@@ -1,0 +1,9 @@
+{{define "conteudo"}}
+<div class="cartao login" style="text-align:center">
+  <h1>{{if .D.Mensagem}}Importando o banco…{{else}}Atualizando o servidor…{{end}}</h1>
+  <p class="sub">{{if .D.Mensagem}}{{.D.Mensagem}}{{else}}O servidor está aplicando a atualização e reiniciando. Isso leva cerca de 15 segundos.{{end}}</p>
+  <p>Esta página tenta voltar ao painel sozinha.</p>
+  <p><a class="btn primario" href="/">Voltar ao painel</a></p>
+  <script>setTimeout(function(){ location.href='/'; }, 15000);</script>
+</div>
+{{end}}

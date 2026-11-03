@@ -1,0 +1,70 @@
+{{define "conteudo"}}
+{{$f := .D.F}}
+<div class="cabecalho">
+  <h1>Chamados</h1>
+  <div>
+    {{if .D.PodeGerenciar}}<a class="btn" href="/chamados/exportar.csv?status={{$f.Status}}&resp={{$f.Responsavel}}&q={{$f.Busca}}{{if $f.Atrasados}}&atrasados=1{{end}}">Exportar CSV</a>{{end}}
+    <a class="btn primario" href="/chamados/novo">+ Novo chamado</a>
+  </div>
+</div>
+
+{{if .D.PodeGerenciar}}
+{{if .D.PublicoAtivo}}
+<div class="aviso alerta" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+  <span>Funcionários abrem chamados sem login em:</span>
+  <span class="caixa-link" style="flex:1;min-width:260px"><input id="link-publico" value="{{.D.LinkPublico}}" readonly><button type="button" class="btn pequeno" data-copiar="link-publico">Copiar</button></span>
+</div>
+{{end}}
+<div class="atalhos">
+  <a href="/chamados?status=abertos" class="{{if and (eq $f.Status "abertos") (not $f.Atrasados) (eq $f.Responsavel "")}}ativo{{end}}">Em aberto</a>
+  <a href="/chamados?status=abertos&resp=meus" class="{{if eq $f.Responsavel "meus"}}ativo{{end}}">Meus</a>
+  <a href="/chamados?status=abertos&resp=sem" class="{{if eq $f.Responsavel "sem"}}ativo{{end}}">Sem responsável{{if .D.SemResponsavel}} ({{.D.SemResponsavel}}){{end}}</a>
+  <a href="/chamados?status=abertos&atrasados=1" class="{{if $f.Atrasados}}ativo{{end}}">Atrasados{{if .D.Atrasados}} ({{.D.Atrasados}}){{end}}</a>
+  <a href="/chamados?status=resolvido" class="{{if eq $f.Status "resolvido"}}ativo{{end}}">Resolvidos</a>
+  <a href="/chamados?status=" class="{{if and (eq $f.Status "") (eq $f.Responsavel "") (not $f.Atrasados)}}ativo{{end}}">Todos</a>
+</div>
+{{end}}
+
+<form class="filtros-chamados" method="get">
+  <input type="search" name="q" value="{{$f.Busca}}" placeholder="Buscar por número, título, solicitante, setor ou máquina…">
+  <select name="status">
+    <option value="" {{if eq $f.Status ""}}selected{{end}}>Todos os status</option>
+    <option value="abertos" {{if eq $f.Status "abertos"}}selected{{end}}>Aberto + em andamento</option>
+    <option value="aberto" {{if eq $f.Status "aberto"}}selected{{end}}>Aberto</option>
+    <option value="em_andamento" {{if eq $f.Status "em_andamento"}}selected{{end}}>Em andamento</option>
+    <option value="resolvido" {{if eq $f.Status "resolvido"}}selected{{end}}>Resolvido</option>
+    <option value="fechado" {{if eq $f.Status "fechado"}}selected{{end}}>Fechado</option>
+  </select>
+  {{if .D.PodeGerenciar}}
+  <select name="resp">
+    <option value="">Qualquer responsável</option>
+    <option value="meus" {{if eq $f.Responsavel "meus"}}selected{{end}}>Atribuídos a mim</option>
+    <option value="sem" {{if eq $f.Responsavel "sem"}}selected{{end}}>Sem responsável</option>
+    {{range .D.Tecnicos}}<option value="{{.ID}}" {{if eq (printf "%d" .ID) $f.Responsavel}}selected{{end}}>{{if .Nome}}{{.Nome}}{{else}}{{.Usuario}}{{end}}</option>{{end}}
+  </select>
+  {{if $f.Atrasados}}<input type="hidden" name="atrasados" value="1">{{end}}
+  {{end}}
+  <button class="btn">Filtrar</button>
+</form>
+
+<div class="rolagem">
+<table class="tabela lista">
+  <tr><th>#</th><th>Chamado</th><th>Status</th><th>Prioridade</th><th>Prazo</th><th>Responsável</th><th>Máquina</th><th>Atualizado</th></tr>
+  {{range .D.Chamados}}
+  {{$sp := .SituacaoPrazo}}
+  <tr class="{{if eq $sp "atrasado"}}prazo-atrasado{{else if eq $sp "vence"}}prazo-vence{{end}}">
+    <td>#{{.ID}}</td>
+    <td><a href="/chamados/{{.ID}}"><b>{{.Titulo}}</b></a>
+      {{if .QtdComentarios}} <small title="comentários">💬 {{.QtdComentarios}}</small>{{end}}{{if .QtdAnexos}} <small title="anexos">📎 {{.QtdAnexos}}</small>{{end}}
+      <br><small>{{.Solicitante}}{{if .SolicitanteSetor}} · {{.SolicitanteSetor}}{{end}} · {{.Categoria}}{{if .Publico}} · <span title="aberto pela página sem login">🌐</span>{{end}}</small></td>
+    <td>{{template "selo_status" .Status}}</td>
+    <td>{{template "selo_prioridade" .Prioridade}}</td>
+    <td>{{template "selo_prazo" .}}</td>
+    <td><small>{{if .AtribuidoNome}}{{.AtribuidoNome}}{{else}}<span class="vazio">—</span>{{end}}</small></td>
+    <td><small>{{if .MaquinaHostname}}{{if $.D.PodeGerenciar}}<a href="/maquinas/{{.MaquinaID}}">{{.MaquinaHostname}}</a>{{else}}{{.MaquinaHostname}}{{end}}{{else}}—{{end}}</small></td>
+    <td><small title="{{data .AtualizadoEm}}">{{rel .AtualizadoEm}}</small></td>
+  </tr>
+  {{else}}<tr><td colspan="8" class="vazio">Nenhum chamado com esses filtros.</td></tr>{{end}}
+</table>
+</div>
+{{end}}

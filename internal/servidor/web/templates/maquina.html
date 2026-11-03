@@ -1,0 +1,170 @@
+{{define "conteudo"}}
+{{$m := .D.M}}{{$r := .D.R}}{{$csrf := .Sessao.CSRF}}{{$dup := .D.DupMACs}}
+<p><a href="/maquinas">← Máquinas</a></p>
+<div class="cabecalho">
+  <h1><span class="ponto {{status $m.UltimoContato}}"></span>{{$m.Hostname}} {{if $m.Duplicada}}<span class="selo vermelho">MAC duplicado</span>{{end}}</h1>
+  <div class="sub">#{{$m.ID}} · último contato {{rel $m.UltimoContato}} ({{data $m.UltimoContato}}) · cadastrada em {{data $m.PrimeiroContato}}</div>
+</div>
+
+{{if $m.Duplicada}}
+<div class="aviso erro">Esta máquina compartilha MAC address com outro registro. Se for a mesma máquina reinstalada, use <b>Mesclar</b> abaixo para juntar o registro antigo a este; se for uma máquina diferente, verifique a placa de rede ou ignore o MAC (ex.: dock USB compartilhada) na página <a href="/duplicados">Duplicados</a>.</div>
+{{end}}
+
+{{$a := .D.Aval}}
+<section class="cartao">
+  <h2>Nível da máquina:
+    {{if eq $a.Classe "OK"}}<span class="selo verde">OK</span>{{else if eq $a.Classe "Alerta"}}<span class="selo amarelo">Alerta</span>{{else}}<span class="selo vermelho">Crítico</span>{{end}}
+    <small class="sub">{{$a.Pontos}} de 10 pontos</small>
+  </h2>
+  <ul style="margin:0;padding-left:20px">
+    {{range $a.Itens}}<li style="font-size:14px;color:var(--sub)">{{.}}</li>{{end}}
+  </ul>
+</section>
+
+<section class="cartao {{if anydeskAusente $m.AnyDeskSituacao}}destaque-erro{{end}}">
+  <h2>Acesso remoto (AnyDesk)</h2>
+  {{if $m.AnyDeskID}}
+  <p style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0">
+    <b class="mono" style="font-size:22px">{{anydesk $m.AnyDeskID}}</b>
+    <button type="button" class="btn pequeno" data-copiar-texto="{{$m.AnyDeskID}}">Copiar</button>
+    <a class="btn primario pequeno" href="anydesk:{{$m.AnyDeskID}}">Conectar</a>
+    {{if $m.AnyDeskAlias}}<small>apelido: {{$m.AnyDeskAlias}}</small>{{end}}
+  </p>
+  <p class="sub" style="margin:8px 0 0">Situação: {{rotuloAnyDesk $m.AnyDeskSituacao}}{{if $m.AnyDeskDetalhe}} · encontrados: {{$m.AnyDeskDetalhe}}{{end}}</p>
+  {{if eq $m.AnyDeskSituacao "portatil"}}<p class="sub" style="margin:6px 0 0">Só a versão portátil foi encontrada: o ID pode mudar e ela só funciona com o usuário abrindo o programa. Instale o AnyDesk nesta máquina.</p>{{end}}
+  {{else if anydeskAusente $m.AnyDeskSituacao}}
+  <p style="margin:0"><span class="selo vermelho">AnyDesk {{rotuloAnyDesk $m.AnyDeskSituacao}}</span></p>
+  <p class="sub" style="margin:8px 0 0">O agente procurou em <code>C:\ProgramData\AnyDesk</code> e no <code>AppData\Roaming\AnyDesk</code> de cada usuário. Instale o AnyDesk para acessar esta máquina remotamente.</p>
+  {{else}}<p class="sub" style="margin:0">Ainda não verificado — a máquina precisa do agente 1.14 (chega sozinho pelo auto-update).</p>{{end}}
+</section>
+
+{{if monitoradoAtivo}}<section class="cartao {{if monitorAusente $m.MonitorSituacao}}destaque-erro{{end}}">
+  <h2>{{.D.Monitorado}}</h2>
+  {{if $m.MonitorSituacao}}
+  <p style="margin:0">{{if eq $m.MonitorSituacao "rodando"}}<span class="selo verde">{{rotuloMonitor $m.MonitorSituacao}}</span>{{else if monitorAusente $m.MonitorSituacao}}<span class="selo vermelho">{{rotuloMonitor $m.MonitorSituacao}}</span>{{else}}<span class="selo">{{rotuloMonitor $m.MonitorSituacao}}</span>{{end}}</p>
+  {{if $m.MonitorDetalhe}}<p class="sub" style="margin:8px 0 0">{{$m.MonitorDetalhe}}</p>{{end}}
+  {{if eq $m.MonitorSituacao "parado"}}<p class="sub" style="margin:6px 0 0">Tem usuário logado e o programa não está aberto — pode ter sido fechado.</p>{{end}}
+  {{else}}<p class="sub" style="margin:0">Ainda não verificado — a máquina precisa do agente 1.15 (chega pelo auto-update) e de um envio depois disso.</p>{{end}}
+</section>{{end}}
+
+<div class="duas">
+<section class="cartao">
+  <h2>Configuração</h2>
+  <table class="kv">
+    <tr><th>Fabricante / Modelo</th><td>{{$m.Fabricante}} {{$m.Modelo}}</td></tr>
+    <tr><th>Número de série</th><td class="mono">{{$m.Serial}}</td></tr>
+    <tr><th>Sistema operacional</th><td>{{$m.SO}} {{$m.SOVersao}} <small>(build {{$m.SOBuild}}, {{$m.SOArq}})</small></td></tr>
+    <tr><th>Processador</th><td>{{$m.CPU}} <small>({{$m.CPUNucleos}} núcleos / {{$m.CPUThreads}} threads)</small></td></tr>
+    <tr><th>Memória RAM</th><td>{{gb $m.RAM}}</td></tr>
+    <tr><th>Armazenamento</th><td>{{gb $m.DiscoTotal}}</td></tr>
+    <tr><th>Vídeo</th><td>{{range $r.GPUs}}{{.}}<br>{{end}}</td></tr>
+    <tr><th>Domínio / grupo</th><td>{{$m.Dominio}}</td></tr>
+    <tr><th>BIOS</th><td>{{$m.BIOS}}</td></tr>
+    <tr><th>UUID de hardware</th><td class="mono"><small>{{$m.HWUUID}}</small></td></tr>
+    <tr><th>SO instalado em</th><td>{{data $m.SOInstalacao}}</td></tr>
+    <tr><th>Último boot</th><td>{{data $m.UltimoBoot}}</td></tr>
+    <tr><th>IP de origem</th><td>{{$m.IPOrigem}}</td></tr>
+    <tr><th>Agente</th><td>v{{$m.VersaoAgente}} <small class="mono">{{$m.AgentID}}</small></td></tr>
+  </table>
+</section>
+
+<section class="cartao">
+  <h2>Usuários</h2>
+  <table class="kv">
+    <tr><th>Conectado agora</th><td>{{if $m.UsuarioAtual}}<b>{{$m.UsuarioAtual}}</b>{{else}}<span class="vazio">ninguém no momento da coleta</span>{{end}}</td></tr>
+    <tr><th>Último usuário</th><td><b>{{$m.UltimoUsuario}}</b>{{if $m.UltimoUsuarioNome}} ({{$m.UltimoUsuarioNome}}){{end}}{{if $m.UltimoUsuarioEm}}<br><small>visto conectado em {{data $m.UltimoUsuarioEm}}</small>{{end}}</td></tr>
+  </table>
+  <h3>Histórico de logins</h3>
+  <table class="tabela">
+    <tr><th>Usuário</th><th>Primeiro registro</th><th>Último registro</th></tr>
+    {{range .D.Logins}}<tr><td><a href="/usuarios/{{.UsuarioID}}">{{.Login}}</a>{{if .Nome}} <small>{{.Nome}}</small>{{end}}</td><td>{{data .Primeiro}}</td><td>{{data .Ultimo}}</td></tr>
+    {{else}}<tr><td colspan="3" class="vazio">Nenhum login registrado.</td></tr>{{end}}
+  </table>
+  <h3>Perfis nesta máquina</h3>
+  <table class="tabela">
+    <tr><th>Usuário</th><th>Pasta</th><th>Último uso</th></tr>
+    {{range $r.Perfis}}<tr><td>{{.Usuario}}</td><td><small>{{.Caminho}}</small></td><td>{{data .UltimoUso}}</td></tr>
+    {{else}}<tr><td colspan="3" class="vazio">Sem perfis.</td></tr>{{end}}
+  </table>
+</section>
+</div>
+
+<section class="cartao">
+  <h2>Rede</h2>
+  <table class="tabela">
+    <tr><th>Adaptador</th><th>MAC</th><th>IPv4</th><th>Conectada</th><th>Física</th></tr>
+    {{range .D.Interfaces}}
+    <tr class="{{if index $dup .MAC}}linha-dup{{end}}"><td>{{.Nome}}</td><td class="mono">{{.MAC}} {{if index $dup .MAC}}<span class="selo vermelho">duplicado</span>{{end}}{{if .Ignorado}}<span class="selo">ignorado</span>{{end}}</td>
+      <td>{{.IPv4}}</td><td>{{if .Conectada}}Sim{{else}}Não{{end}}</td><td>{{if .Fisica}}Sim{{else}}Não{{end}}</td></tr>
+    {{end}}
+  </table>
+</section>
+
+<div class="duas">
+<section class="cartao">
+  <h2>Discos</h2>
+  <table class="tabela">
+    <tr><th>Modelo</th><th>Tipo</th><th>Tamanho</th><th>Serial</th></tr>
+    {{range $r.Discos}}<tr><td>{{.Modelo}}</td><td>{{.Tipo}} {{.Barramento}}</td><td>{{tam .Tamanho}}</td><td class="mono"><small>{{.Serial}}</small></td></tr>{{end}}
+  </table>
+  <h3>Volumes</h3>
+  {{range $r.Volumes}}
+  <div class="barra"><div class="rot"><span>{{.Letra}} {{.Rotulo}} <small>{{.Sistema}}</small></span><b>{{tam .Livre}} livres de {{tam .Tamanho}}</b></div>
+    <div class="trilho {{if gt (pct .Livre .Tamanho) 89}}cheio{{end}}"><div style="width: {{pct .Livre .Tamanho}}%"></div></div></div>
+  {{end}}
+</section>
+<section class="cartao">
+  <h2>Memória</h2>
+  <table class="tabela">
+    <tr><th>Slot</th><th>Capacidade</th><th>Velocidade</th><th>Fabricante</th><th>Part number</th></tr>
+    {{range $r.Memorias}}<tr><td>{{.Slot}}</td><td>{{tam .Capacidade}}</td><td>{{.Velocidade}} MHz</td><td>{{.Fabricante}}</td><td><small>{{.PartNumber}}</small></td></tr>{{end}}
+  </table>
+</section>
+</div>
+
+<section class="cartao">
+  <h2>Programas instalados {{if $r.Programas}}<span class="selo">{{len $r.Programas}}</span>{{end}}</h2>
+  {{if $r.Programas}}
+  <div class="rolagem" style="max-height:360px;overflow:auto">
+  <table class="tabela">
+    <tr><th>Nome</th><th>Versão</th><th>Fabricante</th></tr>
+    {{range $r.Programas}}<tr><td>{{.Nome}}</td><td><small>{{.Versao}}</small></td><td><small>{{.Fabricante}}</small></td></tr>{{end}}
+  </table>
+  </div>
+  {{else}}<p class="vazio">Sem lista de programas. Atualize o agente nesta máquina (v1.7+) para coletar os programas instalados.</p>{{end}}
+</section>
+
+<div class="duas">
+<section class="cartao">
+  <h2>Cadastro interno</h2>
+  <form method="post" action="/maquinas/{{$m.ID}}/editar" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label>Patrimônio<input name="patrimonio" value="{{$m.Patrimonio}}"></label>
+    <label>Setor{{template "campo_setor" (dict "Valor" $m.Setor "Placeholder" "" "Lista" false "Obrigatorio" false)}}</label>
+    <label>Responsável<input name="responsavel" value="{{$m.Responsavel}}"></label>
+    <label>Localização<input name="localizacao" value="{{$m.Localizacao}}"></label>
+    <label class="cheio">Observações<textarea name="observacoes" rows="3">{{$m.Obs}}</textarea></label>
+    <button class="btn primario">Salvar</button>
+  </form>
+</section>
+<section class="cartao">
+  <h2>Registro duplicado?</h2>
+  <p>Mesclar <b>este registro</b> em outro: o histórico de logins e o cadastro interno (campos vazios no destino) são levados para a máquina escolhida e este registro é excluído. O registro que permanece sempre fica ligado ao agente que comunicou por último.</p>
+  <form method="post" action="/maquinas/{{$m.ID}}/mesclar" class="linha-form" onsubmit="return confirm('Mesclar {{$m.Hostname}} (#{{$m.ID}}) na máquina selecionada e excluir este registro?')">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <select name="destino" required>
+      <option value="">Escolha a máquina que vai permanecer…</option>
+      {{range .D.Outras}}<option value="{{.ID}}">{{.Hostname}} (#{{.ID}}{{if .Duplicada}}, MAC duplicado{{end}}, {{rel .UltimoContato}})</option>{{end}}
+    </select>
+    <button class="btn">Mesclar</button>
+  </form>
+  <h2 style="margin-top:24px">Excluir</h2>
+  <p>Tira a máquina do inventário e guarda uma cópia na <a href="/lixeira">Lixeira</a> (dá para restaurar). Enquanto estiver lá, ela não volta
+    sozinha mesmo que o agente continue enviando. Para apagar de vez, use <b>Excluir permanentemente</b> na Lixeira.</p>
+  <form method="post" action="/maquinas/{{$m.ID}}/excluir" onsubmit="return confirm('Mover {{$m.Hostname}} (#{{$m.ID}}) para a Lixeira?')">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <button class="btn perigo">Excluir máquina</button>
+  </form>
+</section>
+</div>
+{{end}}

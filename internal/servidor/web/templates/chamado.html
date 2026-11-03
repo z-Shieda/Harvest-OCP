@@ -1,0 +1,101 @@
+{{define "conteudo"}}
+{{$c := .D.C}}{{$csrf := .Sessao.CSRF}}{{$base := printf "/chamados/%d/anexos" $c.ID}}
+<p><a href="/chamados">← Chamados</a></p>
+<div class="cabecalho">
+  <h1>#{{$c.ID}} · {{$c.Titulo}}</h1>
+  <div>{{template "selo_status" $c.Status}} {{template "selo_prioridade" $c.Prioridade}} {{template "selo_prazo" $c}}</div>
+</div>
+<div class="sub">Aberto por <b>{{$c.Solicitante}}</b>{{if $c.SolicitanteSetor}} ({{$c.SolicitanteSetor}}){{end}} em {{data $c.CriadoEm}}{{if $c.Publico}} pela página sem login{{else if and $c.SolicitanteNome (ne $c.SolicitanteNome $c.CriadoPorNome)}} · registrado por {{$c.CriadoPorNome}}{{end}} · atualizado {{rel $c.AtualizadoEm}}</div>
+
+<div class="duas" style="margin-top:14px">
+<section class="cartao">
+  <h2>Descrição</h2>
+  <div style="white-space:pre-wrap;word-break:break-word">{{if $c.Descricao}}{{$c.Descricao}}{{else}}<span class="vazio">Sem descrição.</span>{{end}}</div>
+  {{template "anexos" (dict "Lista" .D.AnexosAbertura "Base" $base)}}
+  <table class="kv" style="margin-top:14px">
+    <tr><th>Solicitante</th><td>{{$c.Solicitante}}{{if $c.SolicitanteEmail}} · <a href="mailto:{{$c.SolicitanteEmail}}">{{$c.SolicitanteEmail}}</a>{{end}}{{if and .D.PodeGerenciar $c.SolicitanteUID}} · <a href="/usuarios/{{$c.SolicitanteUID}}">ver no inventário</a>{{end}}</td></tr>
+    <tr><th>Categoria</th><td>{{if $c.Categoria}}{{$c.Categoria}}{{else}}—{{end}}</td></tr>
+    <tr><th>Responsável</th><td>{{if $c.AtribuidoNome}}{{$c.AtribuidoNome}}{{else}}<span class="vazio">ninguém</span>{{end}}</td></tr>
+    <tr><th>Prazo</th><td>{{if $c.Prazo}}{{data $c.Prazo}} {{template "selo_prazo" $c}}{{else}}—{{end}}</td></tr>
+    {{if $c.ResolvidoEm}}<tr><th>Resolvido em</th><td>{{data $c.ResolvidoEm}}</td></tr>{{end}}
+    <tr><th>Máquina</th><td>{{if $c.MaquinaHostname}}{{if .D.PodeGerenciar}}<a href="/maquinas/{{$c.MaquinaID}}">{{$c.MaquinaHostname}}</a>{{else}}{{$c.MaquinaHostname}}{{end}}{{else}}—{{end}}</td></tr>
+    {{if and .D.PodeGerenciar $c.AnyDesk}}<tr><th>AnyDesk</th><td><b class="mono">{{anydesk $c.AnyDesk}}</b>
+      <button type="button" class="btn pequeno" data-copiar-texto="{{$c.AnyDesk}}">Copiar</button>
+      <a class="btn primario pequeno" href="anydesk:{{$c.AnyDesk}}">Conectar</a></td></tr>
+    {{else if and .D.PodeGerenciar $c.MaquinaID}}<tr><th>AnyDesk</th><td><small class="sub">não encontrado nesta máquina</small></td></tr>{{end}}
+    {{with .D.Maquina}}<tr><th>Configuração</th><td><small>{{.CPU}} · {{gb .RAM}} RAM · {{.DiscosResumo}}<br>{{.SO}} {{.SOVersao}} · IP {{.IPOrigem}} · usuário {{if .UsuarioAtual}}{{.UsuarioAtual}}{{else}}{{.UltimoUsuario}}{{end}}</small></td></tr>{{end}}
+  </table>
+  <h3 style="margin-top:16px">Link de acompanhamento do solicitante</h3>
+  <p class="sub">Quem tem este link vê o andamento (sem as notas internas) e pode responder, sem login.</p>
+  <div class="caixa-link"><input id="link-acomp" value="{{.D.LinkAcompanhar}}" readonly><button type="button" class="btn pequeno" data-copiar="link-acomp">Copiar</button></div>
+</section>
+
+{{if .D.PodeGerenciar}}
+<section class="cartao">
+  <div class="cabecalho"><h2 style="margin:0">Gerenciar</h2>
+    {{if and $c.Aberto (ne $c.AtribuidoID $.Sessao.Admin.ID)}}<form method="post" action="/chamados/{{$c.ID}}/assumir"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn pequeno">Assumir este chamado</button></form>{{end}}
+  </div>
+  <form method="post" action="/chamados/{{$c.ID}}/atualizar" class="form" style="margin-top:10px">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label>Status
+      <select name="status">
+        {{range .D.StatusLista}}<option value="{{.}}" {{if eq . $c.Status}}selected{{end}}>{{template "rotulo_status" .}}</option>{{end}}
+      </select>
+    </label>
+    <label>Prioridade
+      <select name="prioridade">
+        {{range .D.Prioridades}}<option value="{{.}}" {{if eq . $c.Prioridade}}selected{{end}}>{{template "rotulo_prioridade" .}}</option>{{end}}
+      </select>
+    </label>
+    <label>Categoria
+      <select name="categoria">
+        {{range .D.Categorias}}<option value="{{.}}" {{if eq . $c.Categoria}}selected{{end}}>{{.}}</option>{{end}}
+      </select>
+    </label>
+    <label>Responsável
+      <select name="atribuido_a">
+        <option value="">— ninguém —</option>
+        {{range .D.Tecnicos}}<option value="{{.ID}}" {{if eq .ID $c.AtribuidoID}}selected{{end}}>{{if .Nome}}{{.Nome}}{{else}}{{.Usuario}}{{end}}</option>{{end}}
+      </select>
+    </label>
+    <label class="cheio">Máquina
+      <select name="maquina_id">
+        <option value="">— nenhuma —</option>
+        {{range .D.Maquinas}}<option value="{{.ID}}" {{if eq .ID $c.MaquinaID}}selected{{end}}>{{.Hostname}}</option>{{end}}
+      </select>
+    </label>
+    <p class="dica cheio">Mudar a prioridade recalcula o prazo a partir da abertura. Resolver/fechar e trocar o responsável avisam no Teams (se configurado).</p>
+    <div class="cheio"><button class="btn primario">Salvar alterações</button></div>
+  </form>
+</section>
+{{end}}
+</div>
+
+<section class="cartao">
+  <h2>Andamento</h2>
+  <ul class="linha-tempo">
+  {{range .D.Linha}}
+    {{if .Evento}}
+    <li class="evento">{{template "texto_evento" .Evento}} · <small>{{.Evento.Autor}} · {{data .Em}}</small></li>
+    {{else}}{{with .Comentario}}
+    <li class="coment{{if .Interno}} interno{{end}}{{if .DoSolicitante}} solicitante{{end}}">
+      <div class="sub"><b>{{.AutorNome}}</b>{{if .DoSolicitante}} <span class="selo contorno-verde">solicitante</span>{{end}}{{if .Interno}} <span class="selo contorno-amar">nota interna</span>{{end}} · {{data .CriadoEm}}</div>
+      <div class="balao">{{if .Texto}}<div class="texto">{{.Texto}}</div>{{end}}{{template "anexos" (dict "Lista" .Anexos "Base" $base)}}</div>
+    </li>
+    {{end}}{{end}}
+  {{else}}<li class="evento">Sem andamento ainda.</li>{{end}}
+  </ul>
+  <a id="fim"></a>
+  <form method="post" action="/chamados/{{$c.ID}}/comentar" class="form" style="margin-top:12px" enctype="multipart/form-data" data-anexos data-max-arquivos="{{.D.MaxAnexos}}" data-max-mb="{{.D.MaxAnexoMB}}">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label class="cheio">{{if .D.PodeGerenciar}}Responder / registrar andamento{{else}}Enviar mensagem para a TI{{end}}
+      <textarea name="texto" rows="3" placeholder="Escreva uma atualização, pergunta ou solução…"></textarea></label>
+    {{template "zona_anexos" .D}}
+    <div class="cheio" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+      <button class="btn primario">Enviar</button>
+      {{if .D.PodeGerenciar}}<label style="display:flex;gap:6px;align-items:center;font-weight:500"><input type="checkbox" name="interno" value="1" style="width:auto"> Nota interna (o solicitante não vê)</label>{{end}}
+    </div>
+  </form>
+</section>
+{{end}}
+

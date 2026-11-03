@@ -1,0 +1,96 @@
+{{define "conteudo"}}
+{{$csrf := .Sessao.CSRF}}
+<h1>Notificações</h1>
+<p class="sub">Configure os avisos abaixo. A lista mostra, ao vivo, as máquinas que se encaixam em cada regra ligada.</p>
+
+<section class="cartao">
+  <h2>Avisos</h2>
+  <form method="post" action="/notificacoes" id="form-avisos">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <div class="linha-aviso">
+      <label class="chave"><input type="checkbox" name="generico" value="1" {{if .D.LigGenerico}}checked{{end}} onchange="this.form.requestSubmit()"><span class="trilho-chave" aria-hidden="true"></span><span class="rotulo-chave"><b>Nomes genéricos</b><small>DESKTOP-A1B2C3D, WIN-XXXX e os padrões extras abaixo</small></span></label>
+      <label class="valor-aviso">Padrões extras (vírgula; * = curinga)<input name="padroes" value="{{.D.PadroesGen}}" placeholder="PC-*, NOTE-*"></label>
+    </div>
+    <div class="linha-aviso">
+      <label class="chave"><input type="checkbox" name="inativa" value="1" {{if .D.LigInativa}}checked{{end}} onchange="this.form.requestSubmit()"><span class="trilho-chave" aria-hidden="true"></span><span class="rotulo-chave"><b>Máquinas inativas</b><small>sem enviar inventário há mais de N dias</small></span></label>
+      <label class="valor-aviso">Dias sem contato<input name="dias_inativa" type="number" min="1" value="{{.D.ValorDias}}"></label>
+    </div>
+    <div class="linha-aviso">
+      <label class="chave"><input type="checkbox" name="disco" value="1" {{if .D.LigDisco}}checked{{end}} onchange="this.form.requestSubmit()"><span class="trilho-chave" aria-hidden="true"></span><span class="rotulo-chave"><b>Disco quase cheio</b><small>algum volume com menos de X% livre</small></span></label>
+      <label class="valor-aviso">% livre mínimo<input name="disco_pct" type="number" min="1" max="99" value="{{.D.ValorPct}}"></label>
+    </div>
+    <div class="linha-aviso">
+      <label class="chave"><input type="checkbox" name="anydesk" value="1" {{if .D.LigAnyDesk}}checked{{end}} onchange="this.form.requestSubmit()"><span class="trilho-chave" aria-hidden="true"></span><span class="rotulo-chave"><b>AnyDesk ausente</b><small>máquina sem AnyDesk instalado (ou só a versão portátil)</small></span></label>
+    </div>
+    {{if .D.CfgMonitor.Ativo}}<div class="linha-aviso">
+      <label class="chave"><input type="checkbox" name="monitor" value="1" {{if .D.LigMonitor}}checked{{end}} onchange="this.form.requestSubmit()"><span class="trilho-chave" aria-hidden="true"></span><span class="rotulo-chave"><b>{{.D.CfgMonitor.Nome}} ausente ou parado</b><small>máquina sem o programa, ou com usuário logado e o programa fechado</small></span></label>
+    </div>{{else}}<input type="hidden" name="monitor" value="{{if .D.LigMonitor}}1{{end}}">{{end}}
+    <p style="margin:14px 0 0"><button class="btn primario">Salvar valores</button> <span class="sub" style="font-size:13px">As chaves salvam sozinhas ao clicar.</span></p>
+  </form>
+  <p class="sub" style="margin-top:12px">O aviso de MAC duplicado fica em <a href="/duplicados">Duplicados</a> e pode ir para o Teams pelo webhook (Administração).</p>
+</section>
+
+<section class="cartao">
+  <h2>Nomes genéricos {{if .D.Genericos}}<span class="selo vermelho">{{len .D.Genericos}}</span>{{end}}</h2>
+  {{if .D.LigGenerico}}
+  <table class="tabela">
+    <tr><th>Máquina</th><th>Último usuário</th><th>Detalhe</th></tr>
+    {{range .D.Genericos}}<tr><td><a href="/maquinas/{{.Maquina.ID}}">{{.Maquina.Hostname}}</a></td><td>{{.Maquina.UltimoUsuario}}</td><td><small>{{.Detalhe}}</small></td></tr>
+    {{else}}<tr><td colspan="3" class="ok-texto">✔ Nenhuma máquina com nome genérico.</td></tr>{{end}}
+  </table>
+  {{else}}<p class="vazio">Aviso desligado.</p>{{end}}
+</section>
+
+<section class="cartao">
+  <h2>Máquinas inativas {{if .D.Inativas}}<span class="selo vermelho">{{len .D.Inativas}}</span>{{end}}</h2>
+  {{if .D.LigInativa}}
+  <table class="tabela">
+    <tr><th>Máquina</th><th>Último usuário</th><th>Detalhe</th></tr>
+    {{range .D.Inativas}}<tr><td><a href="/maquinas/{{.Maquina.ID}}">{{.Maquina.Hostname}}</a></td><td>{{.Maquina.UltimoUsuario}}</td><td><small>{{.Detalhe}}</small></td></tr>
+    {{else}}<tr><td colspan="3" class="ok-texto">✔ Nenhuma máquina inativa nesse período.</td></tr>{{end}}
+  </table>
+  {{else}}<p class="vazio">Aviso desligado.</p>{{end}}
+</section>
+
+<section class="cartao">
+  <h2>Disco quase cheio {{if .D.Discos}}<span class="selo vermelho">{{len .D.Discos}}</span>{{end}}</h2>
+  {{if .D.LigDisco}}
+  <table class="tabela">
+    <tr><th>Máquina</th><th>Último usuário</th><th>Detalhe</th></tr>
+    {{range .D.Discos}}<tr><td><a href="/maquinas/{{.Maquina.ID}}">{{.Maquina.Hostname}}</a></td><td>{{.Maquina.UltimoUsuario}}</td><td><small>{{.Detalhe}}</small></td></tr>
+    {{else}}<tr><td colspan="3" class="ok-texto">✔ Nenhum disco abaixo do limite.</td></tr>{{end}}
+  </table>
+  {{else}}<p class="vazio">Aviso desligado.</p>{{end}}
+</section>
+<section class="cartao">
+  <h2>AnyDesk ausente {{if .D.AnyDesks}}<span class="selo vermelho">{{len .D.AnyDesks}}</span>{{end}}</h2>
+  {{if .D.LigAnyDesk}}
+  <table class="tabela">
+    <tr><th>Máquina</th><th>Último usuário</th><th>Detalhe</th></tr>
+    {{range .D.AnyDesks}}<tr><td><a href="/maquinas/{{.Maquina.ID}}">{{.Maquina.Hostname}}</a></td><td>{{.Maquina.UltimoUsuario}}</td><td><small>{{.Detalhe}}</small></td></tr>
+    {{else}}<tr><td colspan="3" class="ok-texto">✔ Todas as máquinas verificadas têm AnyDesk.</td></tr>{{end}}
+  </table>
+  <p class="sub" style="margin-top:8px">Máquinas com agente anterior à 1.14 ainda não foram verificadas.</p>
+  {{else}}<p class="vazio">Aviso desligado.</p>{{end}}
+</section>
+{{if .D.CfgMonitor.Ativo}}<section class="cartao">
+  <h2>{{.D.CfgMonitor.Nome}} ausente ou parado {{if .D.Monitores}}<span class="selo vermelho">{{len .D.Monitores}}</span>{{end}}</h2>
+  {{if .D.LigMonitor}}
+  <table class="tabela">
+    <tr><th>Máquina</th><th>Último usuário</th><th>Detalhe</th></tr>
+    {{range .D.Monitores}}<tr><td><a href="/maquinas/{{.Maquina.ID}}">{{.Maquina.Hostname}}</a></td><td>{{.Maquina.UltimoUsuario}}</td><td><small>{{.Detalhe}}</small></td></tr>
+    {{else}}<tr><td colspan="3" class="ok-texto">✔ Todas as máquinas verificadas estão com o {{.D.CfgMonitor.Nome}} rodando.</td></tr>{{end}}
+  </table>
+  <p class="sub" style="margin-top:8px">Configure o programa em <a href="/configuracoes#monitor">Configurações</a>. Máquinas com agente anterior à 1.15 ainda não foram verificadas.</p>
+  {{else}}<p class="vazio">Aviso desligado.</p>{{end}}
+</section>
+{{end}}{{if .D.RamaisDup}}<section class="cartao destaque-erro">
+  <h2>Ramais duplicados <span class="selo vermelho">{{len .D.RamaisDup}}</span></h2>
+  <table class="tabela">
+    <tr><th>Ramal</th><th>Onde aparece</th></tr>
+    {{range .D.RamaisDup}}<tr><td><a href="/ramais/{{.Numero}}"><b>{{.Numero}}</b></a> <small>{{.Nome}}</small></td>
+      <td>{{range $i, $m := .Maquinas}}{{if $m.Ativo}}{{if $i}} · {{end}}<a href="/maquinas/{{$m.MaquinaID}}">{{$m.Hostname}}</a>{{if $m.Perfil}} <small>({{$m.Perfil}})</small>{{end}}{{end}}{{end}}</td></tr>{{end}}
+  </table>
+  <p class="sub" style="margin-top:8px">Abra o ramal e exclua a ocorrência que não vale — ela vai para a Lixeira.</p>
+</section>
+{{end}}{{end}}

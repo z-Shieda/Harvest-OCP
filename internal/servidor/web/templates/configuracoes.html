@@ -1,0 +1,71 @@
+{{define "conteudo"}}
+{{$csrf := .Sessao.CSRF}}{{$a := .Sessao.Admin}}
+<div class="cabecalho"><h1>Configurações</h1></div>
+
+<section class="cartao">
+  <h2>Aparência</h2>
+  <p class="sub">Vale só para a sua conta ({{$a.Usuario}}), em qualquer computador.</p>
+  <form method="post" action="/configuracoes/aparencia">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <h3>Tema</h3>
+    <div class="opcoes-visuais">
+      <label class="opcao-visual"><input type="radio" name="tema" value="escuro" {{if not $a.TemaClaro}}checked{{end}}>
+        <span class="mini escuro"><i class="barra"></i><i class="lima"></i><i class="bloco"></i></span>
+        <b>Escuro</b><small>Grafite com destaque lima (padrão)</small></label>
+      <label class="opcao-visual"><input type="radio" name="tema" value="claro" {{if $a.TemaClaro}}checked{{end}}>
+        <span class="mini claro"><i class="barra"></i><i class="lima"></i><i class="bloco"></i></span>
+        <b>Claro</b><small>Fundo claro, para ambientes iluminados</small></label>
+    </div>
+    <h3>Posição do menu principal</h3>
+    <div class="opcoes-visuais">
+      <label class="opcao-visual"><input type="radio" name="menu" value="topo" {{if not $a.MenuLateral}}checked{{end}}>
+        <span class="mini {{if $a.TemaClaro}}claro{{else}}escuro{{end}}"><i class="barra"></i><i class="bloco"></i></span>
+        <b>No topo</b><small>Abas em pílula no alto da tela (padrão)</small></label>
+      <label class="opcao-visual"><input type="radio" name="menu" value="lateral" {{if $a.MenuLateral}}checked{{end}}>
+        <span class="mini lado {{if $a.TemaClaro}}claro{{else}}escuro{{end}}"><i class="barra"></i><span class="resto"><i class="bloco"></i></span></span>
+        <b>Na lateral</b><small>Menu fixo à esquerda (em telas pequenas volta para o topo)</small></label>
+    </div>
+    <button class="btn primario">Salvar aparência</button>
+  </form>
+</section>
+
+{{if $a.EhAdmin}}
+<section class="cartao" id="monitor">
+  {{$cm := .D.Monitor}}
+  <h2>Programa monitorado</h2>
+  <p class="sub">Programa que deve estar em todas as máquinas (ex.: <b>Work Monitor</b>). O agente procura o arquivo na pasta de
+    <b>cada usuário</b> do Windows (e nos caminhos fixos) e confere se o processo está <b>rodando</b>. O painel avisa as máquinas
+    <b>sem</b> o programa ou com ele <b>parado</b> enquanto há alguém logado.</p>
+  <form method="post" action="/configuracoes/monitor" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label class="chave cheio"><input type="checkbox" name="ativo" value="1" {{if $cm.Ativo}}checked{{end}}><span class="trilho-chave" aria-hidden="true"></span><span class="rotulo-chave"><b>Monitorar</b><small>desligado, as máquinas param de verificar</small></span></label>
+    <label>Nome do programa<input name="nome" value="{{$cm.Nome}}" placeholder="Work Monitor"></label>
+    <label>Nome do processo (um por linha)<textarea name="processos" rows="2" placeholder="work.exe">{{$cm.Proc}}</textarea></label>
+    <label class="cheio">Caminho dentro da pasta do usuário (um por linha)<textarea name="caminhos" rows="2" placeholder="AppData\Roaming\spa\work.exe">{{$cm.CaminhosPerfil}}</textarea></label>
+    <label class="cheio">Caminhos completos, se também for instalado para a máquina toda (opcional)<textarea name="fixos" rows="2" placeholder="C:\Program Files\Programa\programa.exe">{{$cm.CaminhosFixos}}</textarea></label>
+    <div class="linha-form cheio"><button class="btn primario">Salvar</button></div>
+  </form>
+  <p class="sub">O Work Monitor fica em <code>%AppData%\spa\work.exe</code> (C:\Users\&lt;usuário&gt;\AppData\Roaming\spa), assinado pela SMART Computadores e Serviços. Mudanças valem no próximo envio de cada máquina — agentes 1.15+.</p>
+</section>
+
+<section class="cartao" id="setores">
+  <h2>Setores</h2>
+  <p class="sub">Defina os setores que podem ser escolhidos nos formulários — <b>abrir chamado</b> (inclusive a página sem login),
+    <b>novo chamado</b>, cadastro de <b>usuários</b>, <b>máquinas</b> e <b>ramais</b>. Com a lista preenchida, o campo vira uma lista de escolha;
+    vazia, o setor continua em texto livre.</p>
+  {{if .D.Setores}}<div class="lista-setores">{{range .D.Setores}}<span class="selo">{{.}}</span>{{end}}</div>
+  {{else}}<p class="sub"><b>Lista vazia</b> — hoje o setor é digitado livremente.</p>{{end}}
+  <form method="post" action="/configuracoes/setores" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label class="cheio">Um setor por linha<textarea name="setores" rows="10" placeholder="Administrativo&#10;Comercial&#10;Financeiro&#10;RH&#10;TI">{{.D.SetoresTexto}}</textarea></label>
+    <div class="linha-form cheio">
+      <button class="btn primario">Salvar lista</button>
+      <button class="btn" name="ordenar" value="1">Salvar em ordem alfabética</button>
+      {{if .D.ForaDaLista}}<button class="btn" name="importar" value="1">Incluir os {{len .D.ForaDaLista}} setores já usados</button>{{end}}
+    </div>
+  </form>
+  {{if .D.ForaDaLista}}<p class="sub">Setores já digitados no sistema que não estão na lista: {{join .D.ForaDaLista ", "}}.
+    Registros antigos com esses setores continuam como estão (aparecem como "fora da lista" ao editar).</p>{{end}}
+</section>
+{{end}}
+{{end}}

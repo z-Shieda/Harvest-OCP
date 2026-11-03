@@ -1,0 +1,14 @@
+{{define "conteudo"}}
+<img class="login-logo" src="/static/logo-claro.svg" alt="Ocupacional — A evolução da gestão de SST">
+<div class="cartao login">
+  <h1>Entrar</h1>
+  <p class="sub">Inventário e chamados — acesso da equipe de TI</p>
+  <form method="post" action="/login">
+    <label>Usuário<input name="usuario" autofocus required autocomplete="username"></label>
+    <label>Senha<input name="senha" type="password" required autocomplete="current-password"></label>
+    <button class="btn primario largo">Entrar</button>
+  </form>
+</div>
+<p style="text-align:center;margin-top:14px"><a href="/abrir-chamado">Precisa de ajuda da TI? Abra um chamado sem login →</a></p>
+<p class="assinatura-login">Desenvolvido por <a href="https://www.linkedin.com/in/ccostadaniel/" target="_blank" rel="noopener">Daniel Costa</a> · T.I Ocupacional</p>
+{{end}}

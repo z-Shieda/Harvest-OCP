@@ -1,0 +1,31 @@
+{{define "conteudo"}}
+<div class="cabecalho">
+  <h1>Ramais</h1>
+  <div><a class="btn" href="/lixeira#ramais">Excluídos{{if .D.Excluidos}} ({{.D.Excluidos}}){{end}}</a> <a class="btn" href="/ramais/exportar.csv">Exportar .csv</a></div>
+</div>
+<p class="sub">Lidos do <b>MicroSIP</b> de cada computador pelo agente (a senha SIP nunca é coletada). {{.D.TotalAtivos}} ramal(is) ativo(s) em {{.D.Maquinas}} máquina(s).
+  O nome vem do cadastro de <a href="/usuarios">Usuários</a> quando existe; senão, do nome da pasta do Windows (<code>daniel.costa</code> → Daniel Costa). Dá para corrigir em cada ramal.</p>
+{{if .D.AgentesAntigos}}<div class="aviso alerta"><b>{{.D.AgentesAntigos}}</b> máquina(s) ainda com agente anterior à 1.11 — elas aparecem aqui depois de se atualizarem sozinhas (auto-update).</div>{{end}}
+{{if .D.Duplicados}}<div class="aviso erro"><b>Ramal duplicado:</b> {{len .D.Duplicados}} número(s) aparecem em mais de um lugar ao mesmo tempo.
+  {{range .D.Duplicados}}<br>• <a href="/ramais/{{.Numero}}"><b>Ramal {{.Numero}}</b></a> em {{range $i, $m := .Maquinas}}{{if $m.Ativo}}{{if $i}}, {{end}}{{$m.Hostname}}{{if $m.Perfil}} ({{$m.Perfil}}){{end}}{{end}}{{end}}{{end}}
+  <br><small>Abra o ramal e exclua a ocorrência que não vale (vai para a Lixeira).</small></div>{{end}}
+<form class="busca" method="get">
+  <input name="q" value="{{.D.Q}}" placeholder="Buscar por nome, ramal, setor ou máquina…">
+  <label class="sub" style="display:flex;align-items:center;gap:6px;white-space:nowrap;flex:0 0 auto"><input type="checkbox" style="width:auto" name="inativos" value="1" {{if .D.Inativos}}checked{{end}}> mostrar inativos</label>
+  <button class="btn">Buscar</button>
+</form>
+<div class="rolagem">
+<table class="tabela lista">
+  <tr><th>Ramal</th><th>Máquina</th><th>Visto</th><th></th></tr>
+  {{range .D.Ramais}}
+  <tr>
+    <td><a href="/ramais/{{.Numero}}"><b>{{.Rotulo}}</b></a>{{if not .Ativo}} <span class="selo">inativo</span>{{end}}{{if .Duplicado}} <span class="selo vermelho">duplicado</span>{{end}}
+      {{if .Perfil}}<br><small>usuário do Windows: {{.Perfil}}</small>{{end}}</td>
+    <td>{{range $i, $m := .Maquinas}}{{if $i}}<br>{{end}}<a href="/maquinas/{{$m.MaquinaID}}">{{$m.Hostname}}</a>{{if not $m.Ativo}} <small>(antes)</small>{{end}}{{end}}</td>
+    <td><small>{{rel .UltimoVisto}}</small></td>
+    <td style="text-align:right"><form method="post" action="/ramais/{{.Numero}}/excluir" onsubmit="return confirm('Excluir o ramal {{.Numero}}{{if gt (len .Maquinas) 1}} em todas as {{len .Maquinas}} ocorrências{{end}}? Vai para a Lixeira.')"><input type="hidden" name="csrf" value="{{$.Sessao.CSRF}}"><button class="btn link" title="Excluir (vai para a Lixeira)">excluir</button></form></td>
+  </tr>
+  {{else}}<tr><td colspan="4" class="vazio">Nenhum ramal encontrado. As máquinas com MicroSIP aparecem aqui depois que o agente 1.11 enviar o inventário.</td></tr>{{end}}
+</table>
+</div>
+{{end}}

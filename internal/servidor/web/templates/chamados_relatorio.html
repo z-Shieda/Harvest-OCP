@@ -1,0 +1,42 @@
+{{define "conteudo"}}
+<div class="cabecalho">
+  <h1>Relatórios de chamados</h1>
+  <div class="atalhos" style="margin:0">
+    <a href="?dias=7" class="{{if eq .D.Dias 7}}ativo{{end}}">7 dias</a>
+    <a href="?dias=30" class="{{if eq .D.Dias 30}}ativo{{end}}">30 dias</a>
+    <a href="?dias=90" class="{{if eq .D.Dias 90}}ativo{{end}}">90 dias</a>
+    <a href="?dias=365" class="{{if eq .D.Dias 365}}ativo{{end}}">12 meses</a>
+  </div>
+</div>
+
+<div class="numeros">
+  <div class="numero"><b>{{.D.Criados}}</b><span>abertos no período{{if .D.OrigemPublica}} ({{.D.OrigemPublica}} pela página sem login){{end}}</span></div>
+  <div class="numero"><b>{{.D.Resolvidos}}</b><span>resolvidos no período</span></div>
+  <a class="numero{{if .D.Atrasados}} vermelho{{end}}" href="/chamados?status=abertos&atrasados=1"><b>{{.D.Atrasados}}</b><span>atrasados agora (de {{.D.EmAberto}} em aberto)</span></a>
+  <div class="numero"><b>{{.D.Media}}</b><span>tempo médio até resolver (mediana {{.D.Mediana}})</span></div>
+  <div class="numero{{if and (ge .D.PctPrazo 0) (lt .D.PctPrazo 80)}} amarelo{{end}}"><b>{{if ge .D.PctPrazo 0}}{{.D.PctPrazo}}%{{else}}—{{end}}</b><span>resolvidos dentro do prazo{{if .D.ComPrazo}} ({{.D.ComPrazo}} com prazo){{end}}</span></div>
+</div>
+
+<section class="cartao">
+  <h2>Abertos × resolvidos</h2>
+  {{.D.GrafSemanas}}
+</section>
+
+<div class="duas">
+<section class="cartao"><h2>Por categoria</h2>{{.D.GrafCategoria}}</section>
+<section class="cartao"><h2>Por setor</h2>{{.D.GrafSetor}}</section>
+</div>
+<div class="duas">
+<section class="cartao"><h2>Por prioridade</h2>{{.D.GrafPrioridade}}
+  <p class="sub" style="margin-top:12px">Prazos atuais: {{range $i, $s := .D.SLA}}{{if $i}} · {{end}}{{$s.Rotulo}} {{$s.Horas}} h{{end}} (horas corridas). Ajuste em Administração.</p>
+</section>
+<section class="cartao"><h2>Por responsável</h2>
+  <table class="tabela">
+    <tr><th>Responsável</th><th>Resolvidos</th><th>Tempo médio</th><th>No prazo</th><th>Em aberto agora</th></tr>
+    {{range .D.Tecnicos}}<tr><td>{{.Nome}}</td><td>{{.Resolvidos}}</td><td>{{if .TempoMedio}}{{.TempoMedio}}{{else}}—{{end}}</td><td>{{if .Resolvidos}}{{.PctPrazo}}%{{else}}—{{end}}</td><td>{{.Abertos}}</td></tr>
+    {{else}}<tr><td colspan="5" class="vazio">Sem chamados no período.</td></tr>{{end}}
+  </table>
+</section>
+</div>
+<p><a class="btn" href="/chamados/exportar.csv?status=">Exportar todos os chamados (CSV)</a></p>
+{{end}}

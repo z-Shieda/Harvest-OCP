@@ -1,0 +1,42 @@
+{{define "conteudo"}}
+<div class="publico">
+<div class="marca-pub"><img src="/static/logo-claro.svg" alt="Ocupacional — A evolução da gestão de SST"> <a href="/login" class="sub">Entrar (equipe de TI)</a></div>
+{{if .D.Desativado}}
+<section class="cartao"><h1>Abertura de chamados indisponível</h1><p>A abertura de chamados por esta página está desligada no momento. Fale diretamente com a equipe de TI.</p></section>
+{{else}}
+<section class="cartao">
+  <h1 style="margin-top:0">Abrir um chamado</h1>
+  <p class="sub">Descreva o problema e a TI recebe na hora. Depois de enviar você recebe um link para acompanhar e responder.{{with .D.Maquina}} Este computador foi reconhecido como <b>{{.}}</b> e será vinculado ao chamado.{{end}}</p>
+  <form method="post" action="/abrir-chamado" class="form" enctype="multipart/form-data" data-anexos data-max-arquivos="{{.D.MaxAnexos}}" data-max-mb="{{.D.MaxAnexoMB}}">
+    <div class="isca" aria-hidden="true"><label>Site<input name="site" tabindex="-1" autocomplete="off"></label></div>
+    <label>Seu nome
+      <input name="nome" list="pessoas" required value="{{.D.Nome}}" placeholder="Comece a digitar seu nome ou login" autocomplete="off">
+      <span class="dica">Escolha da lista se aparecer; senão, digite o nome completo.</span>
+    </label>
+    <label>Setor
+      {{template "campo_setor" (dict "Valor" .D.Setor "Placeholder" "Ex.: RH, Financeiro…" "Lista" true "Obrigatorio" false)}}
+    </label>
+    <label class="cheio">E-mail <small class="sub">(opcional)</small>
+      <input name="email" type="email" placeholder="seu.nome@ocupacional.com.br" autocomplete="email">
+    </label>
+    <datalist id="pessoas">{{range .D.Pessoas}}<option value="{{.Rotulo}}">{{end}}</datalist>
+    <datalist id="setores">{{range .D.Setores}}<option value="{{.}}">{{end}}</datalist>
+    <label class="cheio">Assunto<input name="titulo" required maxlength="200" placeholder="Ex.: Impressora do RH não imprime"></label>
+    <label class="cheio">Descreva o problema<textarea name="descricao" rows="5" placeholder="O que acontece, mensagens de erro, desde quando, o que já tentou…"></textarea></label>
+    <label>Tipo de problema
+      <select name="categoria">{{range .D.Categorias}}<option value="{{.}}">{{.}}</option>{{end}}</select>
+    </label>
+    <label>Quanto atrapalha seu trabalho?
+      <select name="prioridade">
+        <option value="baixa">Pouco — posso esperar</option>
+        <option value="normal" selected>Atrapalha, mas consigo trabalhar</option>
+        <option value="alta">Muito — não consigo trabalhar</option>
+      </select>
+    </label>
+    {{template "zona_anexos" .D}}
+    <div class="cheio"><button class="btn primario largo">Enviar chamado</button></div>
+  </form>
+</section>
+{{end}}
+</div>
+{{end}}

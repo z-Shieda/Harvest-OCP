@@ -1,0 +1,71 @@
+{{define "conteudo"}}
+{{$csrf := .Sessao.CSRF}}{{$ids := .D.IDs}}
+<div class="cabecalho">
+  <h1>Conexões com as máquinas</h1>
+  <div class="sub">Agente distribuído: <b>v{{.D.Evento.Versao}}</b> · auto-update {{if .D.Evento.Atualizar}}<span class="selo verde">ligado</span>{{else}}<span class="selo">desligado</span>{{end}}</div>
+</div>
+<p class="sub">Os agentes 1.12+ rodam o serviço <b>InventarioAgente</b> (conta SYSTEM) e ficam conectados a este servidor.
+  Quando o servidor é atualizado, as máquinas conectadas recebem a versão nova na hora — sem pedir permissão de administrador.</p>
+
+<section class="cartao">
+  <h2>Testar conexão e atualização</h2>
+  <p class="sub">Manda um teste para todas as máquinas conectadas agora ({{len .D.Conectados}}). Cada uma responde se recebeu e se <b>aceitaria a atualização</b> (está na pasta certa, roda como SYSTEM e consegue trocar o próprio executável). O teste não atualiza nada.</p>
+  <div class="linha-form">
+    <form method="post" action="/admin/conexoes/testar"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn primario">Testar conexão com as máquinas</button></form>
+    <form method="post" action="/admin/conexoes/avisar" onsubmit="return confirm('Avisar agora todas as máquinas conectadas da v{{.D.Evento.Versao}}? As desatualizadas se atualizam em seguida.')"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn">Mandar atualizar agora (v{{.D.Evento.Versao}})</button></form>
+  </div>
+
+  {{with .D.Teste}}
+  <h3 style="margin-top:18px">Resultado do teste <small class="sub">— {{.Em.Format "02/01/2006 15:04:05"}}</small></h3>
+  {{if $.D.Aguardando}}<p class="sub">Recebendo respostas… a página atualiza sozinha.</p>
+  <script>setTimeout(function(){location.reload()},3000)</script>{{end}}
+  <p><b>{{len .Enviados}}</b> máquina(s) receberam o teste ·
+     <b>{{$.D.Respondeu}}</b> responderam ·
+     <span class="selo contorno-verde">{{$.D.Aceitaria}} aceitariam a atualização</span>
+     {{if $.D.JaAtual}}<span class="selo">{{$.D.JaAtual}} já na v{{.Versao}}</span>{{end}}
+     {{if $.D.SemResposta}}<span class="selo contorno-verm">{{$.D.SemResposta}} sem resposta</span>{{end}}</p>
+  <div class="rolagem">
+  <table class="tabela lista">
+    <tr><th>Máquina</th><th>Versão</th><th>Recebeu</th><th>Aceitaria a v{{.Versao}}?</th></tr>
+    {{range $.D.Linhas}}<tr>
+      <td>{{if .MaquinaID}}<a href="/maquinas/{{.MaquinaID}}"><b>{{.Hostname}}</b></a>{{else}}<b>{{.Hostname}}</b>{{end}}<br><small>{{.IP}}</small></td>
+      <td>v{{.Versao}}</td>
+      <td>{{if .Respondeu}}<span class="selo contorno-verde">sim</span>{{else}}<span class="selo contorno-verm">sem resposta</span>{{end}}</td>
+      <td>{{if .Respondeu}}
+            {{if .R.JaAtual}}<span class="selo">já está na versão</span>
+            {{else if .R.PodeAtualizar}}<span class="selo verde">Sim</span>
+            {{else}}<span class="selo vermelho">Não</span>{{end}}
+            <br><small>{{.R.Motivo}}{{if .R.Usuario}} · conta: {{.R.Usuario}}{{end}}</small>
+          {{else}}<small>Recebeu a conexão mas não respondeu (rede/firewall entre a máquina e o servidor?).</small>{{end}}</td>
+    </tr>{{else}}<tr><td colspan="4" class="vazio">Nenhuma máquina estava conectada quando o teste foi enviado.</td></tr>{{end}}
+  </table>
+  </div>
+  {{end}}
+</section>
+
+<section class="cartao">
+  <h2>Conectadas agora <span class="selo">{{len .D.Conectados}}</span></h2>
+  <div class="rolagem">
+  <table class="tabela lista">
+    <tr><th>Máquina</th><th>Versão</th><th>IP</th><th>Conectada desde</th></tr>
+    {{range .D.Conectados}}<tr>
+      <td>{{with index $ids (upper .Hostname)}}<a href="/maquinas/{{.}}">{{end}}<b>{{.Hostname}}</b>{{if index $ids (upper .Hostname)}}</a>{{end}}</td>
+      <td>v{{.Versao}}</td><td><small>{{.IP}}</small></td><td><small>{{.Desde.Format "02/01 15:04"}}</small></td>
+    </tr>{{else}}<tr><td colspan="4" class="vazio">Nenhuma máquina conectada. As máquinas passam a se conectar quando chegarem no agente 1.12 (pelo auto-update de hora em hora).</td></tr>{{end}}
+  </table>
+  </div>
+</section>
+
+{{if .D.Fora}}
+<section class="cartao">
+  <h2>Não conectadas <span class="selo">{{len .D.Fora}}</span></h2>
+  <p class="sub">Máquinas que mandaram inventário nos últimos 7 dias mas não estão conectadas em tempo real. Elas continuam se atualizando pelo envio de hora em hora.</p>
+  <div class="rolagem">
+  <table class="tabela lista">
+    <tr><th>Máquina</th><th>Agente</th><th>Último inventário</th><th>Por quê</th></tr>
+    {{range .D.Fora}}<tr><td><a href="/maquinas/{{.ID}}"><b>{{.Hostname}}</b></a></td><td>v{{.Versao}}</td><td><small>{{rel .UltimoContato}}</small></td><td><small>{{.Motivo}}</small></td></tr>{{end}}
+  </table>
+  </div>
+</section>
+{{end}}
+{{end}}

@@ -1,0 +1,33 @@
+{{define "conteudo"}}
+{{$r := .D.R}}{{$csrf := .Sessao.CSRF}}
+<p><a href="/ramais">← Ramais</a></p>
+<div class="cabecalho"><h1>{{$r.Rotulo}} {{if not $r.Ativo}}<span class="selo">inativo</span>{{end}}{{if $r.Duplicado}} <span class="selo vermelho">duplicado</span>{{end}}</h1>
+  <div class="sub">{{if $r.OrigemNome}}nome: {{$r.OrigemNome}} · {{end}}visto {{rel $r.UltimoVisto}}</div></div>
+
+<div class="duas">
+<section class="cartao">
+  <h2>Onde está</h2>
+  <table class="tabela">
+    <tr><th>Máquina</th><th>Usuário do Windows</th><th>Servidor SIP</th><th>MicroSIP</th><th>Visto</th><th></th></tr>
+    {{range $r.Maquinas}}<tr>
+      <td><a href="/maquinas/{{.MaquinaID}}">{{.Hostname}}</a>{{if not .Ativo}} <small>(antes)</small>{{end}}</td>
+      <td>{{if .Perfil}}{{.Perfil}}{{else}}<small>portátil</small>{{end}}</td><td><small>{{.Servidor}}</small></td><td><small>{{.Versao}}</small></td><td><small>{{rel .UltimoVisto}}</small></td>
+      <td><form method="post" action="/ramais/linha/{{.LinhaID}}/excluir" onsubmit="return confirm('Excluir o ramal nesta máquina ({{.Hostname}})? Vai para a Lixeira.')"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn link">excluir</button></form></td>
+    </tr>{{if .Erro}}<tr><td colspan="6"><small class="valor-aviso">{{.Erro}}</small></td></tr>{{end}}{{end}}
+  </table>
+  {{if $r.Duplicado}}<div class="aviso erro" style="margin-top:12px">Este número está ativo em mais de um lugar. Exclua a ocorrência que não vale (vai para a Lixeira).</div>{{end}}
+  {{if $r.NomeSIP}}<p class="sub">Nome configurado no MicroSIP: {{$r.NomeSIP}}</p>{{end}}
+</section>
+<section class="cartao">
+  <h2>Corrigir nome / setor</h2>
+  <form method="post" action="/ramais/{{$r.Numero}}/ajustar" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label>Nome<input name="nome" value="{{$r.NomeAjuste}}" placeholder="{{$r.Nome}}"></label>
+    <label>Setor{{template "campo_setor" (dict "Valor" $r.SetorAjust "Placeholder" (printf "automático: %s" $r.Setor) "Lista" false "Obrigatorio" false)}}</label>
+    <button class="btn primario">Salvar</button>
+  </form>
+  <p class="sub">Deixe em branco para usar o automático (cadastro de usuários → nome no MicroSIP → pasta do Windows). O setor automático vem do usuário ou da máquina.</p>
+</section>
+</div>
+
+{{end}}
