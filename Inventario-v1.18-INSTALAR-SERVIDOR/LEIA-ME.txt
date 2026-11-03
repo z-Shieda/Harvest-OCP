@@ -1,0 +1,15 @@
+INSTALAR / REINSTALAR O SERVIDOR - v1.18
+==========================================
+
+De dois cliques em INSTALAR-SERVIDOR.bat (NAO abra o .exe da pasta "arquivos").
+
+Ele pergunta:
+  - o IP (detecta sozinho; Enter para aceitar)
+  - a porta (Enter = a que ja esta em uso)
+  - a pasta (Enter = a da instalacao atual)
+  - se ja existir banco: [M]anter os dados (padrao) ou comecar do [Z]ero
+
+Depois para o servidor, faz backup do banco, remove a instalacao anterior,
+instala a v1.18, libera a porta no firewall e confere se subiu.
+Se nao subir, volta a versao anterior. Tudo fica registrado na Area de Trabalho
+(instalar-servidor-<data>.txt).
