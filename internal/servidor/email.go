@@ -224,17 +224,20 @@ func (s *Servidor) emailChamado(para []string, titulo string, c *Chamado, link, 
 		desc = string([]rune(desc)[:1500]) + "…"
 	}
 	fmt.Fprintf(&txt, "\n%s\n\nAbrir o chamado: %s\n", desc, link)
+	mc := s.marca()
 	corpo := fmt.Sprintf(`<!doctype html><html><body style="margin:0;background:#EEF3F2;font-family:Segoe UI,Arial,sans-serif;color:#1d2b2f">
 <div style="max-width:600px;margin:0 auto;padding:24px">
-<div style="background:#18424C;color:#fff;border-radius:14px 14px 0 0;padding:16px 22px;font-weight:700">Ocupacional · Chamados da TI</div>
+<div style="background:%s;color:%s;border-radius:14px 14px 0 0;padding:16px 22px;font-weight:700">%s · Chamados da TI</div>
 <div style="background:#fff;border-radius:0 0 14px 14px;padding:22px">
 <p style="margin:0 0 6px;color:#5A6F73">%s</p>
 <h2 style="margin:0 0 16px;font-size:20px">#%d · %s</h2>
 <table style="border-collapse:collapse;font-size:14px;margin-bottom:16px">%s</table>
 <div style="white-space:pre-wrap;background:#F4F7F6;border-radius:10px;padding:12px 14px;font-size:14px">%s</div>
-<p style="margin:22px 0 0"><a href="%s" style="background:#ADDA23;color:#0C1F23;text-decoration:none;font-weight:700;padding:12px 22px;border-radius:999px;display:inline-block">Abrir o chamado</a></p>
+<p style="margin:22px 0 0"><a href="%s" style="background:%s;color:%s;text-decoration:none;font-weight:700;padding:12px 22px;border-radius:999px;display:inline-block">Abrir o chamado</a></p>
 </div><p style="color:#8A9A9D;font-size:12px;text-align:center">Aviso automático do sistema interno da TI.</p></div></body></html>`,
-		html.EscapeString(motivo), c.ID, html.EscapeString(c.Titulo), tab.String(), html.EscapeString(vazioTraco(desc)), html.EscapeString(link))
+		mc.CorSec, textoSobre(hexParaRGB(mc.CorSec)), html.EscapeString(mc.Nome),
+		html.EscapeString(motivo), c.ID, html.EscapeString(c.Titulo), tab.String(), html.EscapeString(vazioTraco(desc)), html.EscapeString(link),
+		mc.CorPri, textoSobre(hexParaRGB(mc.CorPri)))
 	go func() {
 		err := s.b.enviarEmail(para, assunto, txt.String(), corpo)
 		s.b.RegistrarEnvio(c.ID, para, assunto, err)

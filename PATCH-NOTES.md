@@ -14,6 +14,98 @@ desejada e inicie de novo. O banco de dados (`inventario.db`) é preservado entr
 
 ---
 
+## 1.22.0 — 04/11/2026
+
+**Active Directory: comparativo AD × máquinas com o agente e usuários ativos.** Só o servidor muda (agente 1.21.0).
+
+- Nova aba **Inventário → Active Directory**: estações ativas no AD (Windows de estação, conta habilitada, logon nos
+  últimos 30 dias — ajustável), quantas **já têm o agente** e a **% de cobertura**, lista das que faltam (com último
+  logon e OU), máquinas com agente fora do AD e **usuários ativos** (logon nos últimos 7 dias — ajustável).
+- **Planilha .xlsx**: Resumo, Usuários ativos, Todos os usuários, Computadores do AD (com "tem o agente"), Sem o agente.
+- Início: "Active Directory: X de Y com o agente (Z%)" no cartão Parque.
+- **Sincronizar-AD.ps1** (baixado pelo painel já com endereço e token): roda no controlador de domínio, só LÊ o AD,
+  pega o **último logon real** em cada DC (lastLogon não replica) e envia para `/api/v1/ad` com um **token próprio**
+  (não é o token dos agentes). `-Agendar` cria a tarefa diária `\Harvest\Sincronizar-AD` (SYSTEM, 7h).
+  `-Arquivo` gera um JSON para enviar pelo painel. O servidor não guarda senha do domínio.
+
+---
+
+## 1.21.0 — 04/11/2026
+
+**Assinatura da T.I** nas atualizações e migrações + **recuperação com 24 palavras**. Servidor e agente 1.21.0.
+
+- **Por quê:** até a 1.20 o agente (SYSTEM) instalava qualquer .exe que o servidor mandasse. Quem invadisse o
+  servidor ou interceptasse o HTTP controlaria todas as máquinas. Agora só vale o que a T.I assinar no próprio PC.
+- **harvest-chave.exe** (novo, roda só no PC da T.I): cria as chaves, assina cada kit, gera ordens de migração,
+  recupera o acesso ao painel e troca a chave de assinatura.
+- **Duas chaves (Ed25519):**
+  - **chave raiz** = 24 palavras (padrão BIP39, lista oficial em português — o mesmo das carteiras de bitcoin).
+    Nunca fica gravada; anote em papel.
+  - **chave de assinatura** = arquivo `harvest-ti.chave` com senha (PBKDF2 600 mil voltas + AES-256-GCM), para o
+    1Password. A raiz emite um certificado para ela.
+- **Agente 1.21:** antes de trocar o executável confere raiz → certificado → assinatura → SHA-256 do arquivo, e
+  exige versão **mais nova** que a instalada (não aceita downgrade). Migração de servidor só com **ordem assinada**
+  (com validade). Recusas aparecem no log do agente e em Administração → Assinatura.
+- **Revogação:** "Nova chave de assinatura" (com as 24 palavras) emite certificado com número maior; os agentes o
+  recebem na resposta de cada envio e passam a recusar a chave antiga.
+- **Esqueci minha senha** (`/recuperar`, link no login): o painel mostra um código de desafio, o harvest-chave
+  responde com as 24 palavras (que nunca são digitadas no servidor) e a senha do administrador é redefinida.
+  Desafio de uso único, 15 min, limite de tentativas, auditado.
+- A chave raiz pública é gravada no kit pelo harvest-chave ("Assinar kit") — não precisa recompilar. Kit não
+  assinado: o INSTALAR-SERVIDOR avisa e pede confirmação; o painel mostra o aviso; agentes funcionam como antes.
+- Transição: agentes até 1.20 (e o MSI da GPO com a 1.19) não conferem assinatura — sobem para a 1.21 pelo
+  auto-update normal e, a partir dela, só aceitam versões assinadas.
+
+---
+
+## 1.20.0 — 04/11/2026
+
+**Ignorar máquinas.** Só o servidor muda (agente continua 1.19.0 — nada para atualizar nas estações).
+
+- Na página da máquina, **Ignorar no inventário** com **motivo obrigatório** (sugestões: VM de testes, servidor,
+  laboratório, equipamento de terceiros). Fica registrado quem ignorou e quando (e na auditoria).
+- A máquina **continua no inventário recebendo os dados** do agente, mas **sai de**: contagem do parque, nível
+  OK/Alerta/Crítico (Início e Painel), "Pedem atenção", notificações (sem Work Monitor, sem AnyDesk, disco cheio,
+  inativa, nome genérico), "agentes em dia" e o número da aba Máquinas.
+- Inventário › Máquinas: ignoradas somem da lista; filtro **Ignoradas (N)** mostra todas com o motivo; numa busca por
+  texto elas aparecem com o selo "Ignorada". Aviso no topo da lista e "+ N ignoradas" no Início e no Painel.
+- **Voltar a considerar** desfaz na hora. MAC/nome duplicado continuam sendo verificados (é questão de identidade).
+- Exportações .xlsx/.csv: todas as máquinas, com a coluna nova **Ignorada (motivo)**.
+
+---
+
+## 1.19.0 — 03/11/2026
+
+**Edição genérica (white-label)** e painel de **Marca**. Servidor e agente 1.19.0.
+
+- **Duas edições do mesmo código** (escolhidas na compilação, `-X inventario/internal/servidor.Edicao=generica`):
+  - `inventario-servidor.exe` — **Ocupacional**: logo, cores (petróleo #18424C + lima #ADDA23) e textos de sempre. Nada muda.
+  - `harvest-servidor.exe` — **genérica (Harvest)**: logo própria do Harvest (símbolo dourado com três barras),
+    cores neutras (dourado #E3B341 + grafite #1F2A37), sem menção à Ocupacional, sem Work Monitor pré-configurado,
+    placeholders `@empresa.com.br`.
+- **Configurações › Marca** (só administradores; vale para todos):
+  - nome da empresa/sistema (título das abas, rodapé, e-mails, instalador MSI);
+  - **cor principal** e **cor secundária** (seletor + hex) com **prévia ao vivo**;
+  - upload de **logo para fundo escuro**, **logo para fundo claro** e **favicon** (PNG, SVG, JPG, WEBP, ICO; até 1 MB);
+    se só uma logo for enviada, ela vale nos dois temas; "remover" por arquivo; **Voltar ao padrão**.
+  - O servidor **calcula a paleta inteira** (fundos, bordas, textos, links) a partir das duas cores, nos temas
+    escuro e claro, garantindo contraste mínimo de leitura (WCAG 4,5:1) — dá para escolher qualquer cor.
+  - Funciona nas duas edições: a Ocupacional também pode trocar a marca pelo painel.
+- **Segurança do upload:** tipo detectado pelo conteúdo, SVG com script/`javascript:`/`onload=` é recusado,
+  arquivos servidos em `/marca/...` com CSP `sandbox`; corpo do envio limitado antes da leitura.
+- E-mails usam a cor secundária no cabeçalho e a principal no botão.
+- Agente: nome do serviço do Windows passa a "Harvest - Agente de inventário".
+- Compilação: `compilar.sh` / `compilar.ps1` geram as duas edições.
+- **Gerador de MSI do agente corrigido** (pasta `wix` do pacote do agente):
+  - pacote marcado como **64 bits** (antes o `light.exe` parava no erro ICE80 por usar a pasta de 64 bits num MSI de 32);
+  - o `gerar-msi.ps1` acha o WiX v3 sozinho (o instalador do WiX não põe no PATH) e confere o resultado de cada passo;
+  - versão do MSI = versão do agente (era sempre 1.0.0.0, então um MSI novo não substituía o anterior);
+  - para o serviço "InventarioAgente" antes de trocar o executável; numa atualização não roda mais o
+    `-desinstalar` do produto antigo (que apagava a pasta do agente segundos depois de o novo ser copiado);
+  - nome e fabricante do MSI seguem a Marca.
+
+---
+
 ## 1.18.0 — 03/11/2026
 
 Projeto **Harvest** (nome dado por Daniel Costa). Só o servidor muda (agente continua 1.17.0).

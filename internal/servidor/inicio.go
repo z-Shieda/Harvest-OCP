@@ -225,6 +225,7 @@ func (s *Servidor) paginaInicio(w http.ResponseWriter, r *http.Request, sess *Se
 
 	// ---------- parque ----------
 	maqs, _ := s.b.Maquinas("")
+	maqs = contaveis(maqs) // máquinas ignoradas não entram nos números
 	res := s.b.Resumo()
 	pn := s.b.ParamsNivel()
 	nOK, nAlerta, nCritico := 0, 0, 0
@@ -269,7 +270,7 @@ func (s *Servidor) paginaInicio(w http.ResponseWriter, r *http.Request, sess *Se
 		"Resolvidos": resolvidos, "PctPrazo": pctPrazo, "Media": media,
 		"Categorias": categorias, "Semana": semana,
 		"Versao": s.Versao, "Endereco": s.baseURL(r), "UltimoBackup": s.ultimoBackup(), "EmDia": emDia,
-		"Maquinas": len(maqs), "NOK": nOK, "NAlerta": nAlerta, "NCritico": nCritico,
+		"Maquinas": len(maqs), "Ignoradas": s.b.QtdIgnoradas(), "AD": s.coberturaAD(30), "NOK": nOK, "NAlerta": nAlerta, "NCritico": nCritico,
 		"MACDup": res.MACDuplicados, "SemMonitorado": semMonitorado, "Monitorado": prog, "Desatualizados": desatualizados,
 		"DiscoCheio": est.DiscoCheio, "Genericos": genericos, "SemAnyDesk": semAnyDesk,
 		"EhAdmin": sess.Admin.EhAdmin(), "PodeInventario": sess.Admin.PodeInventario(),

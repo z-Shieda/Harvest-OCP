@@ -33,6 +33,11 @@
 
   var overlay, canvas, ctx, raf, parts = [], mouse = { x: -9999, y: -9999 }, inicio = 0;
 
+  function empresa() {
+    var m = document.querySelector('meta[name="harvest-empresa"]');
+    return m && m.content ? ' — ' + m.content.replace(/[<>&"]/g, '') : '';
+  }
+
   function versao() {
     var m = document.querySelector('meta[name="harvest-versao"]');
     return m ? m.content : '';
@@ -55,7 +60,7 @@
     cartao.innerHTML =
       '<div style="font:700 13px Inter,sans-serif;letter-spacing:.32em;color:#ADDA23;text-transform:uppercase">Projeto Harvest' + (v ? ' · v' + v.replace(/[^0-9.]/g, '') : '') + '</div>' +
       '<div style="margin-top:6px">Colhendo inventário, chamados e ramais desde 28/10/2026.</div>' +
-      '<div style="margin-top:2px">Desenvolvido por <a href="https://www.linkedin.com/in/ccostadaniel/" target="_blank" rel="noopener" style="color:#F2C94C;font-weight:600">Daniel Costa</a> — T.I Ocupacional</div>' +
+      '<div style="margin-top:2px">Desenvolvido por <a href="https://www.linkedin.com/in/ccostadaniel/" target="_blank" rel="noopener" style="color:#F2C94C;font-weight:600">Daniel Costa</a>' + empresa() + '</div>' +
       '<div style="margin-top:14px;font-size:12px;color:#6F8A86">Esc ou clique para voltar</div>';
     overlay.appendChild(cartao);
     document.body.appendChild(overlay);

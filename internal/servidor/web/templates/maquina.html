@@ -2,7 +2,7 @@
 {{$m := .D.M}}{{$r := .D.R}}{{$csrf := .Sessao.CSRF}}{{$dup := .D.DupMACs}}
 <p><a href="/maquinas">← Máquinas</a></p>
 <div class="cabecalho">
-  <h1><span class="ponto {{status $m.UltimoContato}}"></span>{{$m.Hostname}} {{if $m.Duplicada}}<span class="selo vermelho">MAC duplicado</span>{{end}}</h1>
+  <h1><span class="ponto {{status $m.UltimoContato}}"></span>{{$m.Hostname}} {{if $m.Duplicada}}<span class="selo vermelho">MAC duplicado</span>{{end}}{{if $m.Ignorada}} <span class="selo">Ignorada</span>{{end}}</h1>
   <div class="sub">#{{$m.ID}} · último contato {{rel $m.UltimoContato}} ({{data $m.UltimoContato}}) · cadastrada em {{data $m.PrimeiroContato}}</div>
 </div>
 
@@ -10,11 +10,23 @@
 <div class="aviso erro">Esta máquina compartilha MAC address com outro registro. Se for a mesma máquina reinstalada, use <b>Mesclar</b> abaixo para juntar o registro antigo a este; se for uma máquina diferente, verifique a placa de rede ou ignore o MAC (ex.: dock USB compartilhada) na página <a href="/duplicados">Duplicados</a>.</div>
 {{end}}
 
+{{if $m.Ignorada}}
+<div class="aviso ignorada">
+  <div><b>Máquina ignorada</b> — não entra nos números do parque, no nível (OK/Alerta/Crítico) nem nas notificações.
+    O agente continua enviando os dados normalmente.<br>
+    <span class="sub">Motivo: <b>{{$m.IgnoradaMotivo}}</b> · por {{$m.IgnoradaPor}} em {{data $m.IgnoradaEm}}</span></div>
+  <form method="post" action="/maquinas/{{$m.ID}}/reconsiderar">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <button class="btn">Voltar a considerar</button>
+  </form>
+</div>
+{{end}}
+
 {{$a := .D.Aval}}
-<section class="cartao">
+<section class="cartao{{if $m.Ignorada}} apagado{{end}}">
   <h2>Nível da máquina:
     {{if eq $a.Classe "OK"}}<span class="selo verde">OK</span>{{else if eq $a.Classe "Alerta"}}<span class="selo amarelo">Alerta</span>{{else}}<span class="selo vermelho">Crítico</span>{{end}}
-    <small class="sub">{{$a.Pontos}} de 10 pontos</small>
+    <small class="sub">{{$a.Pontos}} de 10 pontos{{if $m.Ignorada}} · não conta (máquina ignorada){{end}}</small>
   </h2>
   <ul style="margin:0;padding-left:20px">
     {{range $a.Itens}}<li style="font-size:14px;color:var(--sub)">{{.}}</li>{{end}}
@@ -158,6 +170,23 @@
     </select>
     <button class="btn">Mesclar</button>
   </form>
+  <h2 style="margin-top:24px">Ignorar no inventário</h2>
+  {{if $m.Ignorada}}
+  <p>Ignorada desde {{data $m.IgnoradaEm}} — motivo: <b>{{$m.IgnoradaMotivo}}</b>.</p>
+  <form method="post" action="/maquinas/{{$m.ID}}/reconsiderar">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <button class="btn">Voltar a considerar</button>
+  </form>
+  {{else}}
+  <p>Para máquinas que não representam o parque — VM de testes, servidor, máquina de laboratório. Ela continua no inventário
+    (com os dados atualizados), mas sai das contagens, do nível OK/Alerta/Crítico e das notificações.</p>
+  <form method="post" action="/maquinas/{{$m.ID}}/ignorar" class="linha-form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <input name="motivo" required maxlength="300" placeholder="Motivo (ex.: VM de testes com 2 GB de RAM)" list="motivos-ignorar" style="flex:1">
+    <datalist id="motivos-ignorar"><option value="Máquina virtual (VM) de testes"><option value="Servidor"><option value="Máquina de laboratório / bancada"><option value="Equipamento emprestado / de terceiros"></datalist>
+    <button class="btn">Ignorar</button>
+  </form>
+  {{end}}
   <h2 style="margin-top:24px">Excluir</h2>
   <p>Tira a máquina do inventário e guarda uma cópia na <a href="/lixeira">Lixeira</a> (dá para restaurar). Enquanto estiver lá, ela não volta
     sozinha mesmo que o agente continue enviando. Para apagar de vez, use <b>Excluir permanentemente</b> na Lixeira.</p>

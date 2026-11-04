@@ -397,6 +397,12 @@ func autoAtualizar(cfg Config, a modelo.Atualizacao) bool {
 		falhaAutoUpdate("download inválido (arquivo incompleto ou removido pelo antivírus)")
 		return false
 	}
+	// 1.21: só instala se estiver assinado pela T.I (e for mesmo uma versão mais nova)
+	if err := verificarAtualizacao(cfg, novo, a.Versao); err != nil {
+		_ = os.Remove(novo)
+		falhaAutoUpdate("atualização RECUSADA (assinatura): " + err.Error())
+		return false
+	}
 	_ = os.Remove(exe + ".antigo")
 	if err := os.Rename(exe, exe+".antigo"); err != nil {
 		_ = os.Remove(novo)

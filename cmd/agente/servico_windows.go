@@ -90,7 +90,7 @@ func instalarServico(exe string) error {
 	}
 	defer m.Disconnect()
 	cfgSvc := mgr.Config{
-		DisplayName:      "Inventário Ocupacional - Agente",
+		DisplayName:      "Harvest - Agente de inventário",
 		Description:      "Mantém a conexão com o servidor de inventário da TI e aplica as atualizações do agente automaticamente.",
 		StartType:        mgr.StartAutomatic,
 		DelayedAutoStart: true,

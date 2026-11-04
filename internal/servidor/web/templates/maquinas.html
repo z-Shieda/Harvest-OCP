@@ -14,6 +14,7 @@
     <option value="nivel_ok" {{if eq $fsel "nivel_ok"}}selected{{end}}>Nível: OK</option>
     <option value="nivel_alerta" {{if eq $fsel "nivel_alerta"}}selected{{end}}>Nível: Alerta</option>
     <option value="nivel_critico" {{if eq $fsel "nivel_critico"}}selected{{end}}>Nível: Crítico</option>
+    <option value="ignoradas" {{if eq $fsel "ignoradas"}}selected{{end}}>Ignoradas{{if .D.NIgnoradas}} ({{.D.NIgnoradas}}){{end}}</option>
     {{if monitoradoAtivo}}<option value="sem_monitorado" {{if eq $fsel "sem_monitorado"}}selected{{end}}>Sem {{.D.Monitorado}}</option>
     <option value="com_monitorado" {{if eq $fsel "com_monitorado"}}selected{{end}}>Com {{.D.Monitorado}}</option>{{end}}
     {{if .D.Filtros}}<optgroup label="Filtros salvos">
@@ -23,6 +24,7 @@
   <button class="btn">Filtrar</button>
 </form>
 {{if .D.NomeFiltro}}<p class="sub">Filtro aplicado: <b>{{.D.NomeFiltro}}</b> — {{len .D.Maquinas}} máquina(s). <a href="/maquinas">limpar</a></p>{{end}}
+{{if and .D.NIgnoradas (ne $fsel "ignoradas")}}<p class="sub">{{if eq .D.NIgnoradas 1}}1 máquina ignorada não aparece{{else}}{{.D.NIgnoradas}} máquinas ignoradas não aparecem{{end}} aqui nem nos números{{if .D.Q}} (na busca por texto elas aparecem, com o selo "Ignorada"){{end}}. <a href="/maquinas?filtro=ignoradas">Ver ignoradas</a></p>{{end}}
 
 <details class="cartao" style="margin-bottom:14px">
   <summary style="cursor:pointer;font-weight:600">Criar filtro personalizado</summary>
@@ -75,13 +77,13 @@
 <table class="tabela lista">
   <tr><th></th><th>Máquina</th><th>Nível</th><th>Agente</th><th>Último usuário</th><th>Sistema</th><th>Processador</th><th>RAM</th><th>Disco</th><th>IP</th><th>MAC</th><th>Patrimônio / Setor</th><th>Contato</th></tr>
   {{range .D.Maquinas}}
-  <tr class="{{if .Duplicada}}linha-dup{{end}}">
+  <tr class="{{if .Duplicada}}linha-dup{{end}}{{if .Ignorada}} linha-ignorada{{end}}">
     <td><span class="ponto {{status .UltimoContato}}" title="{{data .UltimoContato}}"></span></td>
     <td><a href="/maquinas/{{.ID}}"><b>{{.Hostname}}</b></a>{{if .Duplicada}} <span class="selo vermelho">MAC duplicado</span>{{end}}<br><small>{{.Fabricante}} {{.Modelo}}</small>
       {{if .AnyDeskID}}<br><small title="AnyDesk {{rotuloAnyDesk .AnyDeskSituacao}}">AnyDesk <span class="mono">{{anydesk .AnyDeskID}}</span>{{if eq .AnyDeskSituacao "portatil"}} <span class="selo contorno-amar">portátil</span>{{end}}</small>
       {{else if anydeskAusente .AnyDeskSituacao}}<br><span class="selo contorno-verm">sem AnyDesk</span>{{end}}
       {{if monitoradoAtivo}}{{if eq .MonitorSituacao "sem"}} <span class="selo contorno-verm">sem {{$.D.Monitorado}}</span>{{else if eq .MonitorSituacao "parado"}} <span class="selo contorno-amar">{{$.D.Monitorado}} parado</span>{{end}}{{end}}</td>
-    <td>{{$av := index $.D.Aval .ID}}{{if eq $av.Classe "OK"}}<span class="selo verde">OK</span>{{else if eq $av.Classe "Alerta"}}<span class="selo amarelo">Alerta</span>{{else}}<span class="selo vermelho">Crítico</span>{{end}}<br><small>{{$av.Pontos}}/10</small></td>
+    <td>{{if .Ignorada}}<span class="selo" title="{{.IgnoradaMotivo}}">Ignorada</span><br><small title="{{.IgnoradaMotivo}}">{{.IgnoradaMotivo}}</small>{{else}}{{$av := index $.D.Aval .ID}}{{if eq $av.Classe "OK"}}<span class="selo verde">OK</span>{{else if eq $av.Classe "Alerta"}}<span class="selo amarelo">Alerta</span>{{else}}<span class="selo vermelho">Crítico</span>{{end}}<br><small>{{$av.Pontos}}/10</small>{{end}}</td>
     <td>{{if .VersaoAgente}}{{if eq (serie .VersaoAgente) (serie $.D.Versao)}}<span class="selo verde">v{{.VersaoAgente}}</span>{{else}}<span class="selo" title="versão atual: v{{$.D.Versao}}">v{{.VersaoAgente}} ⚠</span>{{end}}{{else}}<span class="selo">—</span>{{end}}</td>
     <td>{{.UltimoUsuario}}{{if .UltimoUsuarioNome}}<br><small>{{.UltimoUsuarioNome}}</small>{{end}}</td>
     <td>{{.SO}}<br><small>{{.SOVersao}} {{.SOBuild}}</small></td>

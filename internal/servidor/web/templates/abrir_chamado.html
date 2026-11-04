@@ -1,6 +1,6 @@
 {{define "conteudo"}}
 <div class="publico">
-<div class="marca-pub"><img src="/static/logo-claro.svg" alt="Ocupacional — A evolução da gestão de SST"> <a href="/login" class="sub">Entrar (equipe de TI)</a></div>
+<div class="marca-pub"><img src="{{.Marca.LogoClaro}}" alt="{{.Marca.Nome}}"> <a href="/login" class="sub">Entrar (equipe de TI)</a></div>
 {{if .D.Desativado}}
 <section class="cartao"><h1>Abertura de chamados indisponível</h1><p>A abertura de chamados por esta página está desligada no momento. Fale diretamente com a equipe de TI.</p></section>
 {{else}}
@@ -17,7 +17,7 @@
       {{template "campo_setor" (dict "Valor" .D.Setor "Placeholder" "Ex.: RH, Financeiro…" "Lista" true "Obrigatorio" false)}}
     </label>
     <label class="cheio">E-mail <small class="sub">(opcional)</small>
-      <input name="email" type="email" placeholder="seu.nome@ocupacional.com.br" autocomplete="email">
+      <input name="email" type="email" placeholder="seu.nome@empresa.com.br" autocomplete="email">
     </label>
     <datalist id="pessoas">{{range .D.Pessoas}}<option value="{{.Rotulo}}">{{end}}</datalist>
     <datalist id="setores">{{range .D.Setores}}<option value="{{.}}">{{end}}</datalist>

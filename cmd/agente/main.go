@@ -58,7 +58,7 @@ func partesVersao(v string) [3]int {
 var (
 	servidorPadrao = ""
 	tokenPadrao    = ""
-	versao         = "1.17.0"
+	versao         = "1.21.0"
 )
 
 type Config struct {
@@ -207,6 +207,10 @@ func main() {
 			cfg = novo
 		}
 	}
+	// Certificado mais novo da chave de assinatura da T.I (revoga os anteriores).
+	if resp != nil && resp.Certificado != nil {
+		aceitarCertificado(resp.Certificado)
+	}
 	// O servidor pode pedir a migração para um novo endereço (ex.: mudança para a nuvem).
 	if resp != nil && resp.Migrar != nil {
 		migrarServidor(cfg, *resp.Migrar, rel)
@@ -222,6 +226,10 @@ func main() {
 // servidor aceita o relatório. Se o novo endereço não responder, mantém o atual — assim um
 // endereço errado no painel nunca deixa a máquina sem contato.
 func migrarServidor(atual Config, m modelo.Migracao, rel *modelo.Relatorio) {
+	if err := conferirMigracao(m); err != nil {
+		registrar("migração para " + m.Servidor + " RECUSADA: " + err.Error())
+		return
+	}
 	novo := Config{
 		Servidor:  strings.TrimRight(strings.TrimSpace(m.Servidor), "/"),
 		Token:     strings.TrimSpace(m.Token),

@@ -23,7 +23,7 @@ import (
 	"inventario/internal/servidor"
 )
 
-var versao = "1.18.0"
+var versao = "1.22.0"
 
 func main() {
 	exe, _ := os.Executable()
@@ -107,6 +107,7 @@ func main() {
 		log.Fatalf("erro ao preparar o servidor: %v", err)
 	}
 	srv.CaminhoBanco = *banco
+	srv.CarregarAssinatura()
 	// backup automático diário com retenção (14 dias) na pasta "backups" ao lado do banco
 	srv.BackupAutomatico(filepath.Join(filepath.Dir(*banco), "backups"), 14)
 	hs := &http.Server{
@@ -120,7 +121,7 @@ func main() {
 	if *cert != "" {
 		esquema = "https"
 	}
-	log.Printf("Inventário v%s — painel em %s://localhost:%d  (banco: %s)", versao, esquema, *porta, *banco)
+	log.Printf("%s v%s — painel em %s://localhost:%d  (banco: %s)", servidor.NomeProduto(), versao, esquema, *porta, *banco)
 	log.Printf("Token dos agentes: %s", b.Config("token_agente"))
 	if *cert != "" {
 		err = hs.ListenAndServeTLS(*cert, *chave)
