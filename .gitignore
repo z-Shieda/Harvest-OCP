@@ -1,18 +1,4 @@
-# binários gerados por compilar.sh / compilar.ps1
-bin/
-internal/servidor/payload/*.exe
-*.exe
-# dados locais (banco, backups, logs) — nunca versionar
-*.db
-*.db-shm
-*.db-wal
-backups/
-*.log
-senha-admin-inicial.txt
-inventario-importar.*
-dados-agente/
-# editores / sistema
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
+
+# 1.21: chaves da assinatura da T.I nunca entram no Git
+*.chave
+ordem-migracao-*.txt
