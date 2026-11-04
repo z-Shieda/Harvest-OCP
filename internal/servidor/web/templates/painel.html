@@ -1,7 +1,7 @@
 {{define "conteudo"}}
 <h1>Painel</h1>
 <div class="numeros">
-  <a class="numero" href="/maquinas"><b>{{.D.P.Total}}</b><span>máquinas</span></a>
+  <a class="numero" href="/maquinas"><b>{{.D.P.Total}}</b><span>máquinas{{if .D.Ignoradas}} <small>(+{{.D.Ignoradas}} ignorada{{if gt .D.Ignoradas 1}}s{{end}})</small>{{end}}</span></a>
   <div class="numero"><b style="color:var(--verde)">{{.D.P.Ativas}}</b><span>ativas (até 7 dias)</span></div>
   <div class="numero {{if .D.P.Ociosas}}amarelo{{end}}"><b>{{.D.P.Ociosas}}</b><span>ociosas (7 a 14 dias)</span></div>
   <a class="numero {{if .D.P.Inativas}}vermelho{{end}}" href="/maquinas"><b>{{.D.P.Inativas}}</b><span>inativas (+14 dias)</span></a>

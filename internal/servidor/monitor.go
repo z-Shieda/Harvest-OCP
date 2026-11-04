@@ -33,6 +33,9 @@ func linhas(s string) []string {
 // %AppData%\spa\work.exe, assinado pela SMART Computadores e Serviços).
 func (b *Banco) ConfigMonitor() ConfigMonitor {
 	if b.Config("monitor_configurado") != "1" {
+		if edicaoGenerica() {
+			return ConfigMonitor{} // edição genérica: nada monitorado até o admin configurar
+		}
 		return ConfigMonitor{Ativo: true, Nome: "Work Monitor", CaminhosPerfil: `AppData\Roaming\spa\work.exe`, Proc: "work.exe"}
 	}
 	return ConfigMonitor{

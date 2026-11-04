@@ -20,10 +20,24 @@ GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "$LDS" -o bin/inventario-s
 GOOS=linux   GOARCH=amd64 go build -trimpath -ldflags "$LDS" -o bin/inventario-servidor-linux ./cmd/servidor
 echo "Agente embutido: v$VAG"
 
+# 2b) Edição GENÉRICA (white-label "Harvest": sem logo e cores da Ocupacional; a marca é
+#     configurada em Configurações → Marca).
+LDG="$LDS -X inventario/internal/servidor.Edicao=generica"
+GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "$LDG" -o bin/harvest-servidor.exe ./cmd/servidor
+GOOS=linux   GOARCH=amd64 go build -trimpath -ldflags "$LDG" -o bin/harvest-servidor-linux ./cmd/servidor
+
 # 3) Agente avulso para instalar direto numa máquina (com servidor/token embutidos, se informados).
 LD="-s -w -H=windowsgui"
 [ -n "$1" ] && LD="$LD -X main.servidorPadrao=$1"
 [ -n "$2" ] && LD="$LD -X main.tokenPadrao=$2"
 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "$LD" -o bin/inventario-agente.exe ./cmd/agente
+
+# 4) harvest-chave (assinatura da T.I) — roda no PC da T.I, nunca no servidor.
+GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w" -o bin/harvest-chave.exe ./cmd/chave
+GOOS=linux   GOARCH=amd64 go build -trimpath -ldflags "-s -w" -o bin/harvest-chave-linux ./cmd/chave
+
+# 5) Para o kit: cópia EXATA do agente embutido + versão (o harvest-chave assina este arquivo).
+cp internal/servidor/payload/inventario-agente.exe bin/agente-embutido.exe
+echo "$VAG" > bin/versao-agente.txt
 
 echo "Pronto: arquivos em bin/"

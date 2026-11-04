@@ -228,6 +228,12 @@ CREATE TABLE IF NOT EXISTS lixeira_maquinas (
 	ultimo_envio TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_lixeira_agent ON lixeira_maquinas(agent_id);
+CREATE TABLE IF NOT EXISTS marca_arquivos (
+	chave TEXT PRIMARY KEY,
+	tipo TEXT NOT NULL,
+	dados BLOB NOT NULL,
+	atualizado TEXT NOT NULL DEFAULT ''
+);
 CREATE TABLE IF NOT EXISTS sessoes (
 	token TEXT PRIMARY KEY,
 	admin_id INTEGER NOT NULL REFERENCES admins(id) ON DELETE CASCADE,
@@ -271,6 +277,10 @@ func AbrirBanco(caminho string) (*Banco, error) {
 	// com erro se a coluna já existe).
 	for _, alter := range []string{
 		`ALTER TABLE maquinas ADD COLUMN servidor_agente TEXT NOT NULL DEFAULT ''`,
+		// 1.20: máquinas ignoradas (VMs, máquinas de teste) — fora dos números e alertas
+		`ALTER TABLE maquinas ADD COLUMN ignorada_em TEXT NOT NULL DEFAULT ''`,
+		`ALTER TABLE maquinas ADD COLUMN ignorada_motivo TEXT NOT NULL DEFAULT ''`,
+		`ALTER TABLE maquinas ADD COLUMN ignorada_por TEXT NOT NULL DEFAULT ''`,
 		// 1.16: lixeira de ramais
 		`ALTER TABLE ramais ADD COLUMN excluido_em TEXT NOT NULL DEFAULT ''`,
 		`ALTER TABLE ramais ADD COLUMN excluido_por TEXT NOT NULL DEFAULT ''`,
@@ -613,14 +623,30 @@ type Maquina struct {
 	AnyDeskID, AnyDeskSituacao, AnyDeskAlias           string
 	AnyDeskDetalhe                                     string
 	MonitorSituacao, MonitorNome, MonitorDetalhe       string
+	IgnoradaEm, IgnoradaMotivo, IgnoradaPor            string // 1.20: fora dos números e alertas
 	Duplicada                                          bool
+}
+
+// Ignorada: a máquina continua recebendo dados, mas não entra em contagens, níveis e alertas.
+func (m *Maquina) Ignorada() bool { return m.IgnoradaEm != "" }
+
+// contaveis devolve só as máquinas que entram nos números do parque (sem as ignoradas).
+func contaveis(maqs []*Maquina) []*Maquina {
+	f := make([]*Maquina, 0, len(maqs))
+	for _, m := range maqs {
+		if !m.Ignorada() {
+			f = append(f, m)
+		}
+	}
+	return f
 }
 
 const colunasMaquina = `id, agent_id, hostname, dominio, fabricante, modelo, serial, hw_uuid, bios, so, so_versao, so_build,
 	so_arquitetura, so_instalacao, ultimo_boot, cpu, cpu_nucleos, cpu_threads, ram_bytes, disco_total, discos_resumo, gpu,
 	ips, macs, usuario_atual, ultimo_usuario, ultimo_usuario_nome, ultimo_usuario_em, versao_agente, ip_origem,
 	primeiro_contato, ultimo_contato, dados_json, patrimonio, setor, responsavel, localizacao, observacoes,
-	anydesk_id, anydesk_situacao, anydesk_alias, anydesk_detalhe, monitor_situacao, monitor_nome, monitor_detalhe`
+	anydesk_id, anydesk_situacao, anydesk_alias, anydesk_detalhe, monitor_situacao, monitor_nome, monitor_detalhe,
+	ignorada_em, ignorada_motivo, ignorada_por`
 
 type scanner interface{ Scan(...any) error }
 
@@ -632,7 +658,8 @@ func lerMaquina(s scanner) (*Maquina, error) {
 		&m.UltimoUsuarioNome, &m.UltimoUsuarioEm, &m.VersaoAgente, &m.IPOrigem, &m.PrimeiroContato, &m.UltimoContato,
 		&m.DadosJSON, &m.Patrimonio, &m.Setor, &m.Responsavel, &m.Localizacao, &m.Obs,
 		&m.AnyDeskID, &m.AnyDeskSituacao, &m.AnyDeskAlias, &m.AnyDeskDetalhe,
-		&m.MonitorSituacao, &m.MonitorNome, &m.MonitorDetalhe)
+		&m.MonitorSituacao, &m.MonitorNome, &m.MonitorDetalhe,
+		&m.IgnoradaEm, &m.IgnoradaMotivo, &m.IgnoradaPor)
 	return m, err
 }
 
@@ -685,6 +712,37 @@ func (b *Banco) AtualizarMaquina(id int64, patrimonio, setor, responsavel, local
 	_, err := b.db.Exec(`UPDATE maquinas SET patrimonio=?, setor=?, responsavel=?, localizacao=?, observacoes=? WHERE id=?`,
 		patrimonio, setor, responsavel, localizacao, obs, id)
 	return err
+}
+
+// IgnorarMaquina tira a máquina dos números, níveis e alertas, guardando o motivo.
+func (b *Banco) IgnorarMaquina(id int64, motivo, por string) error {
+	motivo = strings.TrimSpace(motivo)
+	if motivo == "" {
+		return fmt.Errorf("informe o motivo")
+	}
+	if len([]rune(motivo)) > 300 {
+		motivo = string([]rune(motivo)[:300])
+	}
+	x, err := b.db.Exec(`UPDATE maquinas SET ignorada_em=?, ignorada_motivo=?, ignorada_por=? WHERE id=?`, agora(), motivo, por, id)
+	if err != nil {
+		return err
+	}
+	if n, _ := x.RowsAffected(); n == 0 {
+		return fmt.Errorf("máquina não encontrada")
+	}
+	return nil
+}
+
+// ReconsiderarMaquina volta a contar a máquina normalmente.
+func (b *Banco) ReconsiderarMaquina(id int64) error {
+	_, err := b.db.Exec(`UPDATE maquinas SET ignorada_em='', ignorada_motivo='', ignorada_por='' WHERE id=?`, id)
+	return err
+}
+
+func (b *Banco) QtdIgnoradas() int {
+	var n int
+	_ = b.db.QueryRow(`SELECT COUNT(*) FROM maquinas WHERE ignorada_em<>''`).Scan(&n)
+	return n
 }
 
 func (b *Banco) ExcluirMaquina(id int64) error {
@@ -1188,11 +1246,11 @@ func (b *Banco) Resumo() Resumo {
 	var r Resumo
 	r.ChamadosAbertos = b.ResumoChamados()
 	r.Lixeira = b.QtdLixeira()
-	_ = b.db.QueryRow(`SELECT COUNT(*) FROM maquinas`).Scan(&r.Maquinas)
+	_ = b.db.QueryRow(`SELECT COUNT(*) FROM maquinas WHERE ignorada_em=''`).Scan(&r.Maquinas)
 	lim24 := time.Now().UTC().Add(-24 * time.Hour).Format(time.RFC3339)
 	lim7 := time.Now().UTC().Add(-7 * 24 * time.Hour).Format(time.RFC3339)
-	_ = b.db.QueryRow(`SELECT COUNT(*) FROM maquinas WHERE ultimo_contato >= ?`, lim24).Scan(&r.Ativas24h)
-	_ = b.db.QueryRow(`SELECT COUNT(*) FROM maquinas WHERE ultimo_contato < ?`, lim7).Scan(&r.Inativas7d)
+	_ = b.db.QueryRow(`SELECT COUNT(*) FROM maquinas WHERE ignorada_em='' AND ultimo_contato >= ?`, lim24).Scan(&r.Ativas24h)
+	_ = b.db.QueryRow(`SELECT COUNT(*) FROM maquinas WHERE ignorada_em='' AND ultimo_contato < ?`, lim7).Scan(&r.Inativas7d)
 	_ = b.db.QueryRow(`SELECT COUNT(*) FROM usuarios`).Scan(&r.Usuarios)
 	if b.OcultarUsuariosLocais() {
 		if l, err := b.Usuarios(""); err == nil {
@@ -1518,6 +1576,7 @@ func (b *Banco) Alertas() ([]Alerta, error) {
 	if err != nil {
 		return nil, err
 	}
+	maqs = contaveis(maqs) // ignoradas não geram notificação
 	var al []Alerta
 	padroes := b.Config("alerta_generico_padroes")
 	ligGenerico := b.Config("alerta_generico") == "1"
@@ -1597,6 +1656,7 @@ type Painel struct {
 func (b *Banco) EstatisticasPainel() Painel {
 	var p Painel
 	maqs, _ := b.Maquinas("")
+	maqs = contaveis(maqs)
 	p.Total = len(maqs)
 	ag := time.Now()
 	so := map[string]int{}

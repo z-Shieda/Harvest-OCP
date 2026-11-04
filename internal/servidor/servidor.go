@@ -20,6 +20,7 @@ import (
 	"sync"
 	"time"
 
+	"inventario/internal/assinatura"
 	"inventario/internal/modelo"
 )
 
@@ -41,7 +42,7 @@ type Servidor struct {
 // valor lido de cmd/agente/main.go (-X inventario/internal/servidor.VersaoAgente=...).
 // Fica separada da versão do servidor para que uma versão só de servidor (ex.: 1.8, chamados)
 // não dispare o auto-update em todas as máquinas nem marque os agentes como desatualizados.
-var VersaoAgente = "1.17.0"
+var VersaoAgente = "1.21.0"
 
 // Programa monitorado (Work Monitor): configurado em Configurações (monitor.go, 1.15).
 
@@ -139,10 +140,16 @@ func (s *Servidor) Rotas() http.Handler {
 
 	mux.HandleFunc("POST /api/v1/relatorio", s.apiRelatorio)
 	mux.HandleFunc("GET /api/v1/agente.exe", s.apiAgenteExe)
+	mux.HandleFunc("GET /api/v1/agente.assinatura", s.apiAgenteAssinatura)
+	mux.HandleFunc("POST /api/v1/ad", s.apiAD)
 	mux.HandleFunc("GET /api/v1/eventos", s.apiEventos)
 	mux.HandleFunc("POST /api/v1/eventos/resposta", s.apiRespostaTeste)
 	mux.HandleFunc("GET /saude", s.saude)
+	mux.HandleFunc("GET /marca.css", s.servirCSSMarca)
+	mux.HandleFunc("GET /marca/{arquivo}", s.servirArquivoMarca)
 	mux.HandleFunc("GET /login", s.paginaLogin)
+	mux.HandleFunc("GET /recuperar", s.paginaRecuperar)
+	mux.HandleFunc("POST /recuperar", s.acaoRecuperar)
 	mux.HandleFunc("POST /login", s.acaoLogin)
 
 	// --- Chamados sem login (rede interna; liga/desliga em Administração) ---
@@ -200,7 +207,14 @@ func (s *Servidor) Rotas() http.Handler {
 	pInv("GET /maquinas/{id}", s.paginaMaquina)
 	pInv("POST /maquinas/{id}/editar", s.acaoEditarMaquina)
 	pInv("POST /maquinas/{id}/excluir", s.acaoExcluirMaquina)
+	pInv("POST /maquinas/{id}/ignorar", s.acaoIgnorarMaquina)
+	pInv("POST /maquinas/{id}/reconsiderar", s.acaoReconsiderarMaquina)
 	pInv("GET /lixeira", s.paginaLixeira)
+	pInv("GET /ad", s.paginaAD)
+	pInv("GET /ad/exportar.xlsx", s.exportarAD)
+	pAdm("POST /ad/token", s.acaoTokenAD)
+	pAdm("POST /ad/enviar", s.acaoEnviarAD)
+	pAdm("GET /ad/Sincronizar-AD.ps1", s.baixarScriptAD)
 	pInv("POST /lixeira/maquinas/{id}/restaurar", s.acaoRestaurarMaquina)
 	pAdm("POST /lixeira/maquinas/{id}/apagar", s.acaoApagarMaquina)
 	pInv("POST /lixeira/ramais/{id}/restaurar", s.acaoRestaurarRamal)
@@ -257,6 +271,7 @@ func (s *Servidor) Rotas() http.Handler {
 	pAdm("GET /admin/agente/zip", s.baixarAgenteZip)
 	pAdm("POST /admin/atualizar", s.acaoAtualizar)
 	pAdm("POST /admin/migrar", s.acaoMigrar)
+	pAdm("POST /admin/assinatura", s.acaoEnviarAssinatura)
 	pAdm("POST /admin/migrar/autorizar", s.acaoAutorizarMigracao)
 	mux.HandleFunc("POST /admin/importar-banco", s.protegido(s.exige(s.acaoImportarBanco, func(a Admin) bool { return a.EhAdmin() })))
 	// "Minha conta" (trocar a própria senha) para qualquer usuário logado
@@ -264,6 +279,7 @@ func (s *Servidor) Rotas() http.Handler {
 	p("POST /configuracoes/aparencia", s.acaoAparencia)
 	pAdm("POST /configuracoes/setores", s.acaoSetores)
 	pAdm("POST /configuracoes/monitor", s.acaoConfigMonitor)
+	pAdm("POST /configuracoes/marca", s.acaoMarca)
 	p("GET /conta", s.paginaConta)
 	p("POST /conta/senha", s.acaoAlterarSenha)
 	return limitarConcorrencia(cabecalhosSeguranca(mux), 24)
@@ -285,7 +301,7 @@ func limitarConcorrencia(h http.Handler, n int) http.Handler {
 	vagas := make(chan struct{}, n)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// arquivos estáticos e as conexões de eventos (longas, uma por máquina) não ocupam vaga
-		if strings.HasPrefix(r.URL.Path, "/static/") || r.URL.Path == "/api/v1/eventos" {
+		if strings.HasPrefix(r.URL.Path, "/static/") || strings.HasPrefix(r.URL.Path, "/marca") || r.URL.Path == "/api/v1/eventos" {
 			h.ServeHTTP(w, r)
 			return
 		}
@@ -316,6 +332,14 @@ func (s *Servidor) protegido(h func(http.ResponseWriter, *http.Request, *Sessao)
 			return
 		}
 		if r.Method == http.MethodPost {
+			if r.URL.Path == "/configuracoes/marca" {
+				// o upload da marca é pequeno: limita antes de o FormValue ler o corpo
+				r.Body = http.MaxBytesReader(w, r.Body, 4*maxArquivoMarca)
+				if err := r.ParseMultipartForm(4 * maxArquivoMarca); err != nil {
+					redirecionar(w, r, "/configuracoes#marca", "", fmt.Errorf("arquivos grandes demais (até 1 MB cada)"))
+					return
+				}
+			}
 			if r.FormValue("csrf") != sess.CSRF {
 				http.Error(w, "Requisição inválida (token CSRF). Recarregue a página e tente novamente.", http.StatusForbidden)
 				return
@@ -347,6 +371,7 @@ func (s *Servidor) paginaInicial(w http.ResponseWriter, r *http.Request, sess *S
 
 type dadosPagina struct {
 	MigrandoPara string // servidor antigo durante a migração para a nuvem
+	Marca        Marca
 	Titulo       string
 	Menu         string
 	Secao        string // chamados | inventario
@@ -383,6 +408,7 @@ func (s *Servidor) render(w http.ResponseWriter, r *http.Request, pagina, titulo
 	if destino, ok := s.migracaoAtiva(); ok {
 		dp.MigrandoPara = destino
 	}
+	dp.Marca = s.marca()
 	if sess != nil {
 		dp.Resumo = s.b.Resumo()
 	}
@@ -489,7 +515,8 @@ func (s *Servidor) apiRelatorio(w http.ResponseWriter, r *http.Request) {
 	for _, g := range res.Duplicados {
 		dup = append(dup, g.MAC)
 	}
-	resp := modelo.Resposta{OK: true, MaquinaID: res.MaquinaID, Nova: res.Nova, MACDuplicado: dup, Monitorar: s.b.ConfigMonitor().Alvo()}
+	resp := modelo.Resposta{OK: true, MaquinaID: res.MaquinaID, Nova: res.Nova, MACDuplicado: dup, Monitorar: s.b.ConfigMonitor().Alvo(),
+		Certificado: s.certificadoParaAgentes()}
 	if tokAntigo {
 		resp.NovoToken = s.b.Config("token_agente") // agentes 1.11.2+ passam a usar o token atual
 	}
@@ -498,7 +525,7 @@ func (s *Servidor) apiRelatorio(w http.ResponseWriter, r *http.Request) {
 	// Se houver uma fase canário (lista de hostnames), só essas máquinas recebem a ordem.
 	if destino := strings.TrimRight(s.b.Config("migrar_servidor"), "/"); destino != "" && s.b.Config("migrar_ativa") == "1" {
 		if !strings.EqualFold(destino, strings.TrimRight(rel.ServidorAtual, "/")) && noCanario(s.b.Config("migrar_canario"), rel.Hostname) {
-			resp.Migrar = &modelo.Migracao{Servidor: destino, Token: s.b.Config("migrar_token")}
+			resp.Migrar = &modelo.Migracao{Servidor: destino, Token: s.b.Config("migrar_token"), Ordem: s.b.Config("migrar_ordem")}
 		}
 	}
 	// Auto-update: se o agente está numa versão anterior à que este servidor distribui, avisa
@@ -672,6 +699,7 @@ func (s *Servidor) acaoSair(w http.ResponseWriter, r *http.Request, sess *Sessao
 
 func (s *Servidor) paginaPainel(w http.ResponseWriter, r *http.Request, sess *Sessao) {
 	maqs, _ := s.b.Maquinas("")
+	maqs = contaveis(maqs)
 	dup, _ := s.b.DuplicadosMAC()
 	// últimas máquinas que se comunicaram
 	recentes := append([]*Maquina(nil), maqs...)
@@ -762,7 +790,7 @@ func (s *Servidor) paginaPainel(w http.ResponseWriter, r *http.Request, sess *Se
 		"Rosca": rosca, "GrafSO": grafSO, "GrafSetor": grafSetor, "NAlertas": nAlertas,
 		"GrafVersoes": grafVersoes, "Desatualizados": desatualizados, "SemAnyDesk": semAnyDesk, "Versao": s.Versao, "VersaoAgente": s.VersaoAgente,
 		"RoscaNivel": roscaNivel, "NOK": nOK, "NAlerta": nAlerta, "NCritico": nCritico,
-		"Monitorado": prog, "SemMonitorado": semMonitorado, "TotalMaq": len(maqs),
+		"Monitorado": prog, "SemMonitorado": semMonitorado, "TotalMaq": len(maqs), "Ignoradas": s.b.QtdIgnoradas(),
 	})
 }
 
@@ -775,6 +803,25 @@ func (s *Servidor) paginaMaquinas(w http.ResponseWriter, r *http.Request, sess *
 	}
 	filtro := r.URL.Query().Get("filtro")
 	nomeFiltro := ""
+	nIgnoradas := 0
+	for _, m := range maqs {
+		if m.Ignorada() {
+			nIgnoradas++
+		}
+	}
+	// ignoradas só aparecem no filtro próprio ou numa busca por texto (com o selo "Ignorada")
+	if filtro == "ignoradas" {
+		nomeFiltro = "Ignoradas (fora dos números e alertas)"
+		var f []*Maquina
+		for _, m := range maqs {
+			if m.Ignorada() {
+				f = append(f, m)
+			}
+		}
+		maqs = f
+	} else if strings.TrimSpace(q) == "" || filtro != "" {
+		maqs = contaveis(maqs)
+	}
 	switch filtro {
 	case "duplicadas":
 		nomeFiltro = "Com MAC duplicado"
@@ -851,7 +898,7 @@ func (s *Servidor) paginaMaquinas(w http.ResponseWriter, r *http.Request, sess *
 	}
 	s.render(w, r, "maquinas", "Máquinas", "maquinas", sess, map[string]any{
 		"Maquinas": maqs, "Q": q, "Filtro": filtro, "NomeFiltro": nomeFiltro, "Filtros": filtros, "Versao": s.VersaoAgente,
-		"Aval": aval, "Monitorado": s.programaMonitorado(),
+		"Aval": aval, "Monitorado": s.programaMonitorado(), "NIgnoradas": nIgnoradas,
 	})
 }
 
@@ -983,6 +1030,33 @@ func (s *Servidor) acaoExcluirMaquina(w http.ResponseWriter, r *http.Request, se
 		voltar = "/maquinas"
 	}
 	redirecionar(w, r, voltar, "Máquina movida para a Lixeira — dá para restaurar em Inventário → Lixeira.", err)
+}
+
+// acaoIgnorarMaquina (1.20): a máquina continua no inventário recebendo dados, mas sai das
+// contagens, do nível (OK/Alerta/Crítico) e das notificações — ex.: VM de testes com pouca RAM.
+func (s *Servidor) acaoIgnorarMaquina(w http.ResponseWriter, r *http.Request, sess *Sessao) {
+	id := idDaURL(r)
+	destino := fmt.Sprintf("/maquinas/%d", id)
+	m, err := s.b.Maquina(id)
+	if err == nil {
+		err = s.b.IgnorarMaquina(id, r.FormValue("motivo"), sess.Admin.Usuario)
+	}
+	if err == nil {
+		s.b.Auditar(sess.Admin.Usuario, "ignorar máquina", fmt.Sprintf("#%d %s — %s", id, m.Hostname, strings.TrimSpace(r.FormValue("motivo"))))
+	}
+	redirecionar(w, r, destino, "Máquina ignorada: ela não entra mais nos números, no nível do parque nem nas notificações.", err)
+}
+
+func (s *Servidor) acaoReconsiderarMaquina(w http.ResponseWriter, r *http.Request, sess *Sessao) {
+	id := idDaURL(r)
+	m, err := s.b.Maquina(id)
+	if err == nil {
+		err = s.b.ReconsiderarMaquina(id)
+	}
+	if err == nil {
+		s.b.Auditar(sess.Admin.Usuario, "voltar a considerar máquina", fmt.Sprintf("#%d %s", id, m.Hostname))
+	}
+	redirecionar(w, r, fmt.Sprintf("/maquinas/%d", id), "A máquina voltou a contar no inventário.", err)
 }
 
 func (s *Servidor) acaoMesclarMaquina(w http.ResponseWriter, r *http.Request, sess *Sessao) {
@@ -1184,6 +1258,7 @@ func (s *Servidor) paginaAdmin(w http.ResponseWriter, r *http.Request, sess *Ses
 	s.render(w, r, "admin", "Administração", "admin", sess, map[string]any{
 		"Admins": admins, "Auditoria": aud, "Token": s.b.Config("token_agente"), "Webhook": s.b.Config("webhook_url"),
 		"URL": s.baseURL(r), "EnderecoFixo": s.b.Config("endereco_servidor"), "Versao": s.Versao, "VersaoAgente": s.VersaoAgente,
+		"Assinatura": s.statusAssinatura(), "RecusasAssinatura": s.b.RecusasAssinatura(),
 		"Migracao": s.b.Migracao(), "MigrarToken": s.b.Config("migrar_token"), "Canario": s.b.Config("migrar_canario"),
 		"Nivel": s.b.ParamsNivel(), "AutoUpdate": s.b.Config("auto_update") != "0",
 		"DiagAU":    s.b.DiagnosticoAutoUpdate(s.VersaoAgente, s.b.Config("auto_update") != "0", payloadConfere()),
@@ -1309,18 +1384,32 @@ func (s *Servidor) acaoMigrar(w http.ResponseWriter, r *http.Request, sess *Sess
 	if r.FormValue("cancelar") != "" {
 		_ = s.b.DefinirConfig("migrar_servidor", "")
 		_ = s.b.DefinirConfig("migrar_token", "")
+		_ = s.b.DefinirConfig("migrar_ordem", "")
 		_ = s.b.DefinirConfig("migrar_ativa", "")
 		_ = s.b.DefinirConfig("migrar_canario", "")
 		s.b.Auditar(sess.Admin.Usuario, "cancelar migração de agentes", "")
 		redirecionar(w, r, "/admin", "Migração cancelada. Os agentes continuam neste servidor.", nil)
 		return
 	}
+	token := strings.TrimSpace(r.FormValue("token"))
+	ordem := strings.TrimSpace(r.FormValue("ordem"))
+	if _, assinado := assinatura.RaizEmbutida(); assinado || ordem != "" {
+		// 1.21: com a assinatura da T.I, o destino vem da ordem assinada (harvest-chave)
+		o, err := ordemMigracaoValida(ordem)
+		if err != nil {
+			redirecionar(w, r, "/admin#migrar", "", fmt.Errorf("ordem de migração: %v", err))
+			return
+		}
+		destino, token = strings.TrimRight(o.Servidor, "/"), o.Token
+		ordem = o.Texto()
+	}
 	if destino != "" && !strings.HasPrefix(destino, "http://") && !strings.HasPrefix(destino, "https://") {
 		redirecionar(w, r, "/admin", "", fmt.Errorf("o endereço deve começar com http:// ou https://"))
 		return
 	}
 	_ = s.b.DefinirConfig("migrar_servidor", destino)
-	_ = s.b.DefinirConfig("migrar_token", strings.TrimSpace(r.FormValue("token")))
+	_ = s.b.DefinirConfig("migrar_token", token)
+	_ = s.b.DefinirConfig("migrar_ordem", ordem)
 	_ = s.b.DefinirConfig("migrar_canario", strings.TrimSpace(r.FormValue("canario")))
 	// Salvar ou alterar o destino sempre desativa a autorização: é preciso autorizar de novo.
 	_ = s.b.DefinirConfig("migrar_ativa", "")
@@ -1397,6 +1486,14 @@ func (s *Servidor) baixarBackup(w http.ResponseWriter, r *http.Request, sess *Se
 
 func gbNum(b int64) float64 { return float64(b) / (1024 * 1024 * 1024) }
 
+// motivoIgnorada: coluna da exportação — vazio para as máquinas que contam normalmente.
+func motivoIgnorada(m *Maquina) string {
+	if !m.Ignorada() {
+		return ""
+	}
+	return "SIM — " + m.IgnoradaMotivo
+}
+
 func (s *Servidor) linhasMaquinas() ([]string, [][]Celula, error) {
 	maqs, err := s.b.Maquinas("")
 	if err != nil {
@@ -1405,7 +1502,7 @@ func (s *Servidor) linhasMaquinas() ([]string, [][]Celula, error) {
 	cab := []string{"ID", "Hostname", "Patrimônio", "Setor", "Responsável", "Localização", "Usuário atual", "Último usuário", "Nome do último usuário",
 		"Último usuário visto em", "Fabricante", "Modelo", "Número de série", "Sistema operacional", "Versão", "Build", "Arquitetura",
 		"Processador", "Núcleos", "Threads", "RAM (GB)", "Disco total (GB)", "Discos", "Vídeo", "IPs", "MACs", "Domínio", "BIOS",
-		"Instalação do SO", "Último boot", "Primeiro contato", "Último contato", "IP de origem", "Versão do agente", "MAC duplicado", "Observações"}
+		"Instalação do SO", "Último boot", "Primeiro contato", "Último contato", "IP de origem", "Versão do agente", "MAC duplicado", "Observações", "Ignorada (motivo)"}
 	var linhas [][]Celula
 	for _, m := range maqs {
 		dup := "Não"
@@ -1416,7 +1513,7 @@ func (s *Servidor) linhasMaquinas() ([]string, [][]Celula, error) {
 			m.UltimoUsuarioNome, formatarData(m.UltimoUsuarioEm), m.Fabricante, m.Modelo, m.Serial, m.SO, m.SOVersao, m.SOBuild, m.SOArq,
 			m.CPU, m.CPUNucleos, m.CPUThreads, gbNum(m.RAM), gbNum(m.DiscoTotal), m.DiscosResumo, m.GPU, m.IPs, m.MACs, m.Dominio, m.BIOS,
 			formatarData(m.SOInstalacao), formatarData(m.UltimoBoot), formatarData(m.PrimeiroContato), formatarData(m.UltimoContato),
-			m.IPOrigem, m.VersaoAgente, dup, m.Obs})
+			m.IPOrigem, m.VersaoAgente, dup, m.Obs, motivoIgnorada(m)})
 	}
 	return cab, linhas, nil
 }

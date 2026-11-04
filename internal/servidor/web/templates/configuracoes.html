@@ -11,7 +11,7 @@
     <div class="opcoes-visuais">
       <label class="opcao-visual"><input type="radio" name="tema" value="escuro" {{if not $a.TemaClaro}}checked{{end}}>
         <span class="mini escuro"><i class="barra"></i><i class="lima"></i><i class="bloco"></i></span>
-        <b>Escuro</b><small>Grafite com destaque lima (padrão)</small></label>
+        <b>Escuro</b><small>Fundo escuro com a cor de destaque (padrão)</small></label>
       <label class="opcao-visual"><input type="radio" name="tema" value="claro" {{if $a.TemaClaro}}checked{{end}}>
         <span class="mini claro"><i class="barra"></i><i class="lima"></i><i class="bloco"></i></span>
         <b>Claro</b><small>Fundo claro, para ambientes iluminados</small></label>
@@ -30,22 +30,74 @@
 </section>
 
 {{if $a.EhAdmin}}
+<section class="cartao" id="marca">
+  {{$m := .Marca}}{{$p := .D.MarcaPadrao}}
+  <h2>Marca</h2>
+  <p class="sub">Nome, logo e cores do painel, das páginas públicas (abrir e acompanhar chamado, login) e dos e-mails.
+    Vale para <b>todos</b> os usuários. As cores de texto e fundo são ajustadas automaticamente para manter a leitura nos temas claro e escuro.</p>
+  <form method="post" action="/configuracoes/marca" enctype="multipart/form-data" class="form form-marca">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label class="cheio">Nome da empresa / do sistema<input name="nome" maxlength="60" value="{{.D.MarcaNome}}" placeholder="{{$p.Nome}}">
+      <span class="dica">Aparece no título das abas, no rodapé e nos e-mails. Vazio = {{$p.Nome}}.</span></label>
+
+    <label>Cor principal (destaques e botões)
+      <span class="linha-cor"><input type="color" id="cor-pri-sel" value="{{$m.CorPri}}" aria-label="Escolher cor principal">
+      <input name="cor_pri" id="cor-pri" value="{{$m.CorPri}}" pattern="#[0-9a-fA-F]{6}" maxlength="7" placeholder="{{$p.CorPri}}"></span></label>
+    <label>Cor secundária (barra do topo, cabeçalho dos e-mails)
+      <span class="linha-cor"><input type="color" id="cor-sec-sel" value="{{$m.CorSec}}" aria-label="Escolher cor secundária">
+      <input name="cor_sec" id="cor-sec" value="{{$m.CorSec}}" pattern="#[0-9a-fA-F]{6}" maxlength="7" placeholder="{{$p.CorSec}}"></span></label>
+
+    <div class="cheio previa-marca" id="previa-marca" aria-label="Prévia">
+      <div class="pm-topo"><span class="pm-nome" id="pm-nome">{{$m.Nome}}</span><span class="pm-aba">Início</span><span class="pm-aba ativa">Chamados</span></div>
+      <div class="pm-corpo"><span class="pm-selo">Aberto</span><button type="button" class="pm-btn" tabindex="-1">Botão principal</button><span class="pm-link">um link</span></div>
+    </div>
+
+    <h3 class="cheio">Logos</h3>
+    <p class="sub cheio">PNG, SVG, JPG ou WEBP de até 1 MB. Prefira fundo transparente, formato horizontal (cerca de 4:1).
+      Se enviar só uma, ela é usada nos dois temas.</p>
+    <div class="cheio grade-logos">
+      <div class="caixa-logo escura">
+        <b>Para fundo escuro</b><small>tema escuro, login e páginas públicas</small>
+        <img src="{{$m.LogoClaro}}" alt="Logo atual para fundo escuro">
+        <input type="file" name="logo_claro" accept="image/png,image/svg+xml,image/jpeg,image/webp">
+        {{if $m.TemLogoClaro}}<label class="chk"><input type="checkbox" name="remover_logo_claro" value="1"> remover</label>{{end}}
+      </div>
+      <div class="caixa-logo clara">
+        <b>Para fundo claro</b><small>tema claro</small>
+        <img src="{{$m.LogoEscuro}}" alt="Logo atual para fundo claro">
+        <input type="file" name="logo_escuro" accept="image/png,image/svg+xml,image/jpeg,image/webp">
+        {{if $m.TemLogoEscuro}}<label class="chk"><input type="checkbox" name="remover_logo_escuro" value="1"> remover</label>{{end}}
+      </div>
+      <div class="caixa-logo">
+        <b>Ícone da aba (favicon)</b><small>quadrado, 64×64 ou maior</small>
+        <img src="{{$m.Favicon}}" alt="Ícone atual" class="ico">
+        <input type="file" name="favicon" accept="image/png,image/svg+xml,image/x-icon,image/webp">
+        {{if $m.TemFavicon}}<label class="chk"><input type="checkbox" name="remover_favicon" value="1"> remover</label>{{end}}
+      </div>
+    </div>
+    <div class="linha-form cheio">
+      <button class="btn primario">Salvar marca</button>
+      {{if $m.Personalizada}}<button class="btn" name="padrao" value="1" formnovalidate onclick="return confirm('Voltar nome, cores e logos ao padrão?')">Voltar ao padrão</button>{{end}}
+    </div>
+  </form>
+</section>
+<script src="/static/marca-config.js" defer></script>
 <section class="cartao" id="monitor">
   {{$cm := .D.Monitor}}
   <h2>Programa monitorado</h2>
-  <p class="sub">Programa que deve estar em todas as máquinas (ex.: <b>Work Monitor</b>). O agente procura o arquivo na pasta de
+  <p class="sub">Programa que deve estar em todas as máquinas (ex.: um antivírus ou agente de monitoramento). O agente procura o arquivo na pasta de
     <b>cada usuário</b> do Windows (e nos caminhos fixos) e confere se o processo está <b>rodando</b>. O painel avisa as máquinas
     <b>sem</b> o programa ou com ele <b>parado</b> enquanto há alguém logado.</p>
   <form method="post" action="/configuracoes/monitor" class="form">
     <input type="hidden" name="csrf" value="{{$csrf}}">
     <label class="chave cheio"><input type="checkbox" name="ativo" value="1" {{if $cm.Ativo}}checked{{end}}><span class="trilho-chave" aria-hidden="true"></span><span class="rotulo-chave"><b>Monitorar</b><small>desligado, as máquinas param de verificar</small></span></label>
-    <label>Nome do programa<input name="nome" value="{{$cm.Nome}}" placeholder="Work Monitor"></label>
+    <label>Nome do programa<input name="nome" value="{{$cm.Nome}}" placeholder="Nome do programa"></label>
     <label>Nome do processo (um por linha)<textarea name="processos" rows="2" placeholder="work.exe">{{$cm.Proc}}</textarea></label>
     <label class="cheio">Caminho dentro da pasta do usuário (um por linha)<textarea name="caminhos" rows="2" placeholder="AppData\Roaming\spa\work.exe">{{$cm.CaminhosPerfil}}</textarea></label>
     <label class="cheio">Caminhos completos, se também for instalado para a máquina toda (opcional)<textarea name="fixos" rows="2" placeholder="C:\Program Files\Programa\programa.exe">{{$cm.CaminhosFixos}}</textarea></label>
     <div class="linha-form cheio"><button class="btn primario">Salvar</button></div>
   </form>
-  <p class="sub">O Work Monitor fica em <code>%AppData%\spa\work.exe</code> (C:\Users\&lt;usuário&gt;\AppData\Roaming\spa), assinado pela SMART Computadores e Serviços. Mudanças valem no próximo envio de cada máquina — agentes 1.15+.</p>
+  <p class="sub">{{if .Marca.Ocupacional}}O Work Monitor fica em <code>%AppData%\spa\work.exe</code> (C:\Users\&lt;usuário&gt;\AppData\Roaming\spa), assinado pela SMART Computadores e Serviços. {{end}}Mudanças valem no próximo envio de cada máquina — agentes 1.15+.</p>
 </section>
 
 <section class="cartao" id="setores">

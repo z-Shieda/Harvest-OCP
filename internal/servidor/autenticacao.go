@@ -309,6 +309,27 @@ func (b *Banco) RedefinirSenha(usuario string) (string, error) {
 	return nova, nil
 }
 
+// DefinirSenhaAdministrador (recuperação com as 24 palavras): troca a senha de um usuário
+// com papel admin e derruba as sessões dele.
+func (b *Banco) DefinirSenhaAdministrador(usuario, nova string) error {
+	if len(nova) < 8 {
+		return errors.New("a nova senha deve ter pelo menos 8 caracteres")
+	}
+	h, err := gerarHash(nova)
+	if err != nil {
+		return err
+	}
+	x, err := b.db.Exec(`UPDATE admins SET senha=? WHERE usuario=? AND papel='admin'`, h, strings.TrimSpace(usuario))
+	if err != nil {
+		return err
+	}
+	if n, _ := x.RowsAffected(); n == 0 {
+		return errors.New("não existe administrador com esse usuário")
+	}
+	_, _ = b.db.Exec(`DELETE FROM sessoes WHERE admin_id=(SELECT id FROM admins WHERE usuario=?)`, strings.TrimSpace(usuario))
+	return nil
+}
+
 // AtualizarDadosAdmin troca nome e e-mail de uma conta (usado nos avisos por e-mail).
 func (b *Banco) AtualizarDadosAdmin(id int64, nome, email string) error {
 	nome, email = strings.TrimSpace(nome), strings.TrimSpace(email)

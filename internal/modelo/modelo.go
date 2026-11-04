@@ -1,6 +1,8 @@
 // Package modelo define o formato do relatório enviado pelo agente ao servidor.
 package modelo
 
+import "inventario/internal/assinatura"
+
 // Relatorio é o inventário completo de uma máquina.
 type Relatorio struct {
 	AgentID       string `json:"agent_id"`
@@ -149,6 +151,9 @@ type Resposta struct {
 	Monitorar *AlvoMonitor `json:"monitorar,omitempty"`
 	// NovoToken (1.11.2+): o agente usou um token anterior aceito; deve passar a usar este.
 	NovoToken string `json:"novo_token,omitempty"`
+	// Certificado (1.21+): certificado mais novo da chave de assinatura da T.I. O agente o
+	// aceita se a chave raiz conferir e passa a recusar os anteriores (revogação).
+	Certificado *assinatura.Certificado `json:"certificado,omitempty"`
 }
 
 type Atualizacao struct {
@@ -159,6 +164,9 @@ type Atualizacao struct {
 type Migracao struct {
 	Servidor string `json:"servidor"`
 	Token    string `json:"token"`
+	// Ordem (1.21+): ordem de migração assinada pela T.I (harvest-chave). Agentes com a
+	// assinatura configurada só mudam de servidor com ela.
+	Ordem string `json:"ordem,omitempty"`
 }
 
 // ---------- eventos em tempo real (1.12, SSE em /api/v1/eventos) ----------

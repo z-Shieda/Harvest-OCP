@@ -226,6 +226,18 @@ func responderTeste(cfg Config, ev modelo.EventoTeste) {
 			r.Motivo = "pronta para a v" + ev.Versao + ", mas o auto-update está desligado no servidor"
 		default:
 			r.Motivo = "pronta: trocaria da v" + versao + " para a v" + ev.Versao + " sem pedir permissão"
+			if _, ok := raizDoAgente(); ok {
+				m, err := baixarManifesto(cfg)
+				if err == nil {
+					err = conferirManifesto(m, ev.Versao)
+				}
+				if err != nil {
+					r.PodeAtualizar = false
+					r.Motivo = "recusaria a v" + ev.Versao + ": " + err.Error()
+				} else {
+					r.Motivo += " (assinatura da T.I conferida)"
+				}
+			}
 		}
 	}
 	b, _ := json.Marshal(r)

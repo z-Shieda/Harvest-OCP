@@ -1,0 +1,30 @@
+{{define "conteudo"}}
+<img class="login-logo" src="{{.Marca.LogoClaro}}" alt="{{.Marca.Nome}}">
+<div class="cartao login" style="max-width:560px">
+  <h1>Recuperar acesso</h1>
+  {{if .D.Disponivel}}
+  <p class="sub">Só para a T.I, com as <b>24 palavras</b> da chave raiz. As palavras <b>não</b> são digitadas aqui:
+    elas ficam no seu PC, no <b>harvest-chave</b>, que gera a resposta para este código.</p>
+  <ol class="passos-recuperar">
+    <li>No seu PC, abra o <b>harvest-chave.exe</b> → <b>4) Recuperar acesso ao painel</b>.</li>
+    <li>Digite este código de desafio (vale 15 minutos e uma vez só):
+      <div class="desafio"><code id="desafio">{{.D.Desafio}}</code>
+        <button type="button" class="btn pequeno" data-copiar-texto="{{.D.Desafio}}">Copiar</button></div></li>
+    <li>Digite as 24 palavras no harvest-chave e cole aqui a resposta que ele mostrar.</li>
+  </ol>
+  <form method="post" action="/recuperar">
+    <input type="hidden" name="desafio" value="{{.D.Desafio}}">
+    <label>Resposta do harvest-chave<textarea name="resposta" rows="3" required placeholder="HARVEST-RECUPERAR:..." spellcheck="false" style="font-family:ui-monospace,Consolas,monospace;font-size:12px"></textarea></label>
+    <label>Usuário administrador<input name="usuario" required autocomplete="username" placeholder="admin"></label>
+    <label>Nova senha<input name="senha" type="password" required minlength="8" autocomplete="new-password"></label>
+    <label>Repita a nova senha<input name="senha2" type="password" required minlength="8" autocomplete="new-password"></label>
+    <button class="btn primario largo">Redefinir senha</button>
+  </form>
+  {{else}}
+  <p>A recuperação com as 24 palavras ainda não está configurada neste servidor (o kit não foi assinado com o <b>harvest-chave</b>).</p>
+  <p class="sub">Enquanto isso, no próprio servidor, como administrador:<br>
+    <code>inventario-servidor.exe -redefinir-senha admin</code></p>
+  {{end}}
+</div>
+<p style="text-align:center;margin-top:14px"><a href="/login">← Voltar para o login</a></p>
+{{end}}

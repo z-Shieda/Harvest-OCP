@@ -74,6 +74,8 @@ func (s *Servidor) paginaConfiguracoes(w http.ResponseWriter, r *http.Request, s
 		d["SetoresTexto"] = strings.Join(fixos, "\n")
 		d["ForaDaLista"] = foraDaLista
 		d["Monitor"] = s.b.ConfigMonitor()
+		d["MarcaPadrao"] = padraoMarca()
+		d["MarcaNome"] = s.b.Config("marca_nome")
 	}
 	s.render(w, r, "configuracoes", "Configurações", "config", sess, d)
 }

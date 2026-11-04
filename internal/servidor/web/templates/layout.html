@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{.Titulo}} · Ocupacional TI</title>
-<link rel="icon" href="/static/simbolo-cor.svg" type="image/svg+xml">
+<title>{{.Titulo}} · {{.Marca.Titulo}}</title>
+<link rel="icon" href="{{.Marca.Favicon}}">
 <link rel="stylesheet" href="/static/estilo.css">
+<link rel="stylesheet" href="/marca.css?v={{.Marca.Versao}}">
 <meta name="harvest-versao" content="{{.Versao}}">
+{{if .Marca.Ocupacional}}<meta name="harvest-empresa" content="T.I Ocupacional">{{end}}
 </head>
 <body{{if .Sessao}}{{if .Sessao.Admin.MenuLateral}} class="menu-lateral"{{end}}{{end}}>
 {{if .Sessao}}
 <header class="topo">
-  <a class="marca" href="/" aria-label="Início"><img src="/static/{{if .Sessao.Admin.TemaClaro}}logo-cor{{else}}logo-claro{{end}}.svg" alt="Ocupacional — A evolução da gestão de SST"></a>
+  <a class="marca" href="/" aria-label="Início"><img src="{{if .Sessao.Admin.TemaClaro}}{{.Marca.LogoEscuro}}{{else}}{{.Marca.LogoClaro}}{{end}}" alt="{{.Marca.Nome}}"></a>
   <nav class="abas" aria-label="Menu principal">
     {{if .Sessao.Admin.PodeGerenciarChamados}}<a href="/" class="{{if eq .Secao "inicio"}}ativo{{end}}">Início</a>{{end}}
     <a href="/chamados" class="{{if eq .Secao "chamados"}}ativo{{end}}">Chamados{{if .Resumo.ChamadosAbertos}} <b>{{.Resumo.ChamadosAbertos}}</b>{{end}}</a>
@@ -45,6 +47,7 @@
     <a href="/usuarios" class="{{if eq .Menu "usuarios"}}ativo{{end}}">Usuários <b>{{.Resumo.Usuarios}}</b></a>
     <a href="/duplicados" class="{{if eq .Menu "duplicados"}}ativo{{end}}">Duplicados {{if .Resumo.MACDuplicados}}<b class="alerta">{{.Resumo.MACDuplicados}}</b>{{end}}</a>
     <a href="/notificacoes" class="{{if eq .Menu "notificacoes"}}ativo{{end}}">Notificações</a>
+    <a href="/ad" class="{{if eq .Menu "ad"}}ativo{{end}}">Active Directory</a>
     <a href="/lixeira" class="{{if eq .Menu "lixeira"}}ativo{{end}}">Lixeira{{if .Resumo.Lixeira}} <b>{{.Resumo.Lixeira}}</b>{{end}}</a>
     {{if .Sessao.Admin.EhAdmin}}<a href="/admin" class="{{if eq .Menu "admin"}}ativo{{end}}">Administração</a>
     <a href="/admin/conexoes" class="{{if eq .Menu "admin_conexoes"}}ativo{{end}}">Conexões</a>{{end}}
@@ -59,7 +62,7 @@
   {{if .Erro}}<div class="aviso erro">{{.Erro}}</div>{{end}}
   {{template "conteudo" .}}
 </main>
-<footer>Ocupacional · Harvest v{{.Versao}} · desenvolvido por <a class="assinatura" href="https://www.linkedin.com/in/ccostadaniel/" target="_blank" rel="noopener">Daniel Costa</a> — T.I</footer>
+<footer>{{if ne .Marca.Nome "Harvest"}}{{.Marca.Nome}} · {{end}}Harvest v{{.Versao}} · desenvolvido por <a class="assinatura" href="https://www.linkedin.com/in/ccostadaniel/" target="_blank" rel="noopener">Daniel Costa</a>{{if .Marca.Ocupacional}} — T.I{{end}}</footer>
 {{else}}
 <main class="sozinho">
   {{if .Msg}}<div class="aviso ok">{{.Msg}}</div>{{end}}

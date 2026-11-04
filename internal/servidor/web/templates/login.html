@@ -1,5 +1,5 @@
 {{define "conteudo"}}
-<img class="login-logo" src="/static/logo-claro.svg" alt="Ocupacional — A evolução da gestão de SST">
+<img class="login-logo" src="{{.Marca.LogoClaro}}" alt="{{.Marca.Nome}}">
 <div class="cartao login">
   <h1>Entrar</h1>
   <p class="sub">Inventário e chamados — acesso da equipe de TI</p>
@@ -8,7 +8,8 @@
     <label>Senha<input name="senha" type="password" required autocomplete="current-password"></label>
     <button class="btn primario largo">Entrar</button>
   </form>
+  <p class="sub" style="text-align:center;margin:12px 0 0;font-size:13px"><a href="/recuperar">Esqueci minha senha</a></p>
 </div>
 <p style="text-align:center;margin-top:14px"><a href="/abrir-chamado">Precisa de ajuda da TI? Abra um chamado sem login →</a></p>
-<p class="assinatura-login">Desenvolvido por <a href="https://www.linkedin.com/in/ccostadaniel/" target="_blank" rel="noopener">Daniel Costa</a> · T.I Ocupacional</p>
+<p class="assinatura-login">Desenvolvido por <a href="https://www.linkedin.com/in/ccostadaniel/" target="_blank" rel="noopener">Daniel Costa</a>{{if .Marca.Ocupacional}} · T.I Ocupacional{{end}}</p>
 {{end}}

@@ -2,8 +2,8 @@
 #   .\compilar.ps1
 # Servidor e token do agente avulso (deixe em branco para um agente sem dados embutidos):
 param(
-    [string]$Servidor = "",
-    [string]$Token    = ""
+    [string]$Servidor = "http://10.100.21.114:8080",
+    [string]$Token    = "SEU_TOKEN_AQUI"
 )
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
@@ -21,6 +21,9 @@ $vag = (Select-String -Path .\cmd\agente\main.go -Pattern '^\s*versao\s*=\s*"([0
 if (-not $vag) { throw "Nao achei a versao do agente em cmd\agente\main.go." }
 go build -trimpath -ldflags "-s -w -X inventario/internal/servidor.VersaoAgente=$vag" -o bin\inventario-servidor.exe .\cmd\servidor
 if ($LASTEXITCODE -ne 0) { throw "Falha ao compilar o servidor." }
+# 2b) Edicao generica (sem marca Ocupacional; logo e cores pelo painel)
+go build -trimpath -ldflags "-s -w -X inventario/internal/servidor.VersaoAgente=$vag -X inventario/internal/servidor.Edicao=generica" -o bin\harvest-servidor.exe .\cmd\servidor
+if ($LASTEXITCODE -ne 0) { throw "Falha ao compilar o servidor." }
 
 # 3) Agente avulso para instalar direto numa maquina.
 $ld = "-s -w -H=windowsgui"
@@ -29,4 +32,10 @@ if ($Token)    { $ld += " -X main.tokenPadrao=$Token" }
 go build -trimpath -ldflags $ld -o bin\inventario-agente.exe .\cmd\agente
 if ($LASTEXITCODE -ne 0) { throw "Falha ao compilar o agente." }
 
-Write-Host "Pronto: bin\inventario-servidor.exe e bin\inventario-agente.exe"
+# 4) harvest-chave (assinatura da T.I) e copia exata do agente embutido para o kit
+go build -trimpath -ldflags "-s -w" -o bin\harvest-chave.exe .\cmd\chave
+if ($LASTEXITCODE -ne 0) { throw "Falha ao compilar o harvest-chave." }
+Copy-Item internal\servidor\payload\inventario-agente.exe bin\agente-embutido.exe -Force
+Set-Content -Path bin\versao-agente.txt -Value $vag -Encoding ascii
+
+Write-Host "Pronto: bin\inventario-servidor.exe (Ocupacional), bin\harvest-servidor.exe (generica) e bin\inventario-agente.exe"

@@ -65,7 +65,7 @@ func (b *Banco) AjustarAposImportacao(banco string) {
 	}
 	_ = os.Remove(arq)
 	_ = b.DefinirConfig("endereco_servidor", strings.TrimSpace(string(conteudo)))
-	for _, k := range []string{"migrar_ativa", "migrar_servidor", "migrar_token", "migrar_canario"} {
+	for _, k := range []string{"migrar_ativa", "migrar_servidor", "migrar_token", "migrar_canario", "migrar_ordem"} {
 		_ = b.DefinirConfig(k, "")
 	}
 	_, _ = b.db.Exec(`DELETE FROM sessoes`) // sessões do servidor antigo não valem aqui
@@ -181,7 +181,7 @@ func (s *Servidor) eventoMigrar(hostname string) *modelo.Migracao {
 	if !ok || !noCanario(s.b.Config("migrar_canario"), hostname) {
 		return nil
 	}
-	return &modelo.Migracao{Servidor: d, Token: s.b.Config("migrar_token")}
+	return &modelo.Migracao{Servidor: d, Token: s.b.Config("migrar_token"), Ordem: s.b.Config("migrar_ordem")}
 }
 
 // avisarMigracaoConectados manda a ordem para os agentes conectados em tempo real agora.

@@ -103,8 +103,8 @@
         <option value="tls" {{if eq .D.SMTP.Seguranca "tls"}}selected{{end}}>TLS direto (porta 465)</option>
         <option value="nenhuma" {{if eq .D.SMTP.Seguranca "nenhuma"}}selected{{end}}>Nenhuma (só relay interno, sem login)</option>
       </select></label>
-    <label>Remetente (De)<input name="smtp_de" value="{{.D.SMTP.De}}" placeholder="Chamados TI &lt;ti@ocupacional.com.br&gt;"></label>
-    <label>Usuário do SMTP<input name="smtp_usuario" value="{{.D.SMTP.Usuario}}" placeholder="ti@ocupacional.com.br" autocomplete="off"></label>
+    <label>Remetente (De)<input name="smtp_de" value="{{.D.SMTP.De}}" placeholder="Chamados TI &lt;ti@empresa.com.br&gt;"></label>
+    <label>Usuário do SMTP<input name="smtp_usuario" value="{{.D.SMTP.Usuario}}" placeholder="ti@empresa.com.br" autocomplete="off"></label>
     <label>Senha do SMTP<input name="smtp_senha" type="password" placeholder="{{if .D.SMTPSenhaSalva}}•••••• (salva — deixe vazio para manter){{else}}senha ou senha de app{{end}}" autocomplete="new-password"></label>
     <div class="cheio" style="border-top:1px solid var(--borda);padding-top:14px">
       <label class="chave"><input type="checkbox" name="email_atribuicao" value="1" {{if .D.EmailAtribuicao}}checked{{end}}><span class="trilho-chave" aria-hidden="true"></span><span class="rotulo-chave"><b>E-mail para o responsável</b><small>quando um chamado é direcionado para alguém (inclusive o responsável automático)</small></span></label>
@@ -178,7 +178,7 @@
     <label>Usuário (login)<input name="usuario" placeholder="ex.: joao.silva" required></label>
     <label>Senha (mín. 8)<input name="senha" type="password" required minlength="8"></label>
     <label>Nome completo<input name="nome" placeholder="João da Silva"></label>
-    <label>E-mail corporativo<input name="email" type="email" placeholder="joao@ocupacional.com.br"></label>
+    <label>E-mail corporativo<input name="email" type="email" placeholder="joao@empresa.com.br"></label>
     <label>Perfil
       <select name="papel">
         <option value="tecnico">Técnico</option>
@@ -250,7 +250,32 @@
 </section>
 
 <section class="cartao" id="migrar">
-  <h2>Migrar os agentes para outro servidor</h2>
+  <h2 id="assinatura">Assinatura das atualizações (T.I)</h2>
+  {{$as := .D.Assinatura}}
+  {{if not $as.RaizConfigurada}}
+  <div class="aviso alerta"><b>Assinatura não configurada.</b> Os agentes aceitam atualização e migração sem conferir quem as fez.
+    Assine o kit com o <b>harvest-chave</b> (no seu PC) antes de instalar o servidor.</div>
+  {{else if $as.Valida}}
+  <div class="aviso ok">✔ <b>Agente v{{$as.Versao}} assinado pela T.I</b> — chave raiz <code>{{$as.Raiz}}</code>,
+    certificado nº {{$as.Certificado}}, assinado em {{$as.AssinadoEm}}. Os agentes só instalam versões com essa assinatura.</div>
+  {{else}}
+  <div class="aviso erro"><b>Sem assinatura válida para o agente v{{.D.VersaoAgente}}</b>{{if $as.Motivo}}: {{$as.Motivo}}{{end}}.
+    Os agentes 1.21+ vão <b>recusar</b> a atualização até você enviar o <code>agente.assinatura</code> desta versão. Chave raiz: <code>{{$as.Raiz}}</code>.</div>
+  {{end}}
+  {{if $as.RaizConfigurada}}
+  <form method="post" action="/admin/assinatura" enctype="multipart/form-data" class="linha-form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <input type="file" name="arquivo" accept=".assinatura,application/json" required style="flex:1">
+    <button class="btn">Enviar agente.assinatura</button>
+  </form>
+  <p class="sub">O INSTALAR-SERVIDOR já carrega o <code>agente.assinatura</code> do kit. Use este envio depois de trocar a chave de assinatura (harvest-chave → 5).</p>
+  {{end}}
+  {{if .D.RecusasAssinatura}}
+  <div class="aviso erro"><b>{{len .D.RecusasAssinatura}} máquina(s) recusaram uma atualização por assinatura:</b>
+    {{range .D.RecusasAssinatura}}<br><a href="/maquinas/{{.ID}}">{{.Hostname}}</a> — <small>{{.Erro}}</small>{{end}}</div>
+  {{end}}
+
+  <h2 style="margin-top:24px">Migrar os agentes para outro servidor</h2>
   <p class="sub">Para mudar o servidor de endereço (por exemplo, para a nuvem) sem tocar em cada máquina: informe o novo endereço e o token dele. Conforme cada agente se comunicar com este servidor, ele receberá o aviso e passará a usar o novo — mas só depois de confirmar que o novo endereço responde. Mantenha este servidor no ar até todas terem migrado.</p>
   {{if .D.Migracao.Destino}}
     {{if .D.Migracao.Ativa}}
@@ -278,8 +303,15 @@
   <h3>Destino da migração</h3>
   <form method="post" action="/admin/migrar" class="form">
     <input type="hidden" name="csrf" value="{{$csrf}}">
+    {{if .D.Assinatura.RaizConfigurada}}
+    <label class="cheio">Ordem de migração assinada
+      <textarea name="ordem" rows="3" required spellcheck="false" placeholder="HARVEST-MIGRAR:... (gerada no harvest-chave → 3) Ordem de migração)" style="font-family:ui-monospace,Consolas,monospace;font-size:12px"></textarea>
+      <span class="dica">Com a assinatura da T.I ativa, os agentes só mudam de servidor com uma ordem assinada no seu PC (harvest-chave).
+        O endereço e o token vêm dela.{{if .D.Migracao.Destino}} Destino atual: <code>{{.D.Migracao.Destino}}</code>.{{end}}</span></label>
+    {{else}}
     <label>Novo endereço do servidor<input name="destino" value="{{.D.Migracao.Destino}}" placeholder="https://inventario.suaempresa.com.br"></label>
     <label>Token do novo servidor<input name="token" value="{{.D.MigrarToken}}" placeholder="token do servidor de destino"></label>
+    {{end}}
     <label class="cheio">Fase canário (opcional): migrar só estas máquinas primeiro<input name="canario" value="{{.D.Canario}}" placeholder="PC-TI-01, NB-TI-03  (deixe vazio para migrar todas)"></label>
     <button class="btn primario">Salvar destino</button>
   </form>

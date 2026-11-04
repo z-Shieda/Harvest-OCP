@@ -1,6 +1,6 @@
 {{define "conteudo"}}
 <div class="publico">
-<div class="marca-pub"><img src="/static/logo-claro.svg" alt="Ocupacional — A evolução da gestão de SST"> <a href="/abrir-chamado" class="sub">Abrir outro chamado</a></div>
+<div class="marca-pub"><img src="{{.Marca.LogoClaro}}" alt="{{.Marca.Nome}}"> <a href="/abrir-chamado" class="sub">Abrir outro chamado</a></div>
 {{if .D.NaoEncontrado}}
 <section class="cartao"><h1>Chamado não encontrado</h1><p>O link pode estar incompleto. Confira o endereço ou fale com a TI.</p></section>
 {{else}}

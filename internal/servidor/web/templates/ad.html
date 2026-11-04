@@ -1,0 +1,94 @@
+{{define "conteudo"}}
+{{$c := .D.Cob}}{{$csrf := .Sessao.CSRF}}
+<div class="cabecalho">
+  <h1>Active Directory</h1>
+  {{if $c.Sincronizado}}<div><a class="btn primario" href="/ad/exportar.xlsx?dias={{.D.DiasUs}}&dias_pc={{.D.DiasPC}}">Exportar planilha .xlsx</a></div>{{end}}
+</div>
+
+{{if not $c.Sincronizado}}
+<div class="aviso alerta"><b>O AD ainda não foi sincronizado.</b> {{if .Sessao.Admin.EhAdmin}}Configure abaixo, em <a href="#configurar">Sincronizar com o AD</a>.{{else}}Peça a um administrador para configurar a sincronização.{{end}}</div>
+{{else}}
+<p class="sub">Domínio <b>{{$c.Dominio}}</b> · sincronizado {{rel $c.Em}} ({{data $c.Em}}) a partir de <b>{{$c.Origem}}</b>.</p>
+
+<form class="busca" method="get" style="margin-bottom:14px">
+  <label class="sub" style="display:flex;gap:8px;align-items:center">Estações com logon nos últimos
+    <input name="dias_pc" type="number" min="1" max="365" value="{{.D.DiasPC}}" style="width:80px"> dias</label>
+  <label class="sub" style="display:flex;gap:8px;align-items:center">Usuários com logon nos últimos
+    <input name="dias" type="number" min="1" max="365" value="{{.D.DiasUs}}" style="width:80px"> dias</label>
+  <button class="btn">Aplicar</button>
+</form>
+
+<div class="numeros">
+  <div class="numero"><b>{{$c.Estacoes}}</b><span>estações ativas no AD</span></div>
+  <div class="numero"><b style="color:var(--verde)">{{$c.ComAgente}}</b><span>com o agente (migradas)</span></div>
+  <a class="numero {{if $c.SemAgente}}amarelo{{end}}" href="#sem-agente"><b>{{len $c.SemAgente}}</b><span>sem o agente</span></a>
+  <div class="numero"><b>{{.D.Ativos | len}}</b><span>usuários ativos ({{.D.DiasUs}} dias)</span></div>
+</div>
+
+<section class="cartao">
+  <h2>Cobertura do agente</h2>
+  <div class="barra-cobertura"><i style="width:{{$c.Pct}}%"></i><span>{{$c.Pct}}%</span></div>
+  <p class="sub" style="margin-top:10px">{{$c.ComAgente}} de {{$c.Estacoes}} estações (Windows de estação, conta habilitada e logon nos últimos {{$c.Dias}} dias)
+    já têm o agente do Harvest. Fora da conta: {{$c.Servidores}} servidor(es), {{$c.Inativas}} estação(ões) sem logon no período e
+    {{$c.Desabilitadas}} conta(s) desabilitada(s) — {{$c.TotalAD}} computadores no AD ao todo.</p>
+</section>
+
+<section class="cartao" id="sem-agente">
+  <h2>Sem o agente ({{len $c.SemAgente}})</h2>
+  {{if $c.SemAgente}}
+  <p class="sub">Estão no AD e foram usadas recentemente, mas ainda não enviaram inventário. Pela GPO, instalam no próximo reinício.</p>
+  <div class="rolagem"><table class="tabela">
+    <tr><th>Computador</th><th>Sistema</th><th>Último logon no AD</th><th>OU</th></tr>
+    {{range $c.SemAgente}}<tr><td><b>{{.Nome}}</b></td><td><small>{{.SO}}</small></td><td>{{rel .UltimoLogon}} <small class="sub">({{data .UltimoLogon}})</small></td><td><small class="sub">{{.OU}}</small></td></tr>{{end}}
+  </table></div>
+  {{else}}<p class="ok-texto">Todas as estações ativas do AD já têm o agente. ✔</p>{{end}}
+</section>
+
+{{if $c.ForaDoAD}}
+<details class="cartao">
+  <summary style="cursor:pointer;font-weight:600">Com o agente, mas fora do AD ({{len $c.ForaDoAD}})</summary>
+  <p class="sub">Máquinas fora do domínio, renomeadas depois do inventário ou removidas do AD.</p>
+  <p>{{range $i, $m := $c.ForaDoAD}}{{if $i}}, {{end}}<a href="/maquinas/{{$m.ID}}">{{$m.Hostname}}</a>{{end}}</p>
+</details>
+{{end}}
+
+<section class="cartao">
+  <h2>Usuários ativos — logon nos últimos {{.D.DiasUs}} dias ({{len .D.Ativos}} de {{.D.Habilitados}} habilitados)</h2>
+  <div class="rolagem"><table class="tabela">
+    <tr><th>Login</th><th>Nome</th><th>Departamento</th><th>Último logon</th></tr>
+    {{range .D.Ativos}}<tr><td>{{.Login}}</td><td>{{.Nome}}{{if .Email}}<br><small class="sub">{{.Email}}</small>{{end}}</td><td>{{.Departamento}}</td><td>{{rel .UltimoLogon}} <small class="sub">({{data .UltimoLogon}})</small></td></tr>
+    {{else}}<tr><td colspan="4" class="vazio">Nenhum usuário com logon no período.</td></tr>{{end}}
+  </table></div>
+  <p class="sub">A planilha (.xlsx) traz também todos os usuários e todos os computadores do AD.</p>
+</section>
+{{end}}
+
+{{if .Sessao.Admin.EhAdmin}}
+<section class="cartao" id="configurar">
+  <h2>Sincronizar com o AD</h2>
+  <p class="sub">O Harvest não acessa o AD nem guarda senha do domínio: um script roda no <b>controlador de domínio</b> uma vez por dia,
+    lê computadores e usuários (inclusive o último logon real em cada DC) e envia para cá com um token próprio.</p>
+  {{if .D.Token}}
+  <ol class="passos-recuperar">
+    <li><a class="btn" href="/ad/Sincronizar-AD.ps1">Baixar Sincronizar-AD.ps1</a> — já vem com o endereço <code>{{.D.URL}}</code> e o token.</li>
+    <li>No controlador de domínio, PowerShell <b>como administrador</b>, na pasta do arquivo:<br>
+      <code>powershell -ExecutionPolicy Bypass -File .\Sincronizar-AD.ps1 -Agendar</code><br>
+      <small class="sub">Envia agora e cria a tarefa diária (7h) "\Harvest\Sincronizar-AD". Sem <code>-Agendar</code>, só envia uma vez.</small></li>
+    <li>Recarregue esta página.</li>
+  </ol>
+  <form method="post" action="/ad/token" style="display:inline" onsubmit="return confirm('Gerar outro token? O script atual deixa de funcionar até ser baixado de novo.')">
+    <input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn link">Gerar outro token</button>
+  </form>
+  {{else}}
+  <form method="post" action="/ad/token"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn primario">Gerar token do AD</button></form>
+  {{end}}
+  <h3>Sem acesso do DC ao servidor?</h3>
+  <p class="sub">Rode <code>.\Sincronizar-AD.ps1 -Arquivo C:\Temp\ad-harvest.json</code> e envie o arquivo aqui:</p>
+  <form method="post" action="/ad/enviar" enctype="multipart/form-data" class="linha-form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <input type="file" name="arquivo" accept=".json,application/json" required style="flex:1">
+    <button class="btn">Enviar arquivo</button>
+  </form>
+</section>
+{{end}}
+{{end}}
