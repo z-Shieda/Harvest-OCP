@@ -12,7 +12,11 @@ set /p TOKEN=<".segredos\github-token.txt"
 
 echo == Limpando travas e temporarios ==
 if exist ".git\index.lock" del /f ".git\index.lock"
-for /r "internal" %%f in (*.go.*) do del /f "%%f"
+rem So os temporarios "arquivo.go.<numeros>" (o curinga *.go.* do cmd apagaria tambem os .go!)
+powershell -NoProfile -Command "Get-ChildItem -Path internal -Recurse -File | Where-Object { $_.Name -match '\.go\.\d+$' } | Remove-Item -Force"
+rem trava: se faltar codigo, nao envia nada
+if not exist "internal\servidor\servidor.go" (echo ERRO: faltam os .go em internal\servidor - nada foi enviado. & pause & exit /b 1)
+if not exist "internal\pdf\pdf.go" (echo ERRO: faltam os .go em internal\pdf - nada foi enviado. & pause & exit /b 1)
 git config core.filemode false
 git config user.name "Daniel Costa"
 git config user.email "z-Shieda@users.noreply.github.com"
