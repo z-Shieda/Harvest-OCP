@@ -1,4 +1,5 @@
 {{define "conteudo"}}
+{{if .Sessao.Admin.EhAdmin}}<div class="admin-wrap">{{template "admin_secoes" (dict "Atual" "conexoes")}}<div class="admin-corpo">{{end}}
 {{$csrf := .Sessao.CSRF}}{{$ids := .D.IDs}}
 <div class="cabecalho">
   <h1>Conexões com as máquinas</h1>
@@ -68,4 +69,5 @@
   </div>
 </section>
 {{end}}
+{{if .Sessao.Admin.EhAdmin}}</div></div>{{end}}
 {{end}}

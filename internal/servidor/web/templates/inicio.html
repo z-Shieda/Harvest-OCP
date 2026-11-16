@@ -7,13 +7,14 @@
     {{if $.Marca.Simbolo}}<img class="marca-dagua" src="{{$.Marca.Simbolo}}" alt="" aria-hidden="true">{{end}}
     <div style="position:relative">
       <p class="saudacao">{{$d.Saudacao}}, {{$d.Nome}} · {{$d.Data}}</p>
-      <p class="grande">{{$d.Abertos}}</p>
-      <p class="legenda">{{if eq $d.Abertos 1}}chamado em aberto{{else}}chamados em aberto{{end}}</p>
-      <p class="detalhe">{{$d.Detalhes}}</p>
+      <p class="grande">{{add $d.Abertos $d.Sol.Abertas}}</p>
+      <p class="legenda">atendimentos em aberto</p>
+      <p class="detalhe">{{$d.Abertos}} chamado(s){{if $d.Detalhes}} ({{$d.Detalhes}}){{end}} · {{$d.Sol.Abertas}} solicitação(ões) de equipamento{{if $d.Sol.AguardandoTI}} — {{$d.Sol.AguardandoTI}} esperando a T.I{{end}}</p>
     </div>
     <div class="botoes">
       <a class="btn-escuro" href="/chamados?status=abertos">Abrir a fila</a>
       <a class="btn-contorno" href="/chamados/novo">+ Novo chamado</a>
+      <a class="btn-contorno" href="/solicitacoes?ver=ti">Solicitações</a>
     </div>
   </section>
 

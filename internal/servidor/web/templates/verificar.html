@@ -1,0 +1,16 @@
+{{define "conteudo"}}
+<img class="login-logo" src="{{.Marca.LogoClaro}}" alt="{{.Marca.Nome}}">
+<div class="cartao login">
+  <h1>Verificar termo</h1>
+  <p class="sub">Confira a autenticidade de um termo assinado no Harvest pelo código de verificação impresso no PDF.</p>
+  <form method="get" action="/verificar">
+    <label>Código de verificação<input name="codigo" value="{{.D.Codigo}}" placeholder="XXXX-XXXX-XXXX" required autocomplete="off"></label>
+    <button class="btn primario largo">Verificar</button>
+  </form>
+  {{if .D.Erro}}<div class="aviso erro" style="margin-top:12px">{{.D.Erro}}</div>{{end}}
+  {{with .D.V}}{{if .Valido}}
+  <div class="aviso ok" style="margin-top:12px"><b>Termo válido.</b><br>{{.Tipo}} · nº {{.Numero}} · versão {{.Sigla}}<br>Assinado em {{.AssinadoEm}}<br>Situação atual: {{.Situacao}}
+    <br><small style="word-break:break-all">SHA-256: {{.Hash}}</small></div>
+  {{else}}<div class="aviso erro" style="margin-top:12px">Nenhum termo assinado com o código <b>{{.Codigo}}</b>.</div>{{end}}{{end}}
+</div>
+{{end}}

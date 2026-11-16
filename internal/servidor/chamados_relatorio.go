@@ -167,6 +167,7 @@ func (s *Servidor) paginaRelatorioChamados(w http.ResponseWriter, r *http.Reques
 		"Dias": dias, "Criados": len(criados), "Resolvidos": len(resolvidos), "EmAberto": len(abertosAgora),
 		"Atrasados": atrasados, "Media": media, "Mediana": mediana, "PctPrazo": pctPrazo, "ComPrazo": comPrazo,
 		"OrigemPublica": origemPublica,
+		"Sol": s.b.ResumoSolicitacoes(desdeT), // 1.24: solicitações de equipamento (sem SLA)
 		"GrafCategoria": grafBarras(porCategoria, "var(--pri)"), "GrafSetor": grafBarras(porSetor, "var(--pri)"),
 		"GrafPrioridade": grafBarras(porPrioridade, "var(--pri)"),
 		"GrafSemanas":    grafColunasDuplas(seriePeriodo(criados, resolvidos, desdeT, dias)),

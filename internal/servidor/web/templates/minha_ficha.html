@@ -1,0 +1,23 @@
+{{define "conteudo"}}{{$f := .D.F}}
+<div class="cabecalho"><h1>Minha ficha</h1> {{template "selo_ficha" $f}}</div>
+<section class="cartao">
+  {{if not $f.Preenchida}}
+  <p><b>Complete os seus dados.</b> Eles vão nos seus termos de responsabilidade (entrega de equipamento e uso dos sistemas) e são conferidos pela T.I antes de qualquer termo ser emitido.</p>
+  {{if .D.Faltando}}<p class="sub">Falta: {{join .D.Faltando ", "}}.</p>{{end}}
+  {{else if $f.Validada}}
+  <p class="ok-texto">Ficha conferida pela T.I em {{data $f.ValidadaEm}}.</p>
+  <p class="sub">Se algo mudou (cargo, setor, gestor…), corrija aqui: a T.I confere de novo.</p>
+  {{else}}
+  <p><b>Ficha enviada.</b> A T.I vai conferir os dados. Enquanto isso, você ainda pode corrigir.</p>
+  {{end}}
+  <p class="sub">Pedimos só o necessário (LGPD): não precisa enviar documento, foto, endereço ou dados bancários. Os dados são vistos só pela T.I, pelo RH e pela Diretoria.</p>
+</section>
+<section class="cartao">
+  <form method="post" action="/minha-ficha" class="form">
+    <input type="hidden" name="csrf" value="{{.Sessao.CSRF}}">
+    <label class="cheio">E-mail corporativo<input value="{{if $f.Email}}{{$f.Email}}{{else}}{{$f.Usuario}}{{end}}" disabled></label>
+    {{template "campos_ficha" .D}}
+    <div class="cheio"><button class="btn primario">Salvar minha ficha</button></div>
+  </form>
+</section>
+{{end}}

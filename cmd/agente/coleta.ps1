@@ -122,7 +122,43 @@ foreach ($ch in $chavesProg) {
 }
 $programas = @($programas | Sort-Object { $_.nome })
 
+# ---------- Segurança (1.22: pré-marca o checklist do Termo de Entrega) ----------
+# Só leitura, por WMI/CIM e ADSI. Qualquer falha deixa o item em branco (a T.I marca à mão).
+$seg = @{ bitlocker = ''; antivirus = @(); antivirus_lido = $false; admins_locais = @(); admins_lidos = $false; ultima_atualizacao = '' }
+try {
+    $vol = Get-CimInstance -Namespace 'root\cimv2\Security\MicrosoftVolumeEncryption' -ClassName Win32_EncryptableVolume -Filter ("DriveLetter='" + $env:SystemDrive + "'") -ErrorAction Stop
+    if ($vol) {
+        switch ([int]$vol.ProtectionStatus) { 1 { $seg.bitlocker = 'ativo' } 0 { $seg.bitlocker = 'desativado' } }
+    }
+} catch { }
+try {
+    $avs = @(Get-CimInstance -Namespace 'root\SecurityCenter2' -ClassName AntiVirusProduct -ErrorAction Stop)
+    $seg.antivirus_lido = $true
+    $seg.antivirus = @($avs | ForEach-Object {
+        # productState: 2º byte = ligado (0x10/0x11), 3º byte = definições em dia (0x00)
+        $h = '{0:X6}' -f [int]$_.productState
+        @{ nome = (S $_.displayName); ativo = ($h.Substring(2, 2) -eq '10' -or $h.Substring(2, 2) -eq '11'); atualizado = ($h.Substring(4, 2) -eq '00') }
+    })
+} catch { }
+try {
+    $nomeGrupo = (New-Object System.Security.Principal.SecurityIdentifier('S-1-5-32-544')).Translate([System.Security.Principal.NTAccount]).Value.Split('\')[-1]
+    $grupo = [ADSI]("WinNT://" + $env:COMPUTERNAME + "/" + $nomeGrupo + ",group")
+    $membros = @($grupo.psbase.Invoke('Members') | ForEach-Object {
+        $p = $_.GetType().InvokeMember('ADsPath', 'GetProperty', $null, $_, $null)
+        $partes = ($p -replace '^WinNT://', '').Split('/')
+        if ($partes.Count -ge 2) { $partes[-2] + '\' + $partes[-1] } else { $partes[-1] }
+    })
+    $seg.admins_locais = @($membros | Where-Object { $_ } | Sort-Object -Unique)
+    $seg.admins_lidos = $true
+} catch { }
+try {
+    $hf = Get-CimInstance Win32_QuickFixEngineering -ErrorAction Stop | Where-Object { $_.InstalledOn } |
+        Sort-Object { try { [datetime]$_.InstalledOn } catch { [datetime]0 } } -Descending | Select-Object -First 1
+    if ($hf) { $seg.ultima_atualizacao = (D $hf.InstalledOn) }
+} catch { }
+
 $r = @{
+    seguranca      = $seg
     hostname       = (S $env:COMPUTERNAME)
     dominio        = (S $cs.Domain)
     no_dominio     = ($cs.PartOfDomain -eq $true)

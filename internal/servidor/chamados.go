@@ -22,7 +22,7 @@ import (
 // eventos (chamado_eventos), comentários (públicos ou notas internas) e anexos.
 // ----------------------------------------------------------------------------
 
-var CategoriasChamado = []string{"Hardware", "Software", "Rede", "Acesso/Senha", "Impressora", "E-mail", "Outro"}
+var CategoriasChamado = []string{"Hardware", "Software", "Rede", "Acesso/Senha", "Impressora", "E-mail", "Entrega de equipamento", "Devolução de equipamento", "Outro"}
 var PrioridadesChamado = []string{"baixa", "normal", "alta", "urgente"}
 
 // PrioridadesPublicas: o que o funcionário pode escolher na página sem login.

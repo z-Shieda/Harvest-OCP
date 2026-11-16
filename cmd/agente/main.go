@@ -58,7 +58,7 @@ func partesVersao(v string) [3]int {
 var (
 	servidorPadrao = ""
 	tokenPadrao    = ""
-	versao         = "1.21.0"
+	versao         = "1.22.0"
 )
 
 type Config struct {

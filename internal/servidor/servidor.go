@@ -35,14 +35,17 @@ type Servidor struct {
 	VersaoAgente string // versão do agente embutido (pode ficar para trás do servidor)
 	dirBackup    string // pasta do backup automático (para mostrar o último no Início)
 	eventos      *hubEventos
-	CaminhoBanco string // arquivo do banco (para importar um banco de outro servidor)
+	CaminhoBanco string      // arquivo do banco (para importar um banco de outro servidor)
+	fila         *filaEmails // 1.23: fila de e-mails do módulo Termos (termos_fila.go)
+	// emailDireto envia na hora, fora da fila (código de assinatura). Trocado nos testes.
+	emailDireto func(para []string, assunto, texto, html string) error
 }
 
 // VersaoAgente é a versão do agente embutido em payload/. Os scripts de compilação gravam o
 // valor lido de cmd/agente/main.go (-X inventario/internal/servidor.VersaoAgente=...).
 // Fica separada da versão do servidor para que uma versão só de servidor (ex.: 1.8, chamados)
 // não dispare o auto-update em todas as máquinas nem marque os agentes como desatualizados.
-var VersaoAgente = "1.21.0"
+var VersaoAgente = "1.22.0"
 
 // Programa monitorado (Work Monitor): configurado em Configurações (monitor.go, 1.15).
 
@@ -59,7 +62,8 @@ func serieVersao(v string) string {
 }
 
 func Novo(b *Banco, versao string) (*Servidor, error) {
-	s := &Servidor{b: b, paginas: map[string]*template.Template{}, lim: &limitador{falha: map[string][]time.Time{}}, Versao: versao, VersaoAgente: VersaoAgente, eventos: novoHub()}
+	s := &Servidor{b: b, paginas: map[string]*template.Template{}, lim: &limitador{falha: map[string][]time.Time{}}, Versao: versao, VersaoAgente: VersaoAgente, eventos: novoHub(), fila: novaFila(b)}
+	s.emailDireto = b.enviarEmail
 	funcs := template.FuncMap{
 		"tam":            formatarTamanho,
 		"gb":             func(v int64) string { return formatarTamanho(uint64(v)) },
@@ -88,6 +92,38 @@ func Novo(b *Banco, versao string) (*Servidor, error) {
 		},
 		"add":   func(a, b int) int { return a + b },
 		"serie": serieVersao,
+		// 1.23: módulo Termos ligado (mostra o menu Termos / Minha ficha)
+		"termosAtivo": func() bool { return s.b.ConfigTermos().Ativo },
+		// pode: o perfil vê a área (Administração → Perfis e permissões)
+		"pode": func(a Admin, area string) bool { return s.b.podeArea(a, area) },
+		"solPendentes": func(a Admin) int { return s.b.pendentesSolPara(a) },
+		"setoresGestor": func(id int64) []string { return s.b.SetoresGestor(id) },
+		"dataCampo":     formatarDataHoraCampo,
+		// ativo: o item do menu corresponde à página atual (prefixo do caminho, "=" no fim = exato)
+		"ativo": func(caminho string, prefixos ...string) bool {
+			for _, p := range prefixos {
+				if strings.HasSuffix(p, "=") {
+					if caminho == strings.TrimSuffix(p, "=") {
+						return true
+					}
+				} else if caminho == p || strings.HasPrefix(caminho, p+"/") {
+					return true
+				}
+			}
+			return false
+		},
+		"meusTermosPendentes": func(a Admin) int {
+			return len(s.b.Termos(FiltroTermos{AdminID: a.ID, Situacao: "aguardando", Limite: 50}))
+		},
+		"brt":          dataHoraBrasilia,
+		"dataBR":       dataBrasilia,
+		"reais":        formatarReais,
+		"rotuloTipoEq": rotuloTipoEquip,
+		"rotuloCond":   rotuloCondicao,
+		"rotuloGrau":   rotuloGrau,
+		"campoTxt": func(v ValoresTermo, k string) string { return v.Texto[k] },
+		"campoCL": func(v ValoresTermo, campo, item string) ValorChecklist { return v.Checklists[campo][item] },
+		"idx":     func(i int) string { return strconv.Itoa(i) },
 		// monitoradoAtivo: recurso "programa monitorado" (Work Monitor) — desligado na 1.10,
 		// pendente para uma versão futura (ver CONTEXTO.md). O código continua no lugar.
 		"monitoradoAtivo": func() bool { return s.b.ConfigMonitor().Ativo },
@@ -144,6 +180,7 @@ func (s *Servidor) Rotas() http.Handler {
 	mux.HandleFunc("POST /api/v1/ad", s.apiAD)
 	mux.HandleFunc("GET /api/v1/eventos", s.apiEventos)
 	mux.HandleFunc("POST /api/v1/eventos/resposta", s.apiRespostaTeste)
+	mux.HandleFunc("POST /api/v1/eventos/quem", s.apiRespostaQuem) // 1.23: identificação da máquina na assinatura
 	mux.HandleFunc("GET /saude", s.saude)
 	mux.HandleFunc("GET /marca.css", s.servirCSSMarca)
 	mux.HandleFunc("GET /marca/{arquivo}", s.servirArquivoMarca)
@@ -179,21 +216,47 @@ func (s *Servidor) Rotas() http.Handler {
 	pUp := func(padrao string, h func(http.ResponseWriter, *http.Request, *Sessao)) {
 		mux.HandleFunc(padrao, limitarUpload(s.protegido(h)))
 	}
+	// pA = área controlada em Administração → Perfis e permissões (permissoes.go)
+	pA := func(area, padrao string, h func(http.ResponseWriter, *http.Request, *Sessao)) {
+		mux.HandleFunc(padrao, s.protegido(s.permite(area, h)))
+	}
+	_, _, _ = pInv, pGer, pUp // áreas agora passam por pA; mantidos para rotas futuras
+	pAdm("POST /admin/permissoes", s.acaoPermissoes)
+	pAdm("POST /admin/perfis", s.acaoPerfil)
+	pAdm("POST /admin/colaboradores/{id}/perfil", s.acaoPerfilConta)
+
+	// --- Solicitações de equipamento (1.24) — solicitacoes*.go ---
+	pS := func(padrao string, h func(http.ResponseWriter, *http.Request, *Sessao)) {
+		mux.HandleFunc(padrao, limitarUpload(s.protegido(s.permite("solicitacoes", h))))
+	}
+	pA("solicitacoes", "GET /solicitacoes", s.paginaSolicitacoes)
+	pA("solicitacoes", "GET /solicitacoes/nova", s.paginaNovaSolicitacao)
+	pS("POST /solicitacoes/nova", s.acaoNovaSolicitacao)
+	pA("solicitacoes", "GET /solicitacoes/{id}", s.paginaSolicitacao)
+	pA("solicitacoes", "POST /solicitacoes/{id}/validar", s.acaoValidarSol)
+	pA("solicitacoes", "POST /solicitacoes/{id}/autorizar", s.acaoAutorizarSol)
+	pS("POST /solicitacoes/{id}/compra", s.acaoCompraSol)
+	pA("solicitacoes", "POST /solicitacoes/{id}/entregar", s.acaoEntregarSol)
+	pS("POST /solicitacoes/{id}/comentar", s.acaoComentarSol)
+	pA("solicitacoes", "POST /solicitacoes/{id}/cancelar", s.acaoCancelarSol)
+	pA("solicitacoes", "GET /solicitacoes/{id}/anexos/{aid}", s.baixarAnexoSol)
+	pAdm("GET /admin/solicitacoes", s.paginaAdminSolicitacoes)
+	pAdm("POST /admin/solicitacoes", s.acaoAdminSolicitacoes)
 	p("POST /sair", s.acaoSair)
 	p("GET /{$}", s.paginaInicial)
 
 	// --- Chamados (qualquer usuário logado) ---
-	p("GET /chamados", s.paginaChamados)
-	p("GET /chamados/novo", s.paginaNovoChamado)
-	pUp("POST /chamados/novo", s.acaoCriarChamado)
-	p("GET /chamados/{id}", s.paginaChamado)
-	pUp("POST /chamados/{id}/comentar", s.acaoComentarChamado)
-	p("POST /chamados/{id}/atualizar", s.acaoAtualizarChamado)
-	p("POST /chamados/{id}/assumir", s.acaoAssumirChamado)
-	p("GET /api/chamados/novidades", s.apiNovidadesChamados)
-	p("GET /chamados/{id}/anexos/{aid}", s.baixarAnexo)
-	pGer("GET /chamados/relatorios", s.paginaRelatorioChamados)
-	pGer("GET /chamados/exportar.csv", s.exportarChamadosCSV)
+	pA("chamados", "GET /chamados", s.paginaChamados)
+	pA("chamados", "GET /chamados/novo", s.paginaNovoChamado)
+	mux.HandleFunc("POST /chamados/novo", limitarUpload(s.protegido(s.permite("chamados", s.acaoCriarChamado))))
+	pA("chamados", "GET /chamados/{id}", s.paginaChamado)
+	mux.HandleFunc("POST /chamados/{id}/comentar", limitarUpload(s.protegido(s.permite("chamados", s.acaoComentarChamado))))
+	pA("chamados", "POST /chamados/{id}/atualizar", s.acaoAtualizarChamado)
+	pA("chamados", "POST /chamados/{id}/assumir", s.acaoAssumirChamado)
+	pA("chamados", "GET /api/chamados/novidades", s.apiNovidadesChamados)
+	pA("chamados", "GET /chamados/{id}/anexos/{aid}", s.baixarAnexo)
+	pA("relatorios", "GET /chamados/relatorios", s.paginaRelatorioChamados)
+	pA("relatorios", "GET /chamados/exportar.csv", s.exportarChamadosCSV)
 	pAdm("POST /admin/chamados", s.acaoConfigChamados)
 	pAdm("POST /admin/chamados/testar", s.acaoTestarWebhookChamados)
 	pAdm("POST /admin/email", s.acaoConfigEmail)
@@ -202,50 +265,50 @@ func (s *Servidor) Rotas() http.Handler {
 	p("POST /conta/dados", s.acaoMeusDados)
 
 	// --- Inventário (admin ou técnico) ---
-	pInv("GET /inventario", s.paginaPainel)
-	pInv("GET /maquinas", s.paginaMaquinas)
-	pInv("GET /maquinas/{id}", s.paginaMaquina)
-	pInv("POST /maquinas/{id}/editar", s.acaoEditarMaquina)
-	pInv("POST /maquinas/{id}/excluir", s.acaoExcluirMaquina)
-	pInv("POST /maquinas/{id}/ignorar", s.acaoIgnorarMaquina)
-	pInv("POST /maquinas/{id}/reconsiderar", s.acaoReconsiderarMaquina)
-	pInv("GET /lixeira", s.paginaLixeira)
-	pInv("GET /ad", s.paginaAD)
-	pInv("GET /ad/exportar.xlsx", s.exportarAD)
+	pA("inventario", "GET /inventario", s.paginaPainel)
+	pA("inventario", "GET /maquinas", s.paginaMaquinas)
+	pA("inventario", "GET /maquinas/{id}", s.paginaMaquina)
+	pA("inventario", "POST /maquinas/{id}/editar", s.acaoEditarMaquina)
+	pA("inventario", "POST /maquinas/{id}/excluir", s.acaoExcluirMaquina)
+	pA("inventario", "POST /maquinas/{id}/ignorar", s.acaoIgnorarMaquina)
+	pA("inventario", "POST /maquinas/{id}/reconsiderar", s.acaoReconsiderarMaquina)
+	pA("inventario", "GET /lixeira", s.paginaLixeira)
+	pA("ad", "GET /ad", s.paginaAD)
+	pA("ad", "GET /ad/exportar.xlsx", s.exportarAD)
 	pAdm("POST /ad/token", s.acaoTokenAD)
 	pAdm("POST /ad/enviar", s.acaoEnviarAD)
 	pAdm("GET /ad/Sincronizar-AD.ps1", s.baixarScriptAD)
-	pInv("POST /lixeira/maquinas/{id}/restaurar", s.acaoRestaurarMaquina)
+	pA("inventario", "POST /lixeira/maquinas/{id}/restaurar", s.acaoRestaurarMaquina)
 	pAdm("POST /lixeira/maquinas/{id}/apagar", s.acaoApagarMaquina)
-	pInv("POST /lixeira/ramais/{id}/restaurar", s.acaoRestaurarRamal)
+	pA("ramais", "POST /lixeira/ramais/{id}/restaurar", s.acaoRestaurarRamal)
 	pAdm("POST /lixeira/ramais/{id}/apagar", s.acaoApagarRamal)
-	pInv("POST /ramais/linha/{id}/excluir", s.acaoExcluirRamalLinha)
-	pInv("POST /ramais/{ramal}/excluir", s.acaoExcluirRamal)
-	pInv("POST /maquinas/{id}/mesclar", s.acaoMesclarMaquina)
-	pInv("GET /usuarios", s.paginaUsuarios)
-	pInv("POST /usuarios/locais", s.acaoOcultarLocais)
-	pInv("GET /usuarios/{id}", s.paginaUsuario)
-	pInv("POST /usuarios/{id}/editar", s.acaoEditarUsuario)
-	pInv("POST /usuarios/{id}/excluir", s.acaoExcluirUsuario)
-	pInv("POST /usuarios/{id}/mesclar", s.acaoMesclarUsuario)
-	pInv("POST /usuarios/{id}/apelido/remover", s.acaoRemoverApelido)
-	pInv("POST /usuarios/{id}/ignorar", s.acaoIgnorarUsuario)
-	pInv("POST /filtros/criar", s.acaoCriarFiltro)
-	pInv("POST /filtros/{id}/excluir", s.acaoExcluirFiltro)
-	pInv("GET /ramais", s.paginaRamais)
-	pInv("GET /ramais/exportar.csv", s.exportarRamaisCSV)
-	pInv("GET /ramais/{ramal}", s.paginaRamal)
-	pInv("POST /ramais/{ramal}/ajustar", s.acaoAjustarRamal)
-	pInv("GET /notificacoes", s.paginaNotificacoes)
-	pInv("POST /notificacoes", s.acaoNotificacoes)
-	pInv("GET /duplicados", s.paginaDuplicados)
-	pInv("POST /duplicados/resolver", s.acaoResolverMaquinas)
-	pInv("POST /usuarios/resolver", s.acaoResolverUsuarios)
-	pInv("POST /macs/ignorar", s.acaoIgnorarMAC)
-	pInv("POST /macs/remover", s.acaoRemoverIgnorado)
-	pInv("GET /exportar/inventario.xlsx", s.exportarXLSX)
-	pInv("GET /exportar/maquinas.csv", s.exportarCSVMaquinas)
-	pInv("GET /exportar/usuarios.csv", s.exportarCSVUsuarios)
+	pA("ramais", "POST /ramais/linha/{id}/excluir", s.acaoExcluirRamalLinha)
+	pA("ramais", "POST /ramais/{ramal}/excluir", s.acaoExcluirRamal)
+	pA("inventario", "POST /maquinas/{id}/mesclar", s.acaoMesclarMaquina)
+	pA("inventario", "GET /usuarios", s.paginaUsuarios)
+	pA("inventario", "POST /usuarios/locais", s.acaoOcultarLocais)
+	pA("inventario", "GET /usuarios/{id}", s.paginaUsuario)
+	pA("inventario", "POST /usuarios/{id}/editar", s.acaoEditarUsuario)
+	pA("inventario", "POST /usuarios/{id}/excluir", s.acaoExcluirUsuario)
+	pA("inventario", "POST /usuarios/{id}/mesclar", s.acaoMesclarUsuario)
+	pA("inventario", "POST /usuarios/{id}/apelido/remover", s.acaoRemoverApelido)
+	pA("inventario", "POST /usuarios/{id}/ignorar", s.acaoIgnorarUsuario)
+	pA("inventario", "POST /filtros/criar", s.acaoCriarFiltro)
+	pA("inventario", "POST /filtros/{id}/excluir", s.acaoExcluirFiltro)
+	pA("ramais", "GET /ramais", s.paginaRamais)
+	pA("ramais", "GET /ramais/exportar.csv", s.exportarRamaisCSV)
+	pA("ramais", "GET /ramais/{ramal}", s.paginaRamal)
+	pA("ramais", "POST /ramais/{ramal}/ajustar", s.acaoAjustarRamal)
+	pA("inventario", "GET /notificacoes", s.paginaNotificacoes)
+	pA("inventario", "POST /notificacoes", s.acaoNotificacoes)
+	pA("inventario", "GET /duplicados", s.paginaDuplicados)
+	pA("inventario", "POST /duplicados/resolver", s.acaoResolverMaquinas)
+	pA("inventario", "POST /usuarios/resolver", s.acaoResolverUsuarios)
+	pA("inventario", "POST /macs/ignorar", s.acaoIgnorarMAC)
+	pA("inventario", "POST /macs/remover", s.acaoRemoverIgnorado)
+	pA("inventario", "GET /exportar/inventario.xlsx", s.exportarXLSX)
+	pA("inventario", "GET /exportar/maquinas.csv", s.exportarCSVMaquinas)
+	pA("inventario", "GET /exportar/usuarios.csv", s.exportarCSVUsuarios)
 
 	// --- Administração (só administrador) ---
 	pAdm("GET /admin", s.paginaAdmin)
@@ -282,6 +345,56 @@ func (s *Servidor) Rotas() http.Handler {
 	pAdm("POST /configuracoes/marca", s.acaoMarca)
 	p("GET /conta", s.paginaConta)
 	p("POST /conta/senha", s.acaoAlterarSenha)
+
+	// --- Termos (1.23, fase 1: base) — termos.go ---
+	mux.HandleFunc("GET /convite/{token}", s.paginaConvite)
+	mux.HandleFunc("POST /convite/{token}", s.acaoConvite)
+	pA("meus_termos", "GET /minha-ficha", s.comTermos(s.paginaMinhaFicha))
+	pA("meus_termos", "POST /minha-ficha", s.comTermos(s.acaoMinhaFicha))
+	pA("termos", "GET /termos", s.comTermos(s.paginaTermosPainel))
+	// fase 2: editor de termos e documentos de referência
+	pAdm("GET /admin/termos/modelos", s.comTermos(s.paginaModelos))
+	pAdm("POST /admin/termos/modelos/novo", s.comTermos(s.acaoNovoModelo))
+	pAdm("GET /admin/termos/modelos/{id}", s.comTermos(s.paginaModelo))
+	pAdm("POST /admin/termos/modelos/{id}/regras", s.comTermos(s.acaoRegrasModelo))
+	pAdm("POST /admin/termos/modelos/{id}/rascunho", s.comTermos(s.acaoRascunhoModelo))
+	pAdm("GET /admin/termos/modelos/{id}/previa.pdf", s.comTermos(s.previaModelo))
+	pAdm("POST /admin/termos/modelos/{id}/publicar", s.comTermos(s.acaoPublicarModelo))
+	pAdm("GET /admin/termos/versoes/{id}", s.comTermos(s.paginaVersao))
+	pA("ad", "GET /admin/termos/documentos", s.comTermos(s.exige(s.paginaDocumentos, func(a Admin) bool { return a.PodeInventario() })))
+	pAdm("POST /admin/termos/documentos", s.comTermos(s.acaoDocumento))
+	p("GET /documentos/{chave}", s.comTermos(s.lerDocumento))
+	// fase 3: emissão, preenchimento, assinatura
+	pA("termos", "GET /termos/novo", s.comTermos(s.paginaNovoTermo))
+	pA("termos", "POST /termos/novo", s.comTermos(s.acaoNovoTermo))
+	pA("termos", "POST /termos/lote", s.comTermos(s.acaoEmitirLote))
+	pA("termos", "GET /termos/ativos", s.comTermos(s.paginaAtivos))
+	pA("termos", "POST /termos/ativos", s.comTermos(s.acaoAtivo))
+	pA("termos", "GET /termos/{id}", s.comTermos(s.paginaTermo))
+	pA("termos", "GET /termos/{id}/preencher", s.comTermos(s.paginaPreencher))
+	mux.HandleFunc("POST /termos/{id}/preencher", limitarUpload(s.protegido(s.permite("termos", s.comTermos(s.acaoPreencher)))))
+	pA("termos", "POST /termos/{id}/cancelar", s.comTermos(s.acaoCancelarTermo))
+	pA("termos", "POST /termos/{id}/liberar", s.comTermos(s.acaoLiberarMaquina))
+	pA("termos", "POST /termos/{id}/reenviar", s.comTermos(s.acaoReenviarAviso))
+	p("GET /termos/{id}/pdf", s.comTermos(s.baixarPDFTermo))
+	pA("meus_termos", "GET /meus-termos", s.comTermos(s.paginaMeusTermos))
+	pA("meus_termos", "GET /meus-termos/{id}/assinar", s.comTermos(s.paginaAssinar))
+	pA("meus_termos", "POST /meus-termos/{id}/assinar", s.comTermos(s.acaoAssinar))
+	pA("meus_termos", "GET /meus-termos/{id}/pdf", s.comTermos(s.baixarPDFTermo))
+	mux.HandleFunc("GET /verificar", s.paginaVerificar)
+	mux.HandleFunc("GET /verificar/{codigo}", s.paginaVerificar)
+	pA("inventario", "POST /maquinas/{id}/gestao", s.acaoGestaoMaquina)
+	pA("ad", "GET /admin/colaboradores", s.comTermos(s.paginaColaboradores))
+	pA("ad", "POST /admin/colaboradores/convidar", s.comTermos(s.acaoConvidar))
+	pA("ad", "GET /admin/colaboradores/{id}", s.comTermos(s.paginaColaborador))
+	pA("ad", "POST /admin/colaboradores/{id}/ficha", s.comTermos(s.acaoFichaTI))
+	pA("ad", "POST /admin/colaboradores/{id}/convite", s.comTermos(s.acaoRenovarConvite))
+	pA("ad", "POST /admin/colaboradores/{id}/ativo", s.comTermos(s.acaoAtivoColaborador))
+	pA("termos", "POST /termos/envios/{id}/reenviar", s.comTermos(s.acaoReenviarEnvio))
+	pAdm("GET /admin/termos", s.paginaConfigTermos)
+	pAdm("POST /admin/termos", s.acaoConfigTermos)
+	pAdm("POST /admin/termos/empresas", s.acaoSalvarEmpresa)
+	pAdm("POST /admin/termos/empresas/{id}/excluir", s.acaoExcluirEmpresa)
 	return limitarConcorrencia(cabecalhosSeguranca(mux), 24)
 }
 
@@ -353,7 +466,7 @@ func (s *Servidor) protegido(h func(http.ResponseWriter, *http.Request, *Sessao)
 func (s *Servidor) exige(h func(http.ResponseWriter, *http.Request, *Sessao), permitido func(Admin) bool) func(http.ResponseWriter, *http.Request, *Sessao) {
 	return func(w http.ResponseWriter, r *http.Request, sess *Sessao) {
 		if !permitido(sess.Admin) {
-			redirecionar(w, r, "/chamados", "", fmt.Errorf("você não tem permissão para acessar essa área"))
+			redirecionar(w, r, "/", "", fmt.Errorf("você não tem permissão para acessar essa área"))
 			return
 		}
 		h(w, r, sess)
@@ -364,6 +477,20 @@ func (s *Servidor) exige(h func(http.ResponseWriter, *http.Request, *Sessao), pe
 func (s *Servidor) paginaInicial(w http.ResponseWriter, r *http.Request, sess *Sessao) {
 	if sess.Admin.PodeGerenciarChamados() {
 		s.paginaInicio(w, r, sess) // painel "Início" (inicio.go)
+		return
+	}
+	// 1.23: colaborador com a ficha incompleta cai em Minha ficha
+	if s.b.podeArea(sess.Admin, "meus_termos") && s.fichaPendente(r, sess) {
+		http.Redirect(w, r, "/minha-ficha", http.StatusSeeOther)
+		return
+	}
+	// termo esperando a assinatura: cai em Meus termos
+	if s.termosLiberado(r) == nil && s.b.podeArea(sess.Admin, "meus_termos") && len(s.b.Termos(FiltroTermos{AdminID: sess.Admin.ID, Situacao: "aguardando", Limite: 1})) > 0 {
+		http.Redirect(w, r, "/meus-termos", http.StatusSeeOther)
+		return
+	}
+	if destino := s.inicioDe(sess.Admin); destino != "/" {
+		http.Redirect(w, r, destino, http.StatusSeeOther)
 		return
 	}
 	http.Redirect(w, r, "/chamados", http.StatusSeeOther)
@@ -381,6 +508,8 @@ type dadosPagina struct {
 	Resumo       Resumo
 	Versao       string
 	D            map[string]any
+	TermosHTTP   bool // módulo Termos aberto em HTTP (modo de teste) — mostra a faixa de aviso
+	Caminho      string // caminho da página (para marcar o item ativo do menu lateral)
 }
 
 func (s *Servidor) render(w http.ResponseWriter, r *http.Request, pagina, titulo, menu string, sess *Sessao, d map[string]any) {
@@ -393,6 +522,10 @@ func (s *Servidor) render(w http.ResponseWriter, r *http.Request, pagina, titulo
 	switch {
 	case menu == "inicio":
 		secao = "inicio"
+	case strings.HasPrefix(menu, "termos"):
+		secao = "termos"
+	case menu == "minha_ficha" || menu == "meus_termos":
+		secao = "minha_ficha"
 	case menu == "chamados_relatorio":
 		secao = "relatorios"
 	case strings.HasPrefix(menu, "chamados"):
@@ -409,6 +542,12 @@ func (s *Servidor) render(w http.ResponseWriter, r *http.Request, pagina, titulo
 		dp.MigrandoPara = destino
 	}
 	dp.Marca = s.marca()
+	dp.Caminho = r.URL.Path
+	if secao == "termos" || secao == "minha_ficha" || (sess == nil && strings.HasPrefix(r.URL.Path, "/convite/")) {
+		if c := s.b.ConfigTermos(); c.Ativo && c.PermitirHTTP && !conexaoSegura(r) {
+			dp.TermosHTTP = true
+		}
+	}
 	if sess != nil {
 		dp.Resumo = s.b.Resumo()
 	}
@@ -494,6 +633,7 @@ func (s *Servidor) apiRelatorio(w http.ResponseWriter, r *http.Request) {
 	}
 	s.b.GravarAnyDesk(res.MaquinaID, &rel)
 	s.b.GravarMonitor(res.MaquinaID, &rel)
+	s.b.GravarSeguranca(res.MaquinaID, &rel) // 1.22: BitLocker, antivírus, admins locais, atualizações
 	if err := s.b.GravarRamais(res.MaquinaID, microsip, rel.AgentVersion); err != nil {
 		log.Printf("ramais de %s: %v", rel.Hostname, err)
 	}
@@ -597,7 +737,7 @@ func (s *Servidor) saude(w http.ResponseWriter, r *http.Request) {
 	var n int
 	_ = s.b.db.QueryRow(`SELECT COUNT(*) FROM maquinas`).Scan(&n)
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(map[string]any{"status": "ok", "versao": s.Versao, "maquinas": n, "hora": time.Now().Format(time.RFC3339)})
+	_ = json.NewEncoder(w).Encode(map[string]any{"status": "ok", "versao": s.Versao, "edicao": Edicao, "maquinas": n, "hora": time.Now().Format(time.RFC3339)})
 }
 
 // BackupAutomatico grava um backup por dia na pasta informada e remove os mais antigos que
@@ -684,7 +824,7 @@ func (s *Servidor) acaoLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.SetCookie(w, &http.Cookie{Name: cookieSessao, Value: sess.Token, Path: "/", HttpOnly: true,
-		SameSite: http.SameSiteLaxMode, Secure: r.TLS != nil, MaxAge: 12 * 3600})
+		SameSite: http.SameSiteLaxMode, Secure: conexaoSegura(r), MaxAge: 12 * 3600})
 	s.b.Auditar(sess.Admin.Usuario, "login", ip)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -1005,7 +1145,8 @@ func (s *Servidor) paginaMaquina(w http.ResponseWriter, r *http.Request, sess *S
 			outras = append(outras, x)
 		}
 	}
-	s.render(w, r, "maquina", m.Hostname, "maquinas", sess, map[string]any{"M": m, "R": rel, "Interfaces": ifs, "Logins": logins, "Outras": outras, "DupMACs": dupMACs, "Aval": s.b.Avaliar(m, s.b.ParamsNivel()), "Monitorado": s.programaMonitorado()})
+	s.render(w, r, "maquina", m.Hostname, "maquinas", sess, map[string]any{"M": m, "R": rel, "Interfaces": ifs, "Logins": logins, "Outras": outras, "DupMACs": dupMACs, "Aval": s.b.Avaliar(m, s.b.ParamsNivel()), "Monitorado": s.programaMonitorado(),
+		"Termo": s.dadosTermoMaquina(m.ID)})
 }
 
 func (s *Servidor) acaoEditarMaquina(w http.ResponseWriter, r *http.Request, sess *Sessao) {
@@ -1272,6 +1413,8 @@ func (s *Servidor) paginaAdmin(w http.ResponseWriter, r *http.Request, sess *Ses
 		"EmailAtribuicao": s.b.Config("email_atribuicao") != "0", "EmailEquipe": s.b.Config("email_equipe") == "1",
 		"RespPadrao": s.responsavelAutomatico(), "Tecnicos": s.tecnicos(), "MeuEmail": sess.Admin.Email,
 		"Envios": s.b.UltimosEnvios(15),
+		"Permissoes": s.b.Permissoes(),
+		"Perfis": s.b.Perfis(), "ListaPerfis": s.b.Perfis(), "Poderes": poderesPerfil,
 	})
 }
 
@@ -1351,11 +1494,25 @@ func (s *Servidor) acaoNovoAdmin(w http.ResponseWriter, r *http.Request, sess *S
 
 func (s *Servidor) acaoPapel(w http.ResponseWriter, r *http.Request, sess *Sessao) {
 	id, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if v := r.FormValue("papel"); strings.HasPrefix(v, "perfil:") { // 1.24: perfil personalizado
+		perfil := parseID(strings.TrimPrefix(v, "perfil:"))
+		err := s.b.AtualizarPapel(id, "usuario")
+		if err == nil {
+			err = s.b.DefinirPerfilConta(id, perfil, s.b.SetoresGestor(id))
+		}
+		if err == nil {
+			s.b.Auditar(sess.Admin.Usuario, "alterar perfil", v)
+			_, _ = s.b.db.Exec(`DELETE FROM sessoes WHERE admin_id=?`, id)
+		}
+		redirecionar(w, r, "/admin#contas", "Perfil atualizado.", err)
+		return
+	}
 	err := s.b.AtualizarPapel(id, r.FormValue("papel"))
 	if err == nil {
+		_, _ = s.b.db.Exec(`UPDATE admins SET perfil_id=NULL WHERE id=?`, id)
 		s.b.Auditar(sess.Admin.Usuario, "alterar perfil", r.FormValue("papel"))
 	}
-	redirecionar(w, r, "/admin", "Perfil atualizado.", err)
+	redirecionar(w, r, "/admin#contas", "Perfil atualizado.", err)
 }
 
 func (s *Servidor) acaoExcluirAdmin(w http.ResponseWriter, r *http.Request, sess *Sessao) {

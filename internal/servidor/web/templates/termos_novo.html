@@ -1,0 +1,28 @@
+{{define "conteudo"}}
+<h1>Emitir termo</h1>
+<section class="cartao">
+  <p class="sub">Só aparecem colaboradores com a <b>ficha validada</b>. Termos por equipamento abrem um chamado "Entrega de equipamento", onde vão as fotos.</p>
+  <form method="post" action="/termos/novo" class="form">
+    <input type="hidden" name="csrf" value="{{.Sessao.CSRF}}">
+    <label class="cheio">Termo<select name="tipo" required data-tipo-termo>
+      <option value="">— escolha —</option>
+      {{range .D.Tipos}}{{if .Publicada}}<option value="{{.ID}}" data-equipamento="{{if .PorEquipamento}}1{{end}}"{{if eq .ID $.D.TipoSel}} selected{{end}}>{{.Nome}} · {{.Publicada.Sigla}}</option>{{end}}{{end}}
+    </select></label>
+    <label>Colaborador<select name="pessoa" required>
+      <option value="">— escolha —</option>
+      {{range .D.Pessoas}}<option value="{{.AdminID}}"{{if eq .AdminID $.D.PessoaSel}} selected{{end}}>{{.NomeExibicao}} · {{.Setor}} · {{.RotuloVinculo}}</option>{{end}}
+    </select>{{if not .D.Pessoas}}<span class="dica">Nenhuma ficha validada ainda (Colaboradores).</span>{{end}}</label>
+    <label data-campo-equipamento>Equipamento<select name="equipamento">
+      <option value="">— escolha —</option>
+      <optgroup label="Máquinas do inventário">
+      {{range .D.Maquinas}}{{$k := printf "m%d" .ID}}<option value="{{$k}}"{{if eq $k $.D.EquipSel}} selected{{end}}>{{.Hostname}}{{if .Patrimonio}} · pat. {{.Patrimonio}}{{end}}{{if .UsuarioAtual}} · {{.UsuarioAtual}}{{end}}</option>{{end}}
+      </optgroup>
+      {{if .D.Ativos}}<optgroup label="Ativos sem agente">
+      {{range .D.Ativos}}{{$k := printf "a%d" .ID}}<option value="{{$k}}"{{if eq $k $.D.EquipSel}} selected{{end}}>{{.Nome}}</option>{{end}}
+      </optgroup>{{end}}
+    </select><span class="dica">Celular, monitor e outros sem agente: cadastre em <a href="/termos/ativos">Ativos sem agente</a>.</span></label>
+    <div class="cheio"><button class="btn primario">Emitir</button></div>
+  </form>
+</section>
+<script src="/static/termos.js" defer></script>
+{{end}}

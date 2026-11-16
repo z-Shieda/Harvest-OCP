@@ -355,3 +355,101 @@ main.sozinho:has(.publico){max-width:800px;padding-top:4vh}
 .cobertura-ad{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--linha);color:inherit;text-decoration:none;font-size:13px}
 .cobertura-ad i{grid-column:1/-1;height:6px;border-radius:99px;background:linear-gradient(90deg,var(--pri) var(--p),var(--borda) var(--p))}
 .cobertura-ad>b{font-size:15px}
+
+/* ---------- 1.23 Termos: leitura do termo na tela ---------- */
+.termo-doc{background:#fff;color:#1d2b2f;border-radius:var(--raio);padding:28px 30px;max-width:900px;margin:0 auto;font-size:14.5px;line-height:1.55;border:1px solid var(--borda)}
+.termo-doc p{margin:0 0 10px;text-align:justify}
+.termo-doc .td-titulo{text-align:center;font:800 19px/1.3 Montserrat,Inter,sans-serif;color:var(--petroleo,#18424C);margin:0 0 14px}
+.termo-doc .td-secao{background:var(--petroleo,#18424C);color:#fff;font:700 13.5px Inter,sans-serif;padding:7px 12px;border-radius:6px;margin:20px 0 10px;letter-spacing:.01em}
+.termo-doc h4{margin:14px 0 6px;font-size:14.5px}
+.termo-doc .td-item{padding-left:2.6em;text-indent:-2.6em}
+.termo-doc .td-destaque{background:#F1F5F4;border-left:4px solid var(--pri,#ADDA23);padding:10px 14px;border-radius:6px;margin:0 0 12px}
+.termo-doc .td-caixa{font-weight:600}
+.termo-doc .td-tabela{width:100%;border-collapse:collapse;margin:0 0 12px;font-size:13px}
+.termo-doc .td-tabela th,.termo-doc .td-tabela td{border:1px solid #C3CCCD;padding:6px 8px;vertical-align:top;text-align:left}
+.termo-doc .td-tabela th{background:#EEF1F0}
+.termo-doc .td-cx{font-size:17px;display:block;text-align:center}
+.termo-doc .rolagem{background:transparent;border:0;padding:0}
+.termo-doc .td-quebra{border:0;border-top:2px dashed #C3CCCD;margin:22px 0}
+.termo-doc a{color:#0b6b7a}
+.campo-vazio{background:#FFF4C2;color:#6b5400;border-radius:4px;padding:0 4px;font-style:italic}
+.editor-termo{font:13px/1.5 ui-monospace,Consolas,monospace;width:100%;min-height:420px;white-space:pre;tab-size:4}
+.editor-campos{font:12.5px/1.5 ui-monospace,Consolas,monospace;width:100%;min-height:220px;white-space:pre}
+.tabela-campos td,.tabela-campos th{font-size:13px}
+.checklist-ti{width:100%;border-collapse:collapse}
+.checklist-ti th,.checklist-ti td{padding:6px 8px;border-bottom:1px solid var(--borda);text-align:center;font-size:13.5px}
+.checklist-ti td:first-child,.checklist-ti th:first-child{text-align:left}
+.checklist-ti input[type=radio]{width:18px;height:18px}
+.checklist-ti input[type=text]{min-width:160px}
+.sugestao-agente{font-size:11.5px;color:var(--sub)}
+.passos-assinatura{display:flex;flex-direction:column;gap:12px}
+.codigo-6{font:700 26px/1 ui-monospace,Consolas,monospace;letter-spacing:.35em;text-align:center;max-width:260px}
+
+/* ---------- 1.23 navegação: barra lateral agrupada (proposta 1) ---------- */
+.app{display:flex;min-height:100vh}
+.lateral{position:sticky;top:0;height:100vh;width:var(--lateral);flex:none;display:flex;flex-direction:column;gap:8px;padding:18px 12px 14px;
+  background:var(--cartao);border-right:1px solid var(--borda);overflow-y:auto}
+.lateral-topo{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 6px 10px}
+.lateral-topo .marca img{height:30px;max-width:160px}
+.lateral-icones{display:flex;gap:6px}
+.lateral-icones .icone-btn{width:40px;height:40px}
+.menu-grupos{display:flex;flex-direction:column;gap:2px}
+.menu-grupos a,.lateral-rodape>a{display:flex;align-items:center;gap:8px;min-height:40px;padding:0 12px;border-radius:12px;color:var(--menu-t);text-decoration:none;font-size:14px}
+.menu-grupos a:hover,.lateral-rodape>a:hover{background:var(--cartao2);color:var(--texto)}
+.menu-grupos a.ativo{background:var(--cartao2);color:var(--texto);font-weight:600;box-shadow:inset 3px 0 0 var(--pri)}
+.menu-grupos a b{margin-left:auto;background:var(--pri);color:var(--sobre-pri);border-radius:999px;padding:0 8px;font-size:12px;line-height:20px}
+.menu-grupos a b.fraco{background:transparent;color:var(--fraco);font-weight:500;padding:0}
+.menu-grupos a b.alerta{background:var(--vermelho);color:#fff}
+.grupo-titulo{margin:14px 12px 4px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--fraco)}
+.lateral-rodape{margin-top:auto;border-top:1px solid var(--borda);padding-top:10px;display:flex;flex-direction:column;gap:6px}
+.lateral-rodape .btn-admin{font-weight:600;color:var(--texto)}
+.lateral-rodape .btn-admin.ativo{background:var(--pri);color:var(--sobre-pri)}
+.lateral-rodape .quem{display:flex;align-items:center;gap:10px;padding:6px 6px 0}
+.lateral-rodape .avatar{width:38px;height:38px;flex:none}
+.lateral-rodape .menu-usuario{min-width:0}
+.lateral-rodape .menu-usuario b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.area{flex:1;min-width:0;display:flex;flex-direction:column}
+.area main{width:100%;max-width:1400px;margin:0 auto;padding:24px 32px 32px}
+.area .faixa-alerta{margin:14px 32px 0}
+.area footer{margin-top:auto}
+/* celular/tela estreita: o menu vira um bloco no topo e o conteúdo vem embaixo */
+@media (max-width:900px){
+  .app{flex-direction:column}
+  .lateral{position:static;height:auto;width:100%;border-right:0;border-bottom:1px solid var(--borda)}
+  .menu-grupos{flex-direction:row;flex-wrap:wrap}
+  .menu-grupos .grupo-titulo{flex-basis:100%;margin:8px 6px 2px}
+  .lateral-rodape{flex-direction:row;flex-wrap:wrap;align-items:center}
+  .area main{padding:16px}
+  .area .faixa-alerta{margin:12px 16px 0}
+}
+
+/* ---------- 1.23 Administração em seções ---------- */
+.admin-wrap{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap}
+.admin-secoes{width:230px;flex:none;display:flex;flex-direction:column;gap:2px;position:sticky;top:16px}
+.admin-secoes a{display:flex;align-items:center;min-height:42px;padding:0 14px;border-radius:12px;color:var(--menu-t);text-decoration:none;font-size:14px}
+.admin-secoes a:hover{background:var(--cartao2);color:var(--texto)}
+.admin-secoes a.ativo{background:var(--cartao2);color:var(--texto);font-weight:600;box-shadow:inset 3px 0 0 var(--pri)}
+.admin-secoes .sep{height:1px;background:var(--borda);margin:8px 6px}
+.admin-corpo{flex:999 1 560px;min-width:0}
+.admin-corpo [data-grupo][hidden]{display:none!important}
+.busca-config{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.busca-config input{min-height:40px}
+.matriz-perm{width:100%;border-collapse:collapse}
+.matriz-perm th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--sub);text-align:left;padding:10px 14px;background:var(--cartao2)}
+.matriz-perm td{padding:12px 14px;border-top:1px solid var(--borda);vertical-align:middle}
+.matriz-perm td small{display:block;color:var(--sub);font-size:12.5px}
+.matriz-perm .chave{flex:none;min-height:30px}
+.matriz-perm .chave input:disabled+.trilho-chave{opacity:.45;cursor:not-allowed}
+.resumo-admin{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.resumo-admin a{display:flex;flex-direction:column;gap:6px;padding:18px;border-radius:18px;background:var(--cartao);border:1px solid var(--borda);color:var(--texto);text-decoration:none}
+.resumo-admin a:hover{border-color:var(--pri)}
+.resumo-admin a span{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--pri-t)}
+.resumo-admin a small{color:var(--sub)}
+@media (max-width:900px){.admin-secoes{position:static;width:100%;flex-direction:row;flex-wrap:wrap}.admin-secoes .sep{display:none}}
+
+/* ---------- 1.24 Solicitações ---------- */
+.etapas-sol{display:flex;list-style:none;padding:0;margin:0 0 18px;gap:6px;flex-wrap:wrap;counter-reset:etapa}
+.etapas-sol li{flex:1 1 120px;counter-increment:etapa;padding:10px 12px;border-radius:12px;background:var(--cartao);border:1px solid var(--borda);color:var(--sub);font-size:13px;font-weight:600}
+.etapas-sol li::before{content:counter(etapa) ". "}
+.etapas-sol li.feita{border-color:var(--pri);color:var(--texto)}
+.etapas-sol li.atual{background:var(--pri);color:var(--sobre-pri);border-color:var(--pri)}

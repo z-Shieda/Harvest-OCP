@@ -1,0 +1,36 @@
+{{define "conteudo"}}{{$csrf := .Sessao.CSRF}}{{$e := .D.Editar}}
+<div class="admin-wrap">{{template "admin_secoes" (dict "Atual" "solicitacoes")}}<div class="admin-corpo">
+<h1>Configurar solicitações</h1>
+<section class="cartao">
+  <h2>Quem recebe e quem autoriza</h2>
+  <table class="kv">
+    <tr><th>Suprimentos (perfil com "registrar compras")</th><td>{{if .D.Suprimentos}}{{join .D.Suprimentos ", "}}{{else}}<span class="vazio">nenhuma conta ainda — dê o perfil Suprimentos a alguém em Colaboradores</span>{{end}}</td></tr>
+    <tr><th>Podem autorizar compras</th><td>{{range .D.Gestores}}{{if ne .Papel "admin"}}{{if .Nome}}{{.Nome}}{{else}}{{.Usuario}}{{end}} · {{end}}{{end}}administradores</td></tr>
+  </table>
+  <p class="sub" style="margin-top:8px">Perfis e setores de cada gestor: <a href="/admin#perfis">Administração → Perfis</a> e a ficha da pessoa em <a href="/admin/colaboradores">Colaboradores</a>.</p>
+  <form method="post" action="/admin/solicitacoes" class="form" style="margin-top:12px">
+    <input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="acao" value="config">
+    <label class="cheio">E-mails extras do Suprimentos <small>(um por linha; recebem junto com as contas do perfil)</small><textarea name="emails_suprimentos" rows="2">{{.D.EmailsSup}}</textarea></label>
+    <label>Lembrete ao gestor que não respondeu (a cada N dias; 0 = sem)<input type="number" name="lembrete_dias" min="0" max="30" value="{{.D.Lembrete}}"></label>
+    <div class="cheio"><button class="btn primario">Salvar</button></div>
+  </form>
+</section>
+<section class="cartao" id="catalogo">
+  <h2>Catálogo de itens</h2>
+  <p class="sub">O que aparece em "Pedir equipamento", com a especificação sugerida pela T.I. O usuário também pode descrever um item fora da lista.</p>
+  <div class="rolagem"><table class="tabela lista">
+    <tr><th>Item</th><th>Categoria</th><th>Especificação</th><th></th></tr>
+    {{range .D.Catalogo}}<tr{{if not .Ativo}} style="opacity:.55"{{end}}><td><b>{{.Nome}}</b></td><td>{{.Categoria}}</td><td><small>{{.Especificacao}}</small></td><td class="acoes"><a class="btn pequeno" href="?editar={{.ID}}#catalogo">Editar</a></td></tr>{{end}}
+  </table></div>
+  <h3 style="margin-top:16px">{{if $e}}Editar {{$e.Nome}}{{else}}Novo item{{end}}</h3>
+  <form method="post" action="/admin/solicitacoes" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">{{if $e}}<input type="hidden" name="id" value="{{$e.ID}}">{{end}}
+    <label>Nome<input name="nome" required maxlength="80" value="{{if $e}}{{$e.Nome}}{{end}}"></label>
+    <label>Categoria<input name="categoria" maxlength="60" value="{{if $e}}{{$e.Categoria}}{{end}}" placeholder="Periféricos"></label>
+    <label class="cheio">Especificação sugerida<textarea name="especificacao" rows="2" maxlength="600">{{if $e}}{{$e.Especificacao}}{{end}}</textarea></label>
+    {{if $e}}<label class="cheio" style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="ativo" value="1" style="width:auto"{{if $e.Ativo}} checked{{end}}> Ativo (aparece no pedido)</label>{{end}}
+    <div class="cheio"><button class="btn primario">Salvar item</button>{{if $e}} <a class="btn" href="/admin/solicitacoes#catalogo">Cancelar</a>{{end}}</div>
+  </form>
+</section>
+</div></div>
+{{end}}

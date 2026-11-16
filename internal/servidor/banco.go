@@ -260,7 +260,10 @@ CREATE TABLE IF NOT EXISTS filtros (
 );
 `
 
-type Banco struct{ db *sql.DB }
+type Banco struct {
+	db     *sql.DB
+	perfis cachePerfis // 1.24: perfis personalizados lidos a cada página (perfis.go)
+}
 
 func AbrirBanco(caminho string) (*Banco, error) {
 	usarInterpretador()
@@ -326,7 +329,11 @@ func AbrirBanco(caminho string) (*Banco, error) {
 		_, _ = db.Exec(alter)
 	}
 	b := &Banco{db: db}
+	b.migrarPerfis() // 1.24: perfis personalizados (perfis.go) — antes de tudo que lê contas
 	b.migrarChamados18()
+	b.migrarTermos()  // 1.23: módulo Termos (termos_banco.go)
+	b.migrarTermos2() // 1.23: editor, termos, assinaturas (termos_modelos.go)
+	b.migrarSolicitacoes() // 1.24: solicitações de equipamento (solicitacoes.go)
 	return b, nil
 }
 

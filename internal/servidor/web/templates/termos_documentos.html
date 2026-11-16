@@ -1,0 +1,22 @@
+{{define "conteudo"}}{{$csrf := .Sessao.CSRF}}
+<h1>Documentos de referência</h1>
+<p class="sub">Textos que a pessoa lê antes de marcar um aceite (ex.: a PSI). Use a mesma marcação do editor de termos. A chave liga o documento ao aceite (<code>| doc=psi</code>).</p>
+<div class="rolagem"><table class="tabela lista">
+  <tr><th>Documento</th><th>Versão</th><th>Chave</th><th>Atualizado</th><th></th></tr>
+  {{range .D.Lista}}<tr><td><b>{{.Titulo}}</b></td><td>{{.Versao}}</td><td><code>{{.Chave}}</code></td><td><small>{{brt .AtualizadoEm}} · {{.AtualizadoPor}}</small></td>
+    <td class="acoes"><a class="btn pequeno" href="/documentos/{{.Chave}}" target="_blank">Ler</a>{{if $.Sessao.Admin.EhAdmin}} <a class="btn pequeno" href="?editar={{.Chave}}">Editar</a>{{end}}</td></tr>{{end}}
+</table></div>
+{{if .Sessao.Admin.EhAdmin}}{{$e := .D.Editar}}
+<section class="cartao" style="margin-top:18px">
+  <h2>{{if $e}}Editar {{$e.Titulo}}{{else}}Novo documento{{end}}</h2>
+  {{if $e}}<p class="sub">Ao trocar a versão da PSI, lembre de revisar os termos que a citam (Modelos) — publicar com reassinatura, se o conteúdo mudou.</p>{{end}}
+  <form method="post" action="/admin/termos/documentos" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label>Chave<input name="chave" value="{{if $e}}{{$e.Chave}}{{end}}" required pattern="[a-z][a-z0-9_]*" {{if $e}}readonly{{end}}></label>
+    <label>Versão<input name="versao" value="{{if $e}}{{$e.Versao}}{{end}}" maxlength="40" placeholder="v4"></label>
+    <label class="cheio">Título<input name="titulo" value="{{if $e}}{{$e.Titulo}}{{end}}" required maxlength="160"></label>
+    <label class="cheio">Texto<textarea name="corpo" class="editor-termo">{{if $e}}{{$e.Corpo}}{{end}}</textarea></label>
+    <div class="cheio"><button class="btn primario">Salvar</button>{{if $e}} <a class="btn" href="/admin/termos/documentos">Cancelar</a>{{end}}</div>
+  </form>
+</section>{{end}}
+{{end}}

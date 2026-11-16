@@ -1,0 +1,59 @@
+{{define "conteudo"}}{{$t := .D.T}}{{$csrf := .Sessao.CSRF}}
+<p><a href="/termos">← Termos</a></p>
+<div class="cabecalho"><h1>Termo nº {{$t.NumeroTexto}}</h1>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="selo {{$t.CorSituacao}}">{{$t.RotuloSituacao}}</span>
+  {{if eq $t.Situacao "rascunho"}}<a class="btn primario" href="/termos/{{$t.ID}}/preencher">Preencher e enviar</a>{{end}}
+  <a class="btn" href="/termos/{{$t.ID}}/pdf" target="_blank">{{if .D.Assinaturas}}PDF assinado{{else}}Prévia em PDF{{end}}</a></div></div>
+
+<div class="duas">
+<section class="cartao">
+  <h2>Resumo</h2>
+  <table class="kv">
+    <tr><th>Termo</th><td>{{.D.Tipo.Nome}} · <a href="/admin/termos/versoes/{{$t.VersaoID}}">{{$t.Sigla}}</a></td></tr>
+    <tr><th>Colaborador</th><td>{{$t.Pessoa}} · {{$t.Email}} · <a href="/admin/colaboradores/{{$t.AdminID}}">ficha</a></td></tr>
+    {{if $t.Equipamento}}<tr><th>Equipamento</th><td>{{if $t.MaquinaID}}<a href="/maquinas/{{$t.MaquinaID}}">{{$t.Equipamento}}</a>{{else}}{{$t.Equipamento}}{{end}}</td></tr>{{end}}
+    {{if $t.ChamadoID}}<tr><th>Chamado</th><td><a href="/chamados/{{$t.ChamadoID}}">#{{$t.ChamadoID}}</a> · {{.D.Fotos}} foto(s)</td></tr>{{end}}
+    <tr><th>Emitido</th><td>{{brt $t.CriadoEm}} por {{$t.CriadoPor}}</td></tr>
+    {{if $t.EnviadoEm}}<tr><th>Enviado ao colaborador</th><td>{{brt $t.EnviadoEm}} por {{$t.EnviadoPor}}</td></tr>{{end}}
+    {{if $t.AssinadoEm}}<tr><th>Assinado</th><td>{{brt $t.AssinadoEm}}</td></tr>{{end}}
+    {{if $t.SubstituidoPor}}<tr><th>Substituído por</th><td><a href="/termos/{{$t.SubstituidoPor}}">termo novo</a> (revisão com reassinatura)</td></tr>{{end}}
+    {{if $t.Substitui}}<tr><th>Substitui</th><td><a href="/termos/{{$t.Substitui}}">termo anterior</a></td></tr>{{end}}
+    {{if $t.CanceladoEm}}<tr><th>Cancelado</th><td>{{brt $t.CanceladoEm}} por {{$t.CanceladoPor}}: {{$t.Motivo}}</td></tr>{{end}}
+    {{if $t.LiberarMaquinaMotivo}}<tr><th>Liberado fora da própria máquina</th><td>{{$t.LiberarMaquinaPor}}: {{$t.LiberarMaquinaMotivo}}</td></tr>{{end}}
+  </table>
+  {{if eq $t.Situacao "aguardando"}}
+  <h3>Link para o colaborador</h3>
+  <div class="caixa-link"><input id="link-ass" value="{{.D.LinkAssinar}}" readonly><button type="button" class="btn pequeno" data-copiar="link-ass">Copiar</button></div>
+  <form method="post" action="/termos/{{$t.ID}}/reenviar" style="margin-top:8px"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn pequeno">Reenviar o aviso por e-mail</button></form>
+  {{if and .D.Tipo.ExigePropriaMaquina (not $t.LiberarMaquinaMotivo)}}
+  <h3>Assinatura na própria máquina</h3>
+  <p class="sub">Este termo só pode ser assinado no próprio equipamento. Se a pessoa não tiver acesso a ele, libere com o motivo (fica na auditoria).</p>
+  <form method="post" action="/termos/{{$t.ID}}/liberar" class="linha-form"><input type="hidden" name="csrf" value="{{$csrf}}"><input name="motivo" placeholder="motivo" required maxlength="300"><button class="btn pequeno">Liberar</button></form>
+  {{end}}{{end}}
+  {{if or (eq $t.Situacao "rascunho") (eq $t.Situacao "aguardando")}}
+  <details style="margin-top:14px"><summary>Cancelar o termo</summary>
+    <form method="post" action="/termos/{{$t.ID}}/cancelar" class="linha-form" onsubmit="return confirm('Cancelar o termo nº {{$t.NumeroTexto}}?')"><input type="hidden" name="csrf" value="{{$csrf}}"><input name="motivo" placeholder="motivo" required maxlength="300"><button class="btn perigo pequeno">Cancelar termo</button></form>
+  </details>{{end}}
+</section>
+<section class="cartao">
+  <h2>Assinatura e evidências</h2>
+  {{range .D.Assinaturas}}
+  <table class="kv">
+    <tr><th>Etapa</th><td>{{if eq .Etapa "entrega"}}Entrega / aceite{{else}}{{.Etapa}}{{end}}</td></tr>
+    <tr><th>Data e hora</th><td>{{brt .AssinadoEm}}</td></tr>
+    <tr><th>Autenticação</th><td>{{.Metodo}}</td></tr>
+    <tr><th>IP / navegador</th><td>{{.IP}}<br><small>{{.UserAgent}}</small></td></tr>
+    <tr><th>Assinado na máquina</th><td>{{if .Maquina}}<b>{{.Maquina}}</b> ({{.RotuloGrau}}){{else}}não identificada{{if .Candidatas}} — candidatas: {{.Candidatas}}{{end}}{{end}}
+      {{if and $t.MaquinaID .MaquinaID}}{{if ne $t.MaquinaID .MaquinaID}}<br><span class="selo vermelho">diferente do equipamento do termo</span>{{end}}{{end}}</td></tr>
+    <tr><th>Código de verificação</th><td><code>{{.Codigo}}</code> · <a href="/verificar/{{.Codigo}}" target="_blank">conferir</a></td></tr>
+    <tr><th>Hash SHA-256</th><td><code style="word-break:break-all;font-size:12px">{{.Hash}}</code></td></tr>
+  </table>
+  {{else}}<p class="vazio">Ainda não assinado.</p>{{end}}
+  {{if .D.Pendencias}}{{if eq $t.Situacao "rascunho"}}<div class="aviso erro" style="margin-top:12px"><b>Falta para enviar:</b> {{join .D.Pendencias "; "}}.</div>{{end}}{{end}}
+  <h3 style="margin-top:18px">E-mails deste termo</h3>
+  {{template "tabela_envios" (dict "Lista" .D.Envios "CSRF" $csrf "Voltar" (printf "/termos/%d" $t.ID))}}
+</section>
+</div>
+{{if .D.V.UsoInterno}}<details class="cartao"><summary><b>Uso interno</b> (não vai no PDF do colaborador)</summary><pre style="white-space:pre-wrap;font-size:12.5px">{{.D.V.UsoInterno}}</pre></details>{{end}}
+<section class="cartao"><h2>Texto do termo</h2>{{.D.HTML}}</section>
+{{end}}

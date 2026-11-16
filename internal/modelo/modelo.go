@@ -59,6 +59,26 @@ type Relatorio struct {
 
 	// Último erro do auto-update (1.11+), para o servidor mostrar o motivo.
 	AutoUpdateErro string `json:"auto_update_erro,omitempty"`
+
+	// 1.22: segurança para pré-marcar o checklist do Termo de Entrega (BitLocker, antivírus,
+	// administradores locais e última atualização do Windows).
+	Seguranca *Seguranca `json:"seguranca,omitempty"`
+}
+
+// Seguranca (agente 1.22). Campos vazios = o agente não conseguiu verificar.
+type Seguranca struct {
+	BitLocker         string       `json:"bitlocker"` // ativo | desativado | "" (sem dado)
+	Antivirus         []Antivirus  `json:"antivirus,omitempty"`
+	AntivirusLido     bool         `json:"antivirus_lido"` // SecurityCenter2 respondeu (servidores não têm)
+	AdminsLocais      []string     `json:"admins_locais,omitempty"`
+	AdminsLidos       bool         `json:"admins_lidos"`
+	UltimaAtualizacao string       `json:"ultima_atualizacao,omitempty"` // RFC3339 do hotfix mais recente
+}
+
+type Antivirus struct {
+	Nome       string `json:"nome"`
+	Ativo      bool   `json:"ativo"`
+	Atualizado bool   `json:"atualizado"`
 }
 
 // MicroSIP é a instalação do MicroSIP de um perfil do Windows (ou portátil).
@@ -194,6 +214,19 @@ type RespostaTeste struct {
 	JaAtual       bool   `json:"ja_atual"`       // já está na versão do servidor
 	Motivo        string `json:"motivo"`
 	Usuario       string `json:"usuario"` // conta do serviço (deve ser SYSTEM)
+}
+
+// EventoQuem ("quem", 1.22): o servidor pergunta quem está logado agora (identificação da
+// máquina na assinatura de um termo). O agente responde em POST /api/v1/eventos/quem.
+type EventoQuem struct {
+	ID string `json:"id"`
+}
+
+type RespostaQuem struct {
+	ID       string   `json:"id"`
+	AgentID  string   `json:"agent_id"`
+	Hostname string   `json:"hostname"`
+	Usuarios []string `json:"usuarios"` // DOMINIO\usuario das sessões ativas (console e RDP)
 }
 
 // AnyDesk: um system.conf encontrado na máquina.

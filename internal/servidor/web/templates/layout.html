@@ -10,51 +10,75 @@
 <meta name="harvest-versao" content="{{.Versao}}">
 {{if .Marca.Ocupacional}}<meta name="harvest-empresa" content="T.I Ocupacional">{{end}}
 </head>
-<body{{if .Sessao}}{{if .Sessao.Admin.MenuLateral}} class="menu-lateral"{{end}}{{end}}>
-{{if .Sessao}}
-<header class="topo">
-  <a class="marca" href="/" aria-label="Início"><img src="{{if .Sessao.Admin.TemaClaro}}{{.Marca.LogoEscuro}}{{else}}{{.Marca.LogoClaro}}{{end}}" alt="{{.Marca.Nome}}"></a>
-  <nav class="abas" aria-label="Menu principal">
-    {{if .Sessao.Admin.PodeGerenciarChamados}}<a href="/" class="{{if eq .Secao "inicio"}}ativo{{end}}">Início</a>{{end}}
-    <a href="/chamados" class="{{if eq .Secao "chamados"}}ativo{{end}}">Chamados{{if .Resumo.ChamadosAbertos}} <b>{{.Resumo.ChamadosAbertos}}</b>{{end}}</a>
-    {{if .Sessao.Admin.PodeInventario}}<a href="/inventario" class="{{if eq .Secao "inventario"}}ativo{{end}}">Inventário</a>{{end}}
-    {{if .Sessao.Admin.PodeInventario}}<a href="/ramais" class="{{if eq .Secao "ramais"}}ativo{{end}}">Ramais</a>{{end}}
-    {{if .Sessao.Admin.PodeGerenciarChamados}}<a href="/chamados/relatorios" class="{{if eq .Secao "relatorios"}}ativo{{end}}">Relatórios</a>{{end}}
-    {{if .Sessao.Admin.EhAdmin}}<a href="/admin" class="{{if eq .Secao "admin"}}ativo{{end}}">Administração</a>{{end}}
-    <a href="/configuracoes" class="{{if eq .Secao "config"}}ativo{{end}}" title="Configurações" aria-label="Configurações"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="rotulo-cfg">Configurações</span></a>
-  </nav>
-  <div class="usuario">
-    {{if .Sessao.Admin.PodeInventario}}<a class="icone-btn" href="/notificacoes" aria-label="Notificações"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>{{if .Resumo.MACDuplicados}}<span class="ponto-alerta"></span>{{end}}</a>{{end}}
-    {{if .Sessao.Admin.PodeGerenciarChamados}}<button type="button" class="icone-btn" id="btn-avisos" aria-label="Avisos de chamado novo (som)" title="Avisos de chamado novo"><svg class="som-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg><svg class="som-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg></button>{{end}}
-    <span class="avatar" aria-hidden="true">{{inicial .Sessao.Admin}}</span>
-    <div class="menu-usuario">
-      <b>{{if .Sessao.Admin.Nome}}{{.Sessao.Admin.Nome}}{{else}}{{.Sessao.Admin.Usuario}}{{end}}</b>
-      <span>{{.Sessao.Admin.RotuloPapel}}</span>
-      <div class="links"><a href="/conta">Minha conta</a>
-        <form method="post" action="/sair" class="sair"><input type="hidden" name="csrf" value="{{.Sessao.CSRF}}"><button class="btn link">Sair</button></form></div>
+<body{{if .Sessao}} class="com-lateral"{{end}}>
+{{if .Sessao}}{{$a := .Sessao.Admin}}{{$c := .Caminho}}
+<div class="app">
+<aside class="lateral" aria-label="Menu">
+  <div class="lateral-topo">
+    <a class="marca" href="/" aria-label="Início"><img src="{{if $a.TemaClaro}}{{.Marca.LogoEscuro}}{{else}}{{.Marca.LogoClaro}}{{end}}" alt="{{.Marca.Nome}}"></a>
+    <div class="lateral-icones">
+      {{if .Sessao.Admin.PodeGerenciarChamados}}<button type="button" class="icone-btn" id="btn-avisos" aria-label="Avisos de chamado novo (som)" title="Avisos de chamado novo"><svg class="som-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg><svg class="som-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg></button>{{end}}
     </div>
   </div>
-</header>
-<nav class="subnav" aria-label="Seções">
-  {{if or (eq .Secao "chamados") (eq .Secao "relatorios")}}
-    <a href="/chamados" class="{{if eq .Menu "chamados"}}ativo{{end}}">Lista de chamados</a>
-    <a href="/chamados/novo" class="{{if eq .Menu "chamados_novo"}}ativo{{end}}">Novo chamado</a>
-    {{if .Sessao.Admin.PodeGerenciarChamados}}<a href="/chamados/relatorios" class="{{if eq .Menu "chamados_relatorio"}}ativo{{end}}">Relatórios</a>{{end}}
-    {{if .Sessao.Admin.EhAdmin}}<a href="/admin#chamados">Configurar chamados</a>{{end}}
-  {{else if or (eq .Secao "inventario") (eq .Secao "admin")}}
-    <a href="/inventario" class="{{if eq .Menu "painel"}}ativo{{end}}">Painel</a>
-    <a href="/maquinas" class="{{if eq .Menu "maquinas"}}ativo{{end}}">Máquinas <b>{{.Resumo.Maquinas}}</b></a>
-    <a href="/usuarios" class="{{if eq .Menu "usuarios"}}ativo{{end}}">Usuários <b>{{.Resumo.Usuarios}}</b></a>
-    <a href="/duplicados" class="{{if eq .Menu "duplicados"}}ativo{{end}}">Duplicados {{if .Resumo.MACDuplicados}}<b class="alerta">{{.Resumo.MACDuplicados}}</b>{{end}}</a>
-    <a href="/notificacoes" class="{{if eq .Menu "notificacoes"}}ativo{{end}}">Notificações</a>
-    <a href="/ad" class="{{if eq .Menu "ad"}}ativo{{end}}">Active Directory</a>
-    <a href="/lixeira" class="{{if eq .Menu "lixeira"}}ativo{{end}}">Lixeira{{if .Resumo.Lixeira}} <b>{{.Resumo.Lixeira}}</b>{{end}}</a>
-    {{if .Sessao.Admin.EhAdmin}}<a href="/admin" class="{{if eq .Menu "admin"}}ativo{{end}}">Administração</a>
-    <a href="/admin/conexoes" class="{{if eq .Menu "admin_conexoes"}}ativo{{end}}">Conexões</a>{{end}}
-  {{end}}
-</nav>
-{{if .MigrandoPara}}<div class="faixa-alerta">Migração em andamento: as máquinas estão passando para <b>{{.MigrandoPara}}</b>. Abra chamados e use o painel no <a href="{{.MigrandoPara}}">servidor novo</a>; este fica no ar até a última máquina migrar.{{if .Sessao.Admin.EhAdmin}} <a href="/admin#migrar">ver andamento</a>{{end}}</div>{{end}}
-{{if and .Resumo.MACDuplicados .Sessao.Admin.PodeInventario (ne .Secao "inicio")}}
+  <nav class="menu-grupos" aria-label="Menu principal">
+    {{if $a.PodeGerenciarChamados}}<a href="/" class="{{if ativo $c "/="}}ativo{{end}}">Início</a>{{end}}
+
+    {{if or (pode $a "chamados") (pode $a "relatorios") (pode $a "solicitacoes")}}
+    <p class="grupo-titulo">Atendimento</p>
+    {{if pode $a "chamados"}}<a href="/chamados" class="{{if and (ativo $c "/chamados") (not (ativo $c "/chamados/relatorios" "/chamados/exportar.csv"))}}ativo{{end}}">Chamados{{if .Resumo.ChamadosAbertos}} <b>{{.Resumo.ChamadosAbertos}}</b>{{end}}</a>{{end}}
+    {{if pode $a "solicitacoes"}}<a href="/solicitacoes" class="{{if ativo $c "/solicitacoes"}}ativo{{end}}">Solicitações de equipamento{{with solPendentes $a}} <b>{{.}}</b>{{end}}</a>{{end}}
+    {{if pode $a "relatorios"}}<a href="/chamados/relatorios" class="{{if ativo $c "/chamados/relatorios"}}ativo{{end}}">Relatórios</a>{{end}}
+    {{end}}
+
+    {{if or (pode $a "inventario") (pode $a "ramais") (pode $a "ad")}}
+    <p class="grupo-titulo">Parque</p>
+    {{if pode $a "inventario"}}
+    <a href="/inventario" class="{{if ativo $c "/inventario"}}ativo{{end}}">Painel do inventário</a>
+    <a href="/maquinas" class="{{if ativo $c "/maquinas"}}ativo{{end}}">Máquinas <b class="fraco">{{.Resumo.Maquinas}}</b></a>
+    <a href="/usuarios" class="{{if ativo $c "/usuarios"}}ativo{{end}}">Usuários de rede</a>
+    <a href="/duplicados" class="{{if ativo $c "/duplicados"}}ativo{{end}}">Duplicados{{if .Resumo.MACDuplicados}} <b class="alerta">{{.Resumo.MACDuplicados}}</b>{{end}}</a>
+    {{end}}
+    {{if pode $a "ramais"}}<a href="/ramais" class="{{if ativo $c "/ramais"}}ativo{{end}}">Ramais</a>{{end}}
+    {{if pode $a "ad"}}<a href="/ad" class="{{if ativo $c "/ad"}}ativo{{end}}">Active Directory</a>{{end}}
+    {{if pode $a "inventario"}}
+    <a href="/notificacoes" class="{{if ativo $c "/notificacoes"}}ativo{{end}}">Notificações</a>
+    <a href="/lixeira" class="{{if ativo $c "/lixeira"}}ativo{{end}}">Lixeira{{if .Resumo.Lixeira}} <b class="fraco">{{.Resumo.Lixeira}}</b>{{end}}</a>
+    {{end}}
+    {{end}}
+
+    {{if termosAtivo}}
+    {{if pode $a "termos"}}
+    <p class="grupo-titulo">Termos</p>
+    <a href="/termos" class="{{if ativo $c "/termos="}}ativo{{end}}">Painel de termos</a>
+    <a href="/termos/novo" class="{{if ativo $c "/termos/novo"}}ativo{{end}}">Emitir termo</a>
+    <a href="/admin/colaboradores" class="{{if ativo $c "/admin/colaboradores"}}ativo{{end}}">Colaboradores</a>
+    <a href="/termos/ativos" class="{{if ativo $c "/termos/ativos"}}ativo{{end}}">Ativos sem agente</a>
+    <a href="/admin/termos/documentos" class="{{if ativo $c "/admin/termos/documentos" "/documentos"}}ativo{{end}}">Documentos</a>
+    {{end}}
+    {{if pode $a "meus_termos"}}
+    <p class="grupo-titulo">Meus documentos</p>
+    <a href="/meus-termos" class="{{if ativo $c "/meus-termos"}}ativo{{end}}">Meus termos{{with meusTermosPendentes $a}} <b>{{.}}</b>{{end}}</a>
+    <a href="/minha-ficha" class="{{if ativo $c "/minha-ficha"}}ativo{{end}}">Minha ficha</a>
+    {{end}}
+    {{end}}
+  </nav>
+  <div class="lateral-rodape">
+    {{if $a.EhAdmin}}<a href="/admin" class="btn-admin{{if and (ativo $c "/admin" "/configuracoes") (not (ativo $c "/admin/colaboradores" "/admin/termos/documentos"))}} ativo{{end}}">Administração</a>{{else}}<a href="/configuracoes" class="{{if ativo $c "/configuracoes"}}ativo{{end}}">Aparência</a>{{end}}
+    <div class="quem">
+      <span class="avatar" aria-hidden="true">{{inicial $a}}</span>
+      <div class="menu-usuario">
+        <b>{{if $a.Nome}}{{$a.Nome}}{{else}}{{$a.Usuario}}{{end}}</b>
+        <span>{{$a.RotuloPapel}}</span>
+        <div class="links"><a href="/conta">Minha conta</a>
+          <form method="post" action="/sair" class="sair"><input type="hidden" name="csrf" value="{{.Sessao.CSRF}}"><button class="btn link">Sair</button></form></div>
+      </div>
+    </div>
+  </div>
+</aside>
+<div class="area">
+{{if .TermosHTTP}}<div class="faixa-alerta"><b>Termos em modo de teste (HTTP):</b> senhas e códigos trafegam sem criptografia. Não use com colaboradores reais até o painel estar em HTTPS.{{if $a.EhAdmin}} <a href="/admin/termos">configurar</a>{{end}}</div>{{end}}
+{{if .MigrandoPara}}<div class="faixa-alerta">Migração em andamento: as máquinas estão passando para <b>{{.MigrandoPara}}</b>. Abra chamados e use o painel no <a href="{{.MigrandoPara}}">servidor novo</a>; este fica no ar até a última máquina migrar.{{if $a.EhAdmin}} <a href="/admin#migrar">ver andamento</a>{{end}}</div>{{end}}
+{{if and .Resumo.MACDuplicados (pode $a "inventario") (ne .Secao "inicio") $a.PodeInventario}}
 <div class="faixa-alerta">Existem <b>{{.Resumo.MACDuplicados}}</b> MAC address duplicado(s) entre máquinas. <a href="/duplicados">Verificar agora</a></div>
 {{end}}
 <main>
@@ -63,8 +87,11 @@
   {{template "conteudo" .}}
 </main>
 <footer>{{if ne .Marca.Nome "Harvest"}}{{.Marca.Nome}} · {{end}}Harvest v{{.Versao}} · desenvolvido por <a class="assinatura" href="https://www.linkedin.com/in/ccostadaniel/" target="_blank" rel="noopener">Daniel Costa</a>{{if .Marca.Ocupacional}} — T.I{{end}}</footer>
+</div>
+</div>
 {{else}}
 <main class="sozinho">
+  {{if .TermosHTTP}}<div class="aviso erro">Modo de teste (HTTP): esta página não está protegida por HTTPS.</div>{{end}}
   {{if .Msg}}<div class="aviso ok">{{.Msg}}</div>{{end}}
   {{if .Erro}}<div class="aviso erro">{{.Erro}}</div>{{end}}
   {{template "conteudo" .}}
@@ -104,3 +131,70 @@
   {{range $fixos}}<option{{if eq . $.Valor}} selected{{end}}>{{.}}</option>{{end}}
   {{if and .Valor (not (contem $fixos .Valor))}}<option selected value="{{.Valor}}">{{.Valor}} (fora da lista)</option>{{end}}
 </select>{{else}}<input name="setor" value="{{.Valor}}"{{if .Placeholder}} placeholder="{{.Placeholder}}"{{end}}{{if .Lista}} list="setores" autocomplete="off"{{end}}>{{end}}{{end}}
+
+{{/* ---------- 1.23 Termos: campos da ficha do colaborador (Minha ficha e validação pela T.I) ---------- */}}
+{{define "campos_ficha"}}{{$f := .F}}
+<label class="cheio">Nome completo<input name="nome" value="{{$f.Nome}}" required maxlength="120" autocomplete="name"></label>
+<label>CPF<input name="cpf" value="{{$f.CPFFormatado}}" required inputmode="numeric" maxlength="14" placeholder="000.000.000-00" data-mascara="cpf" autocomplete="off"></label>
+<label>Matrícula <small>(se tiver)</small><input name="matricula" value="{{$f.Matricula}}" maxlength="30"></label>
+<label>Empresa (empregadora)<select name="empresa_id" required data-empresa>
+  <option value="">— escolha —</option>
+  {{range .Empresas}}<option value="{{.ID}}"{{if eq .ID $f.EmpresaID}} selected{{end}}>{{.RazaoSocial}}{{if .CNPJ}} · {{.CNPJFormatado}}{{end}}</option>{{end}}
+</select>{{if not .Empresas}}<span class="dica">Nenhuma empresa cadastrada ainda — a T.I precisa cadastrar em Administração → Termos.</span>{{end}}</label>
+<label>Unidade<select name="unidade" data-unidade>
+  <option value="">— escolha —</option>
+  {{range .Empresas}}{{$e := .}}{{range .Unidades}}<option data-de="{{$e.ID}}"{{if and (eq $e.ID $f.EmpresaID) (eq . $f.Unidade)}} selected{{end}}>{{.}}</option>{{end}}{{end}}
+</select></label>
+<label>Cargo<input name="cargo" value="{{$f.Cargo}}" required maxlength="80"></label>
+<label>Setor{{template "campo_setor" (dict "Valor" $f.Setor "Obrigatorio" true)}}</label>
+<label>Gestor imediato<input name="gestor" value="{{$f.Gestor}}" required maxlength="120" placeholder="nome do seu gestor"></label>
+<label>Telefone <small>(corporativo, se tiver)</small><input name="telefone" value="{{$f.Telefone}}" maxlength="20" inputmode="tel" placeholder="(71) 99999-9999"></label>
+<label>Vínculo<select name="vinculo" required>
+  <option value="">— escolha —</option>
+  {{range .Vinculos}}<option value="{{.Valor}}"{{if eq .Valor $f.Vinculo}} selected{{end}}>{{.Rotulo}}</option>{{end}}
+</select></label>
+<label>Regime de trabalho<select name="regime" required>
+  <option value="">— escolha —</option>
+  {{range .Regimes}}<option value="{{.Valor}}"{{if eq .Valor $f.Regime}} selected{{end}}>{{.Rotulo}}</option>{{end}}
+</select></label>
+<script src="/static/termos.js" defer></script>
+{{end}}
+
+{{define "selo_ficha"}}<span class="selo{{if .CorSituacao}} {{.CorSituacao}}{{end}}">{{.RotuloSituacao}}</span>{{end}}
+
+{{define "tabela_envios"}}{{if .Lista}}<div class="rolagem"><table class="tabela lista">
+  <tr><th>Quando</th><th>Tipo</th><th>Para</th><th>Assunto</th><th>Situação</th><th></th></tr>
+  {{range .Lista}}<tr>
+    <td><small>{{data .CriadoEm}}</small></td><td><small>{{.Tipo}}{{if eq .Destino "rh"}} (RH){{end}}</small></td>
+    <td><small>{{.Para}}</small></td><td>{{.Assunto}}{{if .AnexoNome}} <small>📎 {{.AnexoNome}}</small>{{end}}</td>
+    <td><span class="selo{{if eq .Situacao "enviado"}} verde{{else if eq .Situacao "erro"}} vermelho{{else if eq .Situacao "pendente"}} amarelo{{end}}">{{.RotuloSituacao}}</span>
+      {{if .Erro}}<br><small title="{{.Erro}}">{{.Erro}}</small>{{end}}{{if and (eq .Situacao "pendente") .ProximaEm}}<br><small>próxima tentativa {{data .ProximaEm}}</small>{{end}}</td>
+    <td class="acoes">{{if eq .Situacao "erro"}}<form method="post" action="/termos/envios/{{.ID}}/reenviar"><input type="hidden" name="csrf" value="{{$.CSRF}}"><input type="hidden" name="voltar" value="{{$.Voltar}}"><button class="btn pequeno">Reenviar</button></form>{{end}}</td>
+  </tr>{{end}}
+</table></div>{{else}}<p class="vazio">Nenhum e-mail ainda.</p>{{end}}{{end}}
+
+{{define "tabela_campos"}}{{if .}}<div class="rolagem"><table class="tabela lista tabela-campos">
+  <tr><th>Campo</th><th>Rótulo</th><th>Tipo</th><th>Quem preenche</th><th>Detalhes</th></tr>
+  {{range .}}<tr><td><code>{{"{"}}{{.Chave}}{{"}"}}</code></td><td>{{.Rotulo}}</td><td>{{.RotuloTipo}}</td><td>{{.RotuloQuem}}</td>
+    <td><small>{{if .Itens}}{{len .Itens}} itens · colunas: {{join .ColunasChecklist ", "}}{{end}}{{if .Opcoes}}opções: {{join .Opcoes ", "}}{{end}}{{if .Minimo}}mínimo {{.Minimo}}{{end}}{{if .Opcional}} · opcional{{end}}{{if .SeCampo}} · obrigatório se {{.SeCampo}} = {{join .SeValor " ou "}}{{end}}</small></td></tr>{{end}}
+</table></div>{{else}}<p class="vazio">Nenhum campo declarado.</p>{{end}}{{end}}
+
+
+{{/* menu de seções da Administração (admin.html e telas de configuração ligadas a ela) */}}
+{{define "admin_secoes"}}<nav class="admin-secoes" aria-label="Seções da administração">
+  <a href="/admin#geral" data-alvo="geral"{{if eq .Atual "geral"}} class="ativo"{{end}}>Visão geral</a>
+  <a href="/admin#permissoes" data-alvo="permissoes">Perfis e permissões</a>
+  <a href="/admin#perfis" data-alvo="perfis">Perfis personalizados</a>
+  <a href="/admin#contas" data-alvo="contas">Contas de acesso</a>
+  <a href="/admin#agentes" data-alvo="agentes">Agentes e instalação</a>
+  <a href="/admin/conexoes"{{if eq .Atual "conexoes"}} class="ativo"{{end}}>Conexões com as máquinas</a>
+  <a href="/admin#chamados" data-alvo="chamados">Chamados</a>
+  <a href="/admin/solicitacoes"{{if eq .Atual "solicitacoes"}} class="ativo"{{end}}>Solicitações de equipamento</a>
+  <a href="/admin#email" data-alvo="email">E-mail e avisos</a>
+  <a href="/admin/termos"{{if eq .Atual "termos"}} class="ativo"{{end}}>Termos</a>
+  <a href="/admin/termos/modelos"{{if eq .Atual "modelos"}} class="ativo"{{end}}>Modelos de termo</a>
+  <a href="/configuracoes"{{if eq .Atual "config"}} class="ativo"{{end}}>Marca, setores e aparência</a>
+  <a href="/admin#seguranca" data-alvo="seguranca">Segurança e assinatura</a>
+  <a href="/admin#manutencao" data-alvo="manutencao">Atualizar, backup e migração</a>
+  <a href="/admin#registro" data-alvo="registro">Registro de ações</a>
+</nav>{{end}}

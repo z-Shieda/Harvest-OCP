@@ -1,8 +1,69 @@
 {{define "conteudo"}}
 {{$csrf := .Sessao.CSRF}}
-<h1>Administração</h1>
-<div class="duas">
-<section class="cartao">
+<div class="cabecalho"><h1>Administração</h1></div>
+<div class="admin-wrap">
+{{template "admin_secoes" (dict "Atual" "")}}
+<div class="admin-corpo" id="admin-corpo">
+
+<section class="cartao" data-grupo="geral" id="geral">
+  <h2>Visão geral</h2>
+  <div class="resumo-admin">
+    <a href="#permissoes"><span>Acesso</span><b>Perfis e permissões</b><small>o que Técnico e Usuário veem no menu</small></a>
+    <a href="#contas"><span>Acesso</span><b>Contas de acesso</b><small>{{len .D.Admins}} conta(s)</small></a>
+    <a href="#agentes"><span>Agentes</span><b>Instalação e token</b><small>agente v{{.D.VersaoAgente}} · auto-update {{if .D.AutoUpdate}}ligado{{else}}desligado{{end}}</small></a>
+    <a href="#email"><span>Comunicação</span><b>E-mail e avisos</b><small>{{if .D.SMTP.Configurado}}SMTP configurado{{else}}SMTP não configurado{{end}}</small></a>
+    <a href="#chamados"><span>Atendimento</span><b>Chamados</b><small>página sem login {{if .D.ChamadosPublico}}ligada{{else}}desligada{{end}}</small></a>
+    <a href="/admin/termos"><span>Módulos</span><b>Termos</b><small>contas por convite, assinatura, RH</small></a>
+    <a href="#seguranca"><span>Segurança</span><b>Assinatura das atualizações</b><small>{{if .D.Assinatura.Valida}}agente assinado pela T.I{{else}}kit sem assinatura — conferir{{end}}</small></a>
+    <a href="#manutencao"><span>Sistema</span><b>Atualizar, backup e migração</b><small>servidor v{{.D.Versao}}</small></a>
+  </div>
+</section>
+
+<section class="cartao" data-grupo="permissoes" id="permissoes">
+  <h2>Perfis e permissões</h2>
+  <p class="sub">O Administrador vê tudo. Desligar uma área esconde o menu e bloqueia o endereço para aquele perfil; os dados continuam guardados.
+    Para o perfil Usuário as áreas de consulta são só leitura (alterações continuam com a T.I).</p>
+  <form method="post" action="/admin/permissoes">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <div class="rolagem"><table class="matriz-perm">
+      <tr><th>Área</th><th>Administrador</th><th>Técnico</th><th>Usuário</th>{{range .D.Perfis}}<th>{{.Nome}}</th>{{end}}</tr>
+      {{range .D.Permissoes}}<tr>
+        <td><b>{{.Nome}}</b><small>{{.Descricao}}</small></td>
+        <td><label class="chave"><input type="checkbox" checked disabled aria-label="{{.Nome}} para administrador"><span class="trilho-chave" aria-hidden="true"></span></label></td>
+        <td><label class="chave"><input type="checkbox" name="tec_{{.Chave}}" value="1"{{if .Tecnico}} checked{{end}} aria-label="{{.Nome}} para técnico"><span class="trilho-chave" aria-hidden="true"></span></label></td>
+        <td>{{if .SoEquipe}}<small>só Admin e Técnico</small>{{else}}<label class="chave"><input type="checkbox" name="usu_{{.Chave}}" value="1"{{if .Usuario}} checked{{end}} aria-label="{{.Nome}} para usuário"><span class="trilho-chave" aria-hidden="true"></span></label>{{end}}</td>
+        {{$area := .}}{{range .Perfis}}<td>{{if not $area.SoEquipe}}<label class="chave"><input type="checkbox" name="p{{.PerfilID}}_{{$area.Chave}}" value="1"{{if .Ligada}} checked{{end}} aria-label="{{$area.Nome}}"><span class="trilho-chave" aria-hidden="true"></span></label>{{else}}<small>—</small>{{end}}</td>{{end}}
+      </tr>{{end}}
+    </table></div>
+    <p style="margin-top:14px"><button class="btn primario">Salvar permissões</button></p>
+  </form>
+  <p class="sub">Para criar perfis como Gestor ou Suprimentos e escolher os poderes deles, veja <a href="#perfis">Perfis personalizados</a>.</p>
+</section>
+
+<section class="cartao" data-grupo="perfis" id="perfis">
+  <h2>Perfis personalizados</h2>
+  <p class="sub">Um perfil vale para contas com papel Usuário: as áreas dele ficam na tabela de Perfis e permissões, e os poderes aqui. Para dar um perfil a alguém (e os setores dos quais ele é gestor), abra a pessoa em <a href="/admin/colaboradores">Colaboradores</a>.</p>
+  {{range .D.ListaPerfis}}
+  <details class="grupo">
+    <summary><b>{{.Nome}}</b> <small>· {{.Contas}} conta(s){{if .PoderesTexto}} · {{.PoderesTexto}}{{end}}</small></summary>
+    <form method="post" action="/admin/perfis" class="form" style="margin-top:10px">
+      <input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="id" value="{{.ID}}">
+      <label class="cheio">Nome<input name="nome" value="{{.Nome}}" required maxlength="60"></label>
+      <div class="cheio">{{$p := .}}{{range $.D.Poderes}}<label class="chave" style="margin-bottom:6px"><input type="checkbox" name="poderes" value="{{.Valor}}"{{if $p.TemPoder .Valor}} checked{{end}}><span class="trilho-chave" aria-hidden="true"></span><span class="rotulo-chave"><b>{{.Rotulo}}</b></span></label>{{end}}</div>
+      <div class="cheio" style="display:flex;gap:8px"><button class="btn primario">Salvar</button>
+        <button class="btn perigo" name="excluir" value="1" formnovalidate onclick="return confirm('Excluir o perfil {{.Nome}}?')">Excluir</button></div>
+    </form>
+  </details>
+  {{end}}
+  <h3 style="margin-top:16px">Novo perfil</h3>
+  <form method="post" action="/admin/perfis" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label class="cheio">Nome<input name="nome" required maxlength="60" placeholder="ex.: Diretoria"></label>
+    <div class="cheio">{{range .D.Poderes}}<label class="chave" style="margin-bottom:6px"><input type="checkbox" name="poderes" value="{{.Valor}}"><span class="trilho-chave" aria-hidden="true"></span><span class="rotulo-chave"><b>{{.Rotulo}}</b></span></label>{{end}}</div>
+    <div class="cheio"><button class="btn primario">Criar perfil</button></div>
+  </form>
+</section>
+<section class="cartao" data-grupo="agentes">
   <h2>Instalação do agente</h2>
   <p>Execute em cada máquina (como administrador):</p>
   <pre class="codigo">inventario-agente.exe -instalar -servidor {{.D.URL}} -token {{.D.Token}}</pre>
@@ -42,7 +103,7 @@
     <br>Agentes 1.11.2+ passam sozinhos para o token atual; remova o antigo quando nenhuma máquina aparecer recusada.</p>
   {{end}}
 </section>
-<section class="cartao">
+<section class="cartao" data-grupo="email">
   <h2>Aviso automático (webhook)</h2>
   <p class="sub">Opcional. Quando um MAC duplicado é detectado, o servidor envia uma mensagem para este endereço (Microsoft Teams, Google Chat, Slack ou Discord — webhook de entrada). O alerta sempre aparece no painel.</p>
   <form method="post" action="/admin/webhook" class="linha-form">
@@ -51,7 +112,9 @@
     <button class="btn">Salvar</button>
   </form>
   {{if .D.Webhook}}<form method="post" action="/admin/webhook/testar" style="margin-top:8px"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn link">Enviar mensagem de teste</button></form>{{end}}
-  <h2 style="margin-top:24px">Backup</h2>
+</section>
+<section class="cartao" data-grupo="manutencao" id="backup">
+  <h2>Backup</h2>
   <p class="sub">Baixa uma cópia completa do banco de dados (pode ser feita com o sistema em uso). Para restaurar, pare o servidor e substitua o arquivo <code>inventario.db</code>.</p>
   <a class="btn" href="/admin/backup">Baixar backup do banco</a>
 
@@ -67,9 +130,8 @@
     <button class="btn perigo">Importar e reiniciar</button>
   </form>
 </section>
-</div>
 
-<section class="cartao" id="chamados">
+<section class="cartao" data-grupo="chamados" id="chamados">
   <h2>Chamados</h2>
   <form method="post" action="/admin/chamados" class="form">
     <input type="hidden" name="csrf" value="{{$csrf}}">
@@ -90,7 +152,7 @@
   {{if or .D.WebhookChamados .D.Webhook}}<form method="post" action="/admin/chamados/testar" style="margin-top:8px"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn link">Enviar mensagem de teste para o webhook dos chamados</button></form>{{end}}
 </section>
 
-<section class="cartao" id="email">
+<section class="cartao" data-grupo="email" id="email">
   <h2>E-mail dos chamados</h2>
   <p class="sub">Use o SMTP do e-mail da empresa. Microsoft 365: <code>smtp.office365.com</code>, porta <code>587</code>, STARTTLS, com uma conta que tenha "SMTP autenticado" liberado. Gmail/Google Workspace: <code>smtp.gmail.com</code>, 587, com senha de app.</p>
   <form method="post" action="/admin/email" class="form">
@@ -140,8 +202,7 @@
   <p class="sub" style="margin-top:8px">"Enviado" significa que o servidor SMTP aceitou a mensagem. Se não chegar, olhe o spam e o rastreamento de mensagens do Microsoft 365.</p>
 </section>
 
-<div class="duas">
-<section class="cartao">
+<section class="cartao" data-grupo="contas">
   <h2 id="usuarios">Usuários e perfis</h2>
   <p class="sub">Perfis: <b>Administrador</b> (tudo), <b>Técnico</b> (vê inventário e gerencia chamados) e <b>Usuário</b> (só abre/vê os próprios chamados, sem inventário). Por enquanto todos são contas locais; a estrutura já está pronta para o login com e-mail Microsoft no futuro.</p>
   <table class="tabela">
@@ -155,14 +216,20 @@
             <input name="nome" value="{{.Nome}}" placeholder="Nome completo" aria-label="Nome de {{.Usuario}}">
             <input name="email" type="email" value="{{.Email}}" placeholder="e-mail para avisos" aria-label="E-mail de {{.Usuario}}">
             <button class="btn pequeno">Salvar</button>
-          </form></details></td>
+          </form>
+          {{if eq .Papel "usuario"}}<form method="post" action="/admin/colaboradores/{{.ID}}/perfil" style="display:flex;flex-direction:column;gap:6px;margin-top:8px;min-width:220px">
+            <input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="perfil_id" value="{{.PerfilID}}"><input type="hidden" name="voltar" value="/admin#contas">
+            <input name="setores_texto" value="{{join (setoresGestor .ID) ", "}}" placeholder="gestor dos setores (vírgula)" aria-label="Setores de {{.Usuario}}">
+            <button class="btn pequeno">Salvar setores</button>
+          </form>{{end}}</details></td>
       <td>
         <form method="post" action="/admin/{{.ID}}/papel" class="linha-form">
           <input type="hidden" name="csrf" value="{{$csrf}}">
           <select name="papel" onchange="this.form.submit()">
             <option value="admin" {{if eq .Papel "admin"}}selected{{end}}>Administrador</option>
             <option value="tecnico" {{if eq .Papel "tecnico"}}selected{{end}}>Técnico</option>
-            <option value="usuario" {{if eq .Papel "usuario"}}selected{{end}}>Usuário</option>
+            <option value="usuario" {{if and (eq .Papel "usuario") (not .PerfilID)}}selected{{end}}>Usuário</option>
+            {{$conta := .}}{{range $.D.ListaPerfis}}<option value="perfil:{{.ID}}"{{if and (eq $conta.Papel "usuario") (eq $conta.PerfilID .ID)}} selected{{end}}>{{.Nome}}</option>{{end}}
           </select>
           <noscript><button class="btn pequeno">ok</button></noscript>
         </form>
@@ -190,7 +257,7 @@
   </form>
   <p class="sub">Dica: o e-mail já pode ser o corporativo — quando ligarmos o login Microsoft, o usuário entra com esse mesmo e-mail e mantém o perfil.</p>
 </section>
-<section class="cartao">
+<section class="cartao" data-grupo="contas">
   <h2>Alterar minha senha</h2>
   <form method="post" action="/admin/senha" class="form">
     <input type="hidden" name="csrf" value="{{$csrf}}">
@@ -200,9 +267,8 @@
     <button class="btn primario">Alterar senha</button>
   </form>
 </section>
-</div>
 
-<section class="cartao">
+<section class="cartao" data-grupo="manutencao">
   <h2>Atualizar o servidor</h2>
   <p class="sub">Versão atual: <b>{{.D.Versao}}</b>. Envie um novo <code>inventario-servidor.exe</code> para aplicar a atualização. O servidor guarda uma cópia da versão anterior (<code>inventario-servidor.antigo.exe</code>), troca o arquivo e reinicia sozinho — o banco de dados é preservado.</p>
   <form method="post" action="/admin/atualizar" enctype="multipart/form-data" class="linha-form" onsubmit="return confirm('Aplicar a atualização agora? O servidor vai reiniciar e ficará fora do ar por alguns segundos.')">
@@ -249,7 +315,7 @@
   {{else}}<p class="ok-texto">Todas as máquinas estão no agente v{{.D.VersaoAgente}}.</p>{{end}}
 </section>
 
-<section class="cartao" id="migrar">
+<section class="cartao" data-grupo="seguranca" id="seguranca">
   <h2 id="assinatura">Assinatura das atualizações (T.I)</h2>
   {{$as := .D.Assinatura}}
   {{if not $as.RaizConfigurada}}
@@ -275,7 +341,9 @@
     {{range .D.RecusasAssinatura}}<br><a href="/maquinas/{{.ID}}">{{.Hostname}}</a> — <small>{{.Erro}}</small>{{end}}</div>
   {{end}}
 
-  <h2 style="margin-top:24px">Migrar os agentes para outro servidor</h2>
+</section>
+<section class="cartao" data-grupo="manutencao" id="migrar">
+  <h2>Migrar os agentes para outro servidor</h2>
   <p class="sub">Para mudar o servidor de endereço (por exemplo, para a nuvem) sem tocar em cada máquina: informe o novo endereço e o token dele. Conforme cada agente se comunicar com este servidor, ele receberá o aviso e passará a usar o novo — mas só depois de confirmar que o novo endereço responde. Mantenha este servidor no ar até todas terem migrado.</p>
   {{if .D.Migracao.Destino}}
     {{if .D.Migracao.Ativa}}
@@ -326,7 +394,7 @@
   <p class="sub">Observação: só funciona com agentes nesta versão em diante. Como alternativa (ou complemento), usar um nome de DNS fixo para o servidor permite trocar o destino só mudando o DNS, sem mexer nos agentes.</p>
 </section>
 
-<section class="cartao">
+<section class="cartao" data-grupo="agentes">
   <h2>Critérios de nível das máquinas</h2>
   <p class="sub">Define quando uma máquina é OK, Alerta ou Crítica no relatório do painel. A pontuação (máx. 10) soma: geração do processador (0–3), linha i3/i5/i7 (0–2), RAM (0–3) e armazenamento/SSD (0–2).</p>
   <form method="post" action="/admin/criterios-nivel" class="form">
@@ -339,12 +407,7 @@
   <p class="sub">Padrão: OK ≥ 6, Alerta ≥ 4, Crítico &lt; 4 ou RAM ≤ 4 GB. As regras de pontos podem ser ajustadas no código em uma versão futura, se necessário.</p>
 </section>
 
-<section class="cartao">
-  <h2>Programa monitorado</h2>
-  <p class="sub">Agora fica em <a href="/configuracoes#monitor">Configurações → Programa monitorado</a>.</p>
-</section>
-
-<section class="cartao">
+<section class="cartao" data-grupo="registro">
   <h2>Registro de ações</h2>
   <table class="tabela">
     <tr><th>Quando</th><th>Administrador</th><th>Ação</th><th>Detalhe</th></tr>
@@ -352,4 +415,8 @@
     {{else}}<tr><td colspan="4" class="vazio">Nada ainda.</td></tr>{{end}}
   </table>
 </section>
+
+</div>
+</div>
+<script src="/static/admin.js" defer></script>
 {{end}}

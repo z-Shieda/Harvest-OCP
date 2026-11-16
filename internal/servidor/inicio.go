@@ -266,6 +266,7 @@ func (s *Servidor) paginaInicio(w http.ResponseWriter, r *http.Request, sess *Se
 		"Saudacao": saudacao(agoraLocal), "Nome": primeiroNome(sess.Admin),
 		"Data":    fmt.Sprintf("%s, %s", diasSemana[agoraLocal.Weekday()], agoraLocal.Format("02/01")),
 		"Abertos": len(abertos), "Detalhes": strings.Join(detalhes, " · "),
+		"Sol": s.b.ResumoSolicitacoes(time.Now().AddDate(0, 0, -30)), // 1.24: contam nos atendimentos (sem SLA)
 		"Fila": fila, "Atrasados": atrasados,
 		"Resolvidos": resolvidos, "PctPrazo": pctPrazo, "Media": media,
 		"Categorias": categorias, "Semana": semana,

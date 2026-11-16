@@ -1,0 +1,25 @@
+{{define "conteudo"}}{{$c := .D.Cont}}
+<div class="cabecalho"><h1>Solicitações de equipamento</h1>
+  <a class="btn primario" href="/solicitacoes/nova">Pedir equipamento</a></div>
+<p class="sub">Pedidos de compra de T.I: a T.I valida, o gestor autoriza e o Suprimentos compra. Sem prazo de SLA.</p>
+<div class="atalhos">
+  <a class="btn pequeno{{if eq .D.Filtro "abertas"}} primario{{end}}" href="?ver=abertas">Em andamento ({{index $c "abertas"}})</a>
+  {{if .D.TI}}<a class="btn pequeno{{if eq .D.Filtro "ti"}} primario{{end}}" href="?ver=ti">Para a T.I ({{index $c "ti"}})</a>{{end}}
+  {{if .D.Autoriza}}<a class="btn pequeno{{if eq .D.Filtro "autorizar"}} primario{{end}}" href="?ver=autorizar">Para eu autorizar ({{index $c "autorizar"}})</a>{{end}}
+  {{if .D.Compra}}<a class="btn pequeno{{if eq .D.Filtro "comprar"}} primario{{end}}" href="?ver=comprar">Para comprar ({{index $c "comprar"}})</a>{{end}}
+  <a class="btn pequeno{{if eq .D.Filtro "minhas"}} primario{{end}}" href="?ver=minhas">Minhas ({{index $c "minhas"}})</a>
+  <a class="btn pequeno{{if eq .D.Filtro "todas"}} primario{{end}}" href="?ver=todas">Todas ({{index $c "todas"}})</a>
+</div>
+<div class="rolagem"><table class="tabela lista">
+  <tr><th>Nº</th><th>Item</th><th>Solicitante</th><th>Setor</th><th>Situação</th><th>Atualizada</th><th></th></tr>
+  {{range .D.Lista}}<tr>
+    <td><b>{{.Numero}}</b></td>
+    <td><b>{{.Quantidade}} × {{.Item}}</b>{{if eq .Urgencia "alta"}} <span class="selo vermelho">urgente</span>{{end}}</td>
+    <td>{{.Solicitante}}{{if .ParaQuem}}<br><small>para {{.ParaQuem}}</small>{{end}}</td>
+    <td>{{.Setor}}</td>
+    <td><span class="selo {{.CorSituacao}}">{{.RotuloSituacao}}</span>{{if eq .Situacao "aguardando_gestor"}}<br><small>{{.Gestor}}</small>{{end}}</td>
+    <td><small>{{rel .AtualizadoEm}}</small></td>
+    <td class="acoes"><a class="btn pequeno" href="/solicitacoes/{{.ID}}">Abrir</a></td>
+  </tr>{{else}}<tr><td colspan="7" class="vazio">Nada por aqui.</td></tr>{{end}}
+</table></div>
+{{end}}

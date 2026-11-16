@@ -68,6 +68,9 @@ type Admin struct {
 	CriadoEm string
 	Tema     string // escuro | claro (1.13, preferência de cada conta)
 	Menu     string // topo | lateral
+	// 1.24: perfil personalizado (Administração → Perfis e permissões). Só para o papel "usuario".
+	PerfilID   int64
+	PerfilNome string
 }
 
 func (a Admin) TemaClaro() bool   { return a.Tema == "claro" }
@@ -80,6 +83,9 @@ func (a Admin) PodeInventario() bool        { return a.Papel == "admin" || a.Pap
 func (a Admin) PodeGerenciarChamados() bool { return a.Papel == "admin" || a.Papel == "tecnico" }
 
 func (a Admin) RotuloPapel() string {
+	if a.PerfilNome != "" && a.Papel == "usuario" {
+		return a.PerfilNome
+	}
 	switch a.Papel {
 	case "admin":
 		return "Administrador"
@@ -145,11 +151,12 @@ func (b *Banco) AtualizarPapel(id int64, papel string) error {
 	return err
 }
 
-const colunasAdmin = `id, usuario, COALESCE(nome,''), COALESCE(email,''), COALESCE(papel,'admin'), COALESCE(provedor,'local'), criado_em, COALESCE(tema,'escuro'), COALESCE(menu,'topo')`
+const colunasAdmin = `id, usuario, COALESCE(nome,''), COALESCE(email,''), COALESCE(papel,'admin'), COALESCE(provedor,'local'), criado_em, COALESCE(tema,'escuro'), COALESCE(menu,'topo'),
+	COALESCE(perfil_id,0), COALESCE((SELECT p.nome FROM perfis p WHERE p.id=admins.perfil_id),'')`
 
 func lerAdmin(sc interface{ Scan(...any) error }) (Admin, error) {
 	var a Admin
-	err := sc.Scan(&a.ID, &a.Usuario, &a.Nome, &a.Email, &a.Papel, &a.Provedor, &a.CriadoEm, &a.Tema, &a.Menu)
+	err := sc.Scan(&a.ID, &a.Usuario, &a.Nome, &a.Email, &a.Papel, &a.Provedor, &a.CriadoEm, &a.Tema, &a.Menu, &a.PerfilID, &a.PerfilNome)
 	return a, err
 }
 
@@ -226,10 +233,19 @@ func (b *Banco) AlterarSenha(id int64, atual, nova string) error {
 func (b *Banco) Entrar(usuario, senha string) (*Sessao, error) {
 	var a Admin
 	var h string
-	err := b.db.QueryRow(`SELECT `+colunasAdmin+`, senha FROM admins WHERE usuario=?`, strings.TrimSpace(usuario)).
-		Scan(&a.ID, &a.Usuario, &a.Nome, &a.Email, &a.Papel, &a.Provedor, &a.CriadoEm, &a.Tema, &a.Menu, &h)
+	// 1.23: entra pelo usuário ou pelo e-mail (contas criadas por convite usam o e-mail como usuário).
+	// Conta desativada (desligamento) não entra; conta de convite sem senha definida também não.
+	usuario = strings.TrimSpace(usuario)
+	var ativo bool
+	err := b.db.QueryRow(`SELECT `+colunasAdmin+`, senha, COALESCE(ativo,1) FROM admins
+		WHERE usuario=? OR (email<>'' AND lower(email)=lower(?) AND (SELECT COUNT(*) FROM admins x WHERE lower(x.email)=lower(?))=1)
+		ORDER BY (usuario=?) DESC LIMIT 1`, usuario, usuario, usuario, usuario).
+		Scan(&a.ID, &a.Usuario, &a.Nome, &a.Email, &a.Papel, &a.Provedor, &a.CriadoEm, &a.Tema, &a.Menu, &a.PerfilID, &a.PerfilNome, &h, &ativo)
 	if errors.Is(err, sql.ErrNoRows) || (err == nil && !conferirSenha(h, senha)) {
 		return nil, errors.New("usuário ou senha inválidos")
+	}
+	if err == nil && !ativo {
+		return nil, errors.New("esta conta está desativada — fale com a T.I")
 	}
 	if err != nil {
 		return nil, err
@@ -245,9 +261,9 @@ func (b *Banco) SessaoPorToken(token string) (*Sessao, error) {
 	s := &Sessao{Token: token}
 	var expira string
 	err := b.db.QueryRow(`SELECT s.csrf, s.expira, a.id, a.usuario, COALESCE(a.nome,''), COALESCE(a.email,''), COALESCE(a.papel,'admin'), COALESCE(a.provedor,'local'), a.criado_em,
-		COALESCE(a.tema,'escuro'), COALESCE(a.menu,'topo')
-		FROM sessoes s JOIN admins a ON a.id=s.admin_id WHERE s.token=?`, token).
-		Scan(&s.CSRF, &expira, &s.Admin.ID, &s.Admin.Usuario, &s.Admin.Nome, &s.Admin.Email, &s.Admin.Papel, &s.Admin.Provedor, &s.Admin.CriadoEm, &s.Admin.Tema, &s.Admin.Menu)
+		COALESCE(a.tema,'escuro'), COALESCE(a.menu,'topo'), COALESCE(a.perfil_id,0), COALESCE((SELECT p.nome FROM perfis p WHERE p.id=a.perfil_id),'')
+		FROM sessoes s JOIN admins a ON a.id=s.admin_id WHERE s.token=? AND COALESCE(a.ativo,1)=1`, token).
+		Scan(&s.CSRF, &expira, &s.Admin.ID, &s.Admin.Usuario, &s.Admin.Nome, &s.Admin.Email, &s.Admin.Papel, &s.Admin.Provedor, &s.Admin.CriadoEm, &s.Admin.Tema, &s.Admin.Menu, &s.Admin.PerfilID, &s.Admin.PerfilNome)
 	if err != nil {
 		return nil, err
 	}

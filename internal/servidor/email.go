@@ -3,6 +3,7 @@ package servidor
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"html"
@@ -78,39 +79,52 @@ func (a loginAuth) Next(desafio []byte, mais bool) ([]byte, error) {
 	return nil, fmt.Errorf("pergunta inesperada do servidor de e-mail: %q", desafio)
 }
 
+// AnexoEmail: arquivo anexado a um e-mail (1.23: PDF do termo para o colaborador e o RH).
+type AnexoEmail struct {
+	Nome  string
+	Tipo  string // ex.: application/pdf
+	Dados []byte
+}
+
 // enviarEmail manda um e-mail HTML (com versão em texto) para os destinatários.
 func (b *Banco) enviarEmail(para []string, assunto, textoPuro, corpoHTML string) error {
-	c := b.ConfigSMTP()
-	if !c.Configurado() {
-		return errors.New("e-mail não configurado (Administração → E-mail)")
-	}
+	return b.enviarEmailComAnexos(para, assunto, textoPuro, corpoHTML, nil)
+}
+
+// destinatariosValidos filtra a lista (sem cabeçalho injetado, com @).
+func destinatariosValidos(para []string) []string {
 	var dest []string
 	for _, p := range para {
 		if p = strings.TrimSpace(p); p != "" && strings.Contains(p, "@") && !strings.ContainsAny(p, "\r\n<>,;") {
 			dest = append(dest, p)
 		}
 	}
-	if len(dest) == 0 {
-		return errors.New("nenhum destinatário com e-mail válido")
-	}
-	if strings.ContainsAny(c.De, "\r\n") {
-		return errors.New("remetente inválido")
-	}
+	return dest
+}
 
-	// mensagem multipart/alternative em UTF-8
-	limite := "limite-" + aleatorio(8)
+// montarMensagem monta o e-mail em UTF-8: multipart/alternative (texto + HTML) e, havendo
+// anexos, multipart/mixed com o alternative dentro e cada anexo em base64.
+func montarMensagem(de string, dest []string, assunto, textoPuro, corpoHTML string, anexos []AnexoEmail) []byte {
 	var msg bytes.Buffer
 	cab := func(k, v string) { fmt.Fprintf(&msg, "%s: %s\r\n", k, v) }
-	cab("From", c.De)
+	cab("From", de)
 	cab("To", strings.Join(dest, ", "))
 	cab("Subject", mime.QEncoding.Encode("utf-8", assunto))
 	cab("Date", time.Now().Format(time.RFC1123Z))
 	cab("Message-ID", "<"+aleatorio(12)+"@inventario>")
 	cab("MIME-Version", "1.0")
-	cab("Content-Type", `multipart/alternative; boundary="`+limite+`"`)
-	msg.WriteString("\r\n")
+	limAlt := "alt-" + aleatorio(8)
+	limMix := "mix-" + aleatorio(8)
+	if len(anexos) > 0 {
+		cab("Content-Type", `multipart/mixed; boundary="`+limMix+`"`)
+		msg.WriteString("\r\n")
+		fmt.Fprintf(&msg, "--%s\r\nContent-Type: multipart/alternative; boundary=\"%s\"\r\n\r\n", limMix, limAlt)
+	} else {
+		cab("Content-Type", `multipart/alternative; boundary="`+limAlt+`"`)
+		msg.WriteString("\r\n")
+	}
 	parte := func(tipo, corpo string) {
-		fmt.Fprintf(&msg, "--%s\r\nContent-Type: %s; charset=utf-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n", limite, tipo)
+		fmt.Fprintf(&msg, "--%s\r\nContent-Type: %s; charset=utf-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n", limAlt, tipo)
 		qp := quotedprintable.NewWriter(&msg)
 		_, _ = qp.Write([]byte(corpo))
 		_ = qp.Close()
@@ -118,7 +132,51 @@ func (b *Banco) enviarEmail(para []string, assunto, textoPuro, corpoHTML string)
 	}
 	parte("text/plain", textoPuro)
 	parte("text/html", corpoHTML)
-	fmt.Fprintf(&msg, "--%s--\r\n", limite)
+	fmt.Fprintf(&msg, "--%s--\r\n", limAlt)
+	for _, a := range anexos {
+		tipo := a.Tipo
+		if tipo == "" || strings.ContainsAny(tipo, "\r\n\";") {
+			tipo = "application/octet-stream"
+		}
+		nome := strings.Map(func(r rune) rune {
+			if r < 32 || r == '"' || r == '\\' || r == '/' {
+				return '_'
+			}
+			return r
+		}, a.Nome)
+		if nome == "" {
+			nome = "anexo"
+		}
+		nomeCab := mime.QEncoding.Encode("utf-8", nome)
+		fmt.Fprintf(&msg, "\r\n--%s\r\nContent-Type: %s; name=\"%s\"\r\nContent-Disposition: attachment; filename=\"%s\"\r\nContent-Transfer-Encoding: base64\r\n\r\n",
+			limMix, tipo, nomeCab, nomeCab)
+		enc := base64.StdEncoding.EncodeToString(a.Dados)
+		for len(enc) > 76 {
+			msg.WriteString(enc[:76] + "\r\n")
+			enc = enc[76:]
+		}
+		msg.WriteString(enc + "\r\n")
+	}
+	if len(anexos) > 0 {
+		fmt.Fprintf(&msg, "--%s--\r\n", limMix)
+	}
+	return msg.Bytes()
+}
+
+// enviarEmailComAnexos: como enviarEmail, com anexos (multipart/mixed).
+func (b *Banco) enviarEmailComAnexos(para []string, assunto, textoPuro, corpoHTML string, anexos []AnexoEmail) error {
+	c := b.ConfigSMTP()
+	if !c.Configurado() {
+		return errors.New("e-mail não configurado (Administração → E-mail)")
+	}
+	dest := destinatariosValidos(para)
+	if len(dest) == 0 {
+		return errors.New("nenhum destinatário com e-mail válido")
+	}
+	if strings.ContainsAny(c.De, "\r\n") {
+		return errors.New("remetente inválido")
+	}
+	msg := bytes.NewBuffer(montarMensagem(c.De, dest, assunto, textoPuro, corpoHTML, anexos))
 
 	endereco := net.JoinHostPort(c.Host, strconv.Itoa(c.Porta))
 	tlsCfg := &tls.Config{ServerName: c.Host, MinVersion: tls.VersionTLS12}

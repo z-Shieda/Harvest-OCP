@@ -1,0 +1,52 @@
+{{define "conteudo"}}{{$t := .D.T}}{{$csrf := .Sessao.CSRF}}{{$v := .D.Valores}}
+<p><a href="/termos/{{$t.ID}}">← Termo nº {{$t.NumeroTexto}}</a></p>
+<div class="cabecalho"><h1>Preencher termo nº {{$t.NumeroTexto}}</h1> <span class="selo amarelo">{{$t.RotuloSituacao}}</span></div>
+<section class="cartao">
+  <table class="kv">
+    <tr><th>Termo</th><td>{{.D.Tipo.Nome}} · {{$t.Sigla}}</td></tr>
+    <tr><th>Colaborador</th><td>{{$t.Pessoa}} · {{$t.Email}}</td></tr>
+    {{if $t.Equipamento}}<tr><th>Equipamento</th><td>{{if $t.MaquinaID}}<a href="/maquinas/{{$t.MaquinaID}}">{{$t.Equipamento}}</a>{{else}}{{$t.Equipamento}}{{end}}</td></tr>{{end}}
+    {{if $t.ChamadoID}}<tr><th>Chamado</th><td><a href="/chamados/{{$t.ChamadoID}}">#{{$t.ChamadoID}}</a> · {{.D.Fotos}} foto(s) anexada(s)</td></tr>{{end}}
+  </table>
+  {{if .D.Pendencias}}<div class="aviso erro" style="margin-top:12px"><b>Para enviar ao colaborador, falta:</b> {{join .D.Pendencias "; "}}.
+    {{if $t.MaquinaID}}Dados do equipamento (tipo, condição, NF, valor) ficam na <a href="/maquinas/{{$t.MaquinaID}}#gestao">ficha da máquina</a>.{{end}}</div>
+  {{else}}<div class="aviso ok" style="margin-top:12px">Tudo preenchido: pode enviar ao colaborador.</div>{{end}}
+</section>
+
+<form method="post" action="/termos/{{$t.ID}}/preencher" enctype="multipart/form-data">
+<input type="hidden" name="csrf" value="{{$csrf}}">
+{{range .D.Campos}}{{$c := .}}
+<section class="cartao">
+  <h2>{{.Rotulo}}{{if .Opcional}} <small class="sub">(opcional)</small>{{end}}</h2>
+  {{if eq .Tipo "checklist"}}
+    {{if eq .Chave "seguranca"}}{{if $.D.Sugestao}}<p class="sub">Pré-marcado com o que o agente detectou nesta máquina — confira antes de enviar. MFA e OneDrive são sempre manuais.</p>{{end}}{{end}}
+    <div class="rolagem"><table class="checklist-ti">
+      <tr><th>{{.CabecalhoItens}}</th>{{range .ColunasChecklist}}<th>{{.}}</th>{{end}}{{if .Obs}}<th>{{.Obs}}</th>{{end}}</tr>
+      {{range $i, $it := .Itens}}{{$r := campoCL $v $c.Chave $it}}<tr>
+        <td>{{$it}}{{if eq $c.Chave "seguranca"}}{{with index $.D.Sugestao $it}}<br><span class="sugestao-agente">{{.Obs}}</span>{{end}}{{end}}</td>
+        {{range $c.ColunasChecklist}}<td><input type="radio" name="cl_{{$c.Chave}}_{{$i}}" value="{{.}}"{{if eq $r.V .}} checked{{end}} aria-label="{{$it}}: {{.}}"></td>{{end}}
+        {{if $c.Obs}}<td><input type="text" name="clobs_{{$c.Chave}}_{{$i}}" value="{{if ne $c.Chave "seguranca"}}{{$r.Obs}}{{end}}" maxlength="200"></td>{{end}}
+      </tr>{{end}}
+    </table></div>
+  {{else if eq .Tipo "fotos"}}
+    <p>Mínimo de <b>{{.Minimo}}</b> foto(s). Há <b>{{$.D.Fotos}}</b> no chamado{{if $t.ChamadoID}} <a href="/chamados/{{$t.ChamadoID}}">#{{$t.ChamadoID}}</a>{{end}}.</p>
+    <p class="aviso erro" style="font-size:13px">LGPD: nas fotos da tela ligada, não deixe aparecer dados de pacientes ou de outras pessoas.</p>
+    {{template "zona_anexos" (dict "MaxAnexos" $.D.MaxAnexos "MaxAnexoMB" $.D.MaxAnexoMB)}}
+    {{template "anexos" (dict "Lista" $.D.Anexos "Base" (printf "/chamados/%d/anexos" $t.ChamadoID))}}
+  {{else if eq .Tipo "opcao"}}
+    <select name="c_{{.Chave}}"><option value="">— escolha —</option>{{range .Opcoes}}<option{{if eq . (campoTxt $v $c.Chave)}} selected{{end}}>{{.}}</option>{{end}}</select>
+  {{else if eq .Tipo "textolongo"}}
+    <textarea name="c_{{.Chave}}" rows="3" maxlength="2000">{{campoTxt $v .Chave}}</textarea>
+  {{else if eq .Tipo "datahora"}}
+    <input type="datetime-local" name="c_{{.Chave}}" value="{{campoTxt $v .Chave}}">
+  {{else}}
+    <input name="c_{{.Chave}}" value="{{campoTxt $v .Chave}}" maxlength="300">
+  {{end}}
+</section>
+{{else}}<section class="cartao"><p class="vazio">Este termo não tem campos para a T.I preencher.</p></section>{{end}}
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+  <button class="btn" name="acao" value="salvar">Salvar</button>
+  <button class="btn primario" name="acao" value="enviar" onclick="return confirm('Enviar o termo para {{$t.Pessoa}} assinar? Depois disso o preenchimento da T.I não muda mais.')">Salvar e enviar ao colaborador</button>
+</div>
+</form>
+{{end}}
