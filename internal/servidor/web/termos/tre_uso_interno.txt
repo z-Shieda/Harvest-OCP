@@ -1,0 +1,40 @@
+**USO INTERNO -- NÃO INTEGRA O TERMO ENVIADO AO COLABORADOR**
+
+**QUADRO DE VALIDAÇÃO -- O QUE COLETAR E POR QUÊ**
+
+  **Dado**                                                     **Origem no Harvest**                                                  **Por que protege a empresa**
+  ------------------------------------------------------------ ---------------------------------------------------------------------- -----------------------------------------------------------------------------------------------------------------------------------
+  **Nº do chamado + nº do termo + versão do modelo**           Chamado / sequencial do formulário                                     Prova qual texto exato o colaborador aceitou; permite atualizar o modelo sem perder o histórico.
+  **CPF, matrícula, cargo, setor**                             Cadastro do usuário (sincronizado do AD/Entra ID ou RH)                Identifica sem margem de dúvida quem recebeu o bem e permite o desconto em folha.
+  **Empresa empregadora (CNPJ) e gestor**                      Empresa/unidade cadastrada no Harvest + campo gestor do usuário        O grupo tem mais de um CNPJ: o desconto e a cobrança só valem contra o empregador correto.
+  **Tipo de vínculo**                                          Campo adicional do usuário                                             Art. 462 vale para CLT. PJ não deve assinar este termo (usar contrato de comodato), para não reforçar vínculo.
+  **Regime e local de uso**                                    Campo do formulário                                                    Teletrabalho exige previsão escrita do equipamento (art. 75-D) e orientação ergonômica (art. 75-E); define onde o bem deve estar.
+  **Série, patrimônio, nome do computador, MAC, IMEI**         Inventário automático (agente integrado ao Harvest)                    Vincula o termo a um aparelho único; permite bloqueio, rastreio e registro em BO.
+  **Nota fiscal e valor contábil**                             Aba Gestão / Financeiro do ativo                                       Base objetiva para apurar o valor do dano; usar valor depreciado evita alegação de cobrança abusiva.
+  **Acessórios entregues**                                     Componentes / itens vinculados no formulário                           Acessório é o item mais perdido; sem registro não há como cobrar.
+  **Status de segurança (BitLocker, antivírus, admin, MFA)**   Inventário (volumes criptografados, antivírus) + checagem do técnico   Prova diligência da empresa na LGPD (art. 46) em caso de vazamento por perda/roubo.
+  **Estado + fotos na entrega e na devolução**                 Checklist + anexos do chamado                                          Principal prova em disputa de dano; foto com data vence a palavra contra palavra.
+  **Prazo de 48 h para divergência**                           Acompanhamento do chamado                                              Dá oportunidade de contestação (boa-fé) e consolida o estado registrado depois do prazo.
+  **Autorização de desconto (art. 462, §1º)**                  Texto do termo                                                         Sem autorização expressa, o desconto por culpa é ilegal; só seria possível com dolo.
+  **Login + MFA, data/hora, IP, dispositivo**                  Aprovação do chamado / log de autenticação                             Evidências da assinatura eletrônica (MP 2.200-2 e Lei 14.063/2020) contra "não fui eu que assinei".
+  **Hash SHA-256 + PDF enviado ao e-mail**                     Geração de PDF + notificação por e-mail do Harvest                     Prova de que o documento não foi alterado depois do aceite e de que o colaborador recebeu cópia.
+  **Ciência da PSI e do Anexo II**                             Segundo checkbox do aceite                                             Amarra o equipamento ao monitoramento WorkMonitor já documentado.
+  **Registro de devolução e formatação**                       Quadro de devolução no mesmo chamado                                   Encerra a responsabilidade das duas partes e prova que dados foram apagados (LGPD).
+
+**NÃO COLETAR (minimização -- LGPD)**
+
+**•** Cópia de RG/CNH, foto do colaborador, dados bancários ou endereço residencial completo (o local de uso só é pedido em teletrabalho/híbrido).
+
+**•** Dados de saúde ou qualquer informação de paciente em anexos ou fotos do chamado (atenção às fotos da tela ligada).
+
+**•** Senha do colaborador: o técnico nunca deve pedi-la nem registrá-la no chamado.
+
+**PENDÊNCIAS PARA VALIDAÇÃO (em amarelo no texto)**
+
+**•** Prazo de devolução após solicitação (sugerido: 5 dias úteis) e afastamento que exige devolução (sugerido: 30 dias).
+
+**•** E-mail do canal de privacidade (o mesmo da PSI v4).
+
+**•** Confirmar com o jurídico o item 7 (desconto) antes de colher o primeiro aceite.
+
+**•** Definir quem realiza a orientação ergonômica do item 9.2 (sugestão: material da própria Ocupacional anexado ao chamado).

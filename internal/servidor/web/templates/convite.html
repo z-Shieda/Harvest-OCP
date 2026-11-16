@@ -1,0 +1,21 @@
+{{define "conteudo"}}
+<img class="login-logo" src="{{.Marca.LogoClaro}}" alt="{{.Marca.Nome}}">
+<div class="cartao login">
+  {{if .D.Invalido}}
+  <h1>Convite</h1>
+  <p>{{.D.Invalido}}</p>
+  <p class="sub"><a href="/login">Já tenho senha — entrar</a></p>
+  {{else}}{{$f := .D.F}}
+  <h1>Criar sua senha</h1>
+  <p class="sub">{{if $f.Nome}}{{$f.Nome}} · {{end}}{{if $f.Email}}{{$f.Email}}{{else}}{{$f.Usuario}}{{end}}</p>
+  <p class="sub">O seu usuário para entrar é o seu e-mail. Use uma senha só sua, com pelo menos 8 caracteres.</p>
+  <form method="post" action="/convite/{{.D.Token}}">
+    <input type="hidden" name="usuario" value="{{if $f.Email}}{{$f.Email}}{{else}}{{$f.Usuario}}{{end}}" autocomplete="username">
+    <label>Senha<input name="senha" type="password" required minlength="8" autofocus autocomplete="new-password"></label>
+    <label>Confirmar a senha<input name="confirma" type="password" required minlength="8" autocomplete="new-password"></label>
+    <button class="btn primario largo">Criar senha e continuar</button>
+  </form>
+  <p class="sub" style="font-size:13px;margin-top:12px">O link vale até {{data $f.ConviteExpira}} e só pode ser usado uma vez.</p>
+  {{end}}
+</div>
+{{end}}

@@ -14,6 +14,92 @@ desejada e inicie de novo. O banco de dados (`inventario.db`) é preservado entr
 
 ---
 
+## 1.24.0 — Solicitações de equipamento e perfis personalizados — 16/11/2026
+
+Servidor 1.24.0 (agente continua 1.22.0). Especificação: `docs/SDD-1.24-SOLICITACOES.md`.
+
+- **Solicitações de equipamento** (menu Atendimento, separado dos chamados): pedido pelo catálogo da T.I ou item livre →
+  **T.I valida** a especificação e escolhe o gestor (sugerido pelo setor) → **gestor autoriza logado** (o link do e-mail só
+  abre a tela) → **Suprimentos** registra comprado/não comprado + setor de destino (fornecedor, valor, pedido/NF, previsão e
+  anexos opcionais) → **T.I entrega** (atalho para cadastrar o ativo com NF e valor e, opcional, emitir o Termo de Entrega).
+  Recusa (T.I ou gestor), cancelamento pelo solicitante, dispensa do gestor só por administrador (com motivo), linha do tempo,
+  comentários e anexos. E-mail a cada etapa pela fila; lembrete ao gestor a cada N dias. Sem SLA; entra nos atendimentos do
+  Início e dos Relatórios. Catálogo e e-mails extras do Suprimentos em Administração → Solicitações de equipamento.
+- **Perfis personalizados** (`perfis.go`): além de Admin/Técnico/Usuário, perfis com áreas do menu e poderes (ver as
+  solicitações do setor, autorizar compras, registrar compras). Vêm Gestor, Gestor que autoriza e Suprimentos. Perfil e
+  setores de gestor por conta em Administração → Contas de acesso (ou na ficha do colaborador).
+- 1.23 aprovada pelo Daniel nos testes.
+
+---
+
+## 1.23.1 (em teste) — nova navegação e perfis — 16/11/2026
+
+- **Menu na lateral, agrupado** (proposta 1 escolhida pelo Daniel no quadro de design): Início; Atendimento
+  (Chamados, Relatórios); Parque (Painel, Máquinas, Usuários de rede, Duplicados, Ramais, AD, Notificações, Lixeira);
+  Termos; Meus documentos; Administração e a conta no rodapé. Saem a barra de abas do topo e os submenus repetidos.
+  Em tela estreita o menu vira um bloco no topo. A opção "menu no topo/lateral" saiu de Configurações.
+- **Administração em seções** (menu à esquerda, uma seção por vez; sem JavaScript mostra tudo): Visão geral, Perfis e
+  permissões, Contas, Agentes, Conexões, Chamados, E-mail e avisos, Termos, Modelos, Marca, Segurança, Atualizar/backup/
+  migração, Registro de ações. As telas de Termos, Conexões e Configurações ganharam o mesmo menu.
+- **Perfis e permissões** (`permissoes.go`): o administrador liga/desliga, para Técnico e Usuário, as áreas Chamados,
+  Relatórios, Inventário, Ramais, Active Directory, Termos (gestão, só equipe) e Meus termos. Área desligada some do menu e
+  o endereço é bloqueado. Para o Usuário, as áreas de consulta são só leitura. Padrão = comportamento anterior.
+- Correção: os interruptores "Módulo Termos ligado" e "Permitir HTTP" não apareciam.
+- `/saude` informa a edição (`"edicao":"ocupacional"`).
+
+## 1.23.0 (em teste) — fases 2 e 3 · Editor, PDF, entrega e assinatura — 16/11/2026
+
+Servidor 1.23.0 + **agente 1.22.0**. Kit de teste: `kits/Inventario-v1.23.0-INSTALAR-SERVIDOR.zip` (fora do Git).
+
+- **Editor de termos** (Termos → Modelos, só admin): regras do tipo (abrangência, vínculos, chamado, devolução,
+  código por e-mail, envio ao RH, exigir a própria máquina), rascunho com texto em marcação simples, campos
+  declarados (`chave | Rótulo | tipo | quem | opções`), aceites, uso interno, **prévia em PDF obrigatória** com
+  pessoa e equipamento reais, publicação (congela a versão) e **reassinatura** opcional (reemite os termos).
+- **Documentos de referência**: a PSI v4 completa já vem cadastrada (`/documentos/psi`), ligada ao aceite.
+- **Termos cadastrados**: Termo de Entrega `TRE-v1.0` (por equipamento, PJ bloqueado) e Anexo II `PSI4-AII-v1.0`
+  (por pessoa), convertidos dos modelos em `docs/termos/`.
+- **PDF em Go puro** (`internal/pdf`): Helvetica com acentos, texto justificado, tabelas com cabeçalho repetido,
+  caixas marcadas, logo da marca (PNG), rodapé com o código de verificação.
+- **Gestão do ativo** na ficha da máquina (tipo, condição, NF, valor de referência) + quadro **Segurança**;
+  **Ativos sem agente** (celular, monitor…) para o termo de entrega.
+- **Emissão** (Termos → Emitir): ficha validada, vínculo permitido, um responsável por equipamento; abre o chamado
+  "Entrega de equipamento". **Preenchimento da T.I** com checklists (segurança pré-marcada pelo agente) e fotos no
+  chamado (mínimo 4). Campo automático vazio impede o envio e mostra o que falta. Emissão **em lote** do Anexo II.
+- **Assinatura** (Meus termos): campos do colaborador (local de uso no híbrido/teletrabalho), aceites, **código de
+  6 dígitos por e-mail** (10 min, 5 tentativas, 3 por hora), **identificação da máquina** (IP na rede local +
+  evento `quem` + último relatório < 2 h; confirmada/provável/não identificada, alerta se for outra máquina),
+  evidências, hash SHA-256, código de verificação, PDF gravado, cópia ao colaborador e ao RH pela fila,
+  evento no chamado com o prazo de 48 h para divergência. **/verificar/{código}** público.
+- **Agente 1.22.0**: coleta BitLocker, antivírus (SecurityCenter2), administradores locais (ADSI) e último hotfix;
+  responde ao evento `quem` pela API de sessões do Windows (sem PowerShell). **Testar com o Bitdefender ATC.**
+- Fora desta entrega (fase 4): devolução (vistoria, encerramento, confirmação), lembretes automáticos, cartão no Início.
+
+## 1.23.0 (em desenvolvimento) — fase 1 · Base do módulo Termos — 16/11/2026
+
+**Termos de responsabilidade — base.** Só o servidor muda nesta fase. Especificação: `docs/SDD-1.23-TERMOS.md`.
+Não é uma versão para produção: as fases 2 a 4 ainda faltam (editor de termos e PDF, entrega e assinatura, devolução).
+
+- **Módulo liga/desliga** em Administração → Termos (`/admin/termos`). Desligado, menus e telas somem e os dados ficam.
+  **Exige HTTPS** (direto ou proxy com `X-Forwarded-Proto: https`); para testar em HTTP há a chave **"Permitir HTTP
+  (só para testes)"**, auditada, com faixa de aviso em todas as telas do módulo.
+- **Contas por convite** (`/admin/colaboradores`): a T.I informa o e-mail corporativo (só domínios da lista, padrão
+  `ocupacional.com.br`), o Harvest cria a conta com perfil Usuário e manda o link `/convite/{token}` (uso único,
+  7 dias, o banco guarda só o hash). O link também aparece na tela, para mandar por Teams se o e-mail não chegar.
+  Renovar e cancelar convite. O e-mail do convite não fica guardado com o link depois de enviado.
+- **Login pelo e-mail** (além do usuário). Contas **desativadas** (desligamento) não entram e perdem as sessões; nada é apagado.
+- **Minha ficha** (`/minha-ficha`): nome, CPF (validado), matrícula, empresa e unidade (da lista), cargo, setor,
+  gestor, telefone, vínculo e regime. Perfil Usuário com ficha incompleta cai nela ao entrar.
+- **Validação pela T.I** na ficha da pessoa: corrigir, "Salvar e validar", revogar. **Login de rede** ligado ao
+  inventário, com sugestão pelo nome antes do @. Mudança feita pelo colaborador volta a ficha para "a validar".
+- **Empresas do grupo** (razão social, CNPJ validado, unidades) em Administração → Termos.
+- **Painel /termos**: fichas a validar, incompletas, convites aguardando/expirados, e-mails com erro.
+- **E-mail com anexo** (`multipart/mixed`, para o PDF das próximas fases) e **fila de e-mails** (`termo_envios`):
+  nova tentativa a cada 15 min, até 5 vezes, depois botão Reenviar. Interface `DestinoTermo` pronta para a API do LuzIA.
+- Banco: tabelas `empresas` e `termo_envios`; colunas novas em `admins` (ficha, convite, `ativo`). Migração não destrutiva.
+- Testes Go novos em `termos_test.go` (domínio, convite expirado/usado, CPF/CNPJ, ficha, anexo, fila, fluxo HTTP completo).
+
+---
+
 ## 1.22.0 — 04/11/2026
 
 **Active Directory: comparativo AD × máquinas com o agente e usuários ativos.** Só o servidor muda (agente 1.21.0).

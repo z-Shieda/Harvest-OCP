@@ -159,6 +159,38 @@
     <button class="btn primario">Salvar</button>
   </form>
 </section>
+
+{{$tm := .D.Termo}}{{$g := $tm.Gestao}}
+<div class="duas">
+<section class="cartao" id="gestao">
+  <h2>Gestão do ativo</h2>
+  <form method="post" action="/maquinas/{{$m.ID}}/gestao" class="form">
+    <input type="hidden" name="csrf" value="{{.Sessao.CSRF}}">
+    <label>Tipo<select name="tipo_equip"><option value="">—</option>{{range $tm.TiposEquip}}<option value="{{.}}"{{if eq . $g.Tipo}} selected{{end}}>{{rotuloTipoEq .}}</option>{{end}}</select></label>
+    <label>Condição<select name="condicao"><option value="">—</option>{{range $tm.Condicoes}}<option value="{{.}}"{{if eq . $g.Condicao}} selected{{end}}>{{rotuloCond .}}</option>{{end}}</select></label>
+    <label>Nota fiscal nº<input name="nf_numero" value="{{$g.NFNumero}}" maxlength="40"></label>
+    <label>Data da NF<input type="date" name="nf_data" value="{{$g.NFData}}"></label>
+    <label class="cheio">Valor de referência (contábil, depreciado){{if $g.Valor}} <small class="sub">atual: {{reais $g.Valor}}</small>{{end}}<input name="valor_referencia" value="{{$g.Valor}}" placeholder="3.500,00"></label>
+    <div class="cheio"><button class="btn">Salvar</button></div>
+  </form>
+</section>
+<section class="cartao">
+  <h2>Segurança <small class="sub">(agente 1.22)</small></h2>
+  {{if $g.SegColetadoEm}}<table class="kv">
+    <tr><th>BitLocker (disco do sistema)</th><td>{{if eq $g.BitLocker "ativo"}}<span class="ok-texto">ativo</span>{{else if eq $g.BitLocker "desativado"}}<span class="selo vermelho">desativado</span>{{else}}<small class="vazio">não verificado</small>{{end}}</td></tr>
+    <tr><th>Antivírus</th><td>{{if $g.Antivirus}}{{$g.Antivirus}}{{else}}<small class="vazio">não verificado (servidores não informam)</small>{{end}}</td></tr>
+    <tr><th>Administradores locais</th><td><small>{{if $g.AdminsLocais}}{{$g.AdminsLocais}}{{else}}não verificado{{end}}</small></td></tr>
+    <tr><th>Última atualização do Windows</th><td>{{if $g.UltimaAtualizacao}}{{dataBR $g.UltimaAtualizacao}}{{else}}<small class="vazio">não verificado</small>{{end}}</td></tr>
+    <tr><th>Coletado</th><td><small>{{rel $g.SegColetadoEm}}</small></td></tr>
+  </table>{{else}}<p class="vazio">Sem dados: a máquina ainda não está com o agente 1.22.</p>{{end}}
+  {{if $tm.TermosAtivo}}
+  <h3 style="margin-top:16px">Termo de entrega</h3>
+  {{range $tm.TermosMaquina}}<p><a href="/termos/{{.ID}}"><b>nº {{.NumeroTexto}}</b></a> · {{.Pessoa}} · <span class="selo {{.CorSituacao}}">{{.RotuloSituacao}}</span> <small>{{.Sigla}}</small></p>
+  {{else}}<p class="vazio">Nenhum termo para esta máquina.</p>{{end}}
+  {{if $tm.TipoEntrega}}<a class="btn pequeno primario" href="/termos/novo?tipo={{$tm.TipoEntrega}}&amp;equipamento=m{{$m.ID}}">Emitir termo de entrega</a>{{end}}
+  {{end}}
+</section>
+</div>
 <section class="cartao">
   <h2>Registro duplicado?</h2>
   <p>Mesclar <b>este registro</b> em outro: o histórico de logins e o cadastro interno (campos vazios no destino) são levados para a máquina escolhida e este registro é excluído. O registro que permanece sempre fica ligado ao agente que comunicou por último.</p>

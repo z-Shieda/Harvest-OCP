@@ -1,0 +1,124 @@
+{{define "conteudo"}}{{$t := .D.T}}{{$v := .D.V}}{{$csrf := .Sessao.CSRF}}
+{{if .Sessao.Admin.EhAdmin}}<div class="admin-wrap">{{template "admin_secoes" (dict "Atual" "modelos")}}<div class="admin-corpo">{{end}}
+<p><a href="/admin/termos/modelos">← Modelos</a></p>
+<div class="cabecalho"><h1>{{$t.Nome}}</h1>
+  <div>{{with $t.Publicada}}<span class="selo verde">publicada: {{.Sigla}}</span>{{else}}<span class="selo vermelho">sem versão publicada</span>{{end}}
+  {{with $t.Rascunho}} <span class="selo amarelo">rascunho: {{.Sigla}}</span>{{end}}</div></div>
+
+<section class="cartao">
+  <h2>Regras</h2>
+  <form method="post" action="/admin/termos/modelos/{{$t.ID}}/regras" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label class="cheio">Nome<input name="nome" value="{{$t.Nome}}" required maxlength="160"></label>
+    <label>Abrangência<select name="abrangencia"><option value="pessoa"{{if not $t.PorEquipamento}} selected{{end}}>Por pessoa</option><option value="equipamento"{{if $t.PorEquipamento}} selected{{end}}>Por equipamento</option></select></label>
+    <label>Categoria do chamado (se abrir chamado)<select name="categoria_chamado">{{range .D.Categorias}}<option{{if eq . $t.CategoriaChamado}} selected{{end}}>{{.}}</option>{{end}}</select></label>
+    <div class="cheio"><b>Vínculos que podem assinar</b><br>{{range .D.Vinculos}}<label style="display:inline-flex;gap:6px;align-items:center;margin-right:14px"><input type="checkbox" name="vinculos" value="{{.Valor}}" style="width:auto"{{if $t.AceitaVinculo .Valor}} checked{{end}}> {{.Rotulo}}</label>{{end}}</div>
+    <div class="cheio" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:6px">
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="ativo" value="1" style="width:auto"{{if $t.Ativo}} checked{{end}}> Ativo (aparece na emissão)</label>
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="abre_chamado" value="1" style="width:auto"{{if $t.AbreChamado}} checked{{end}}> Abre chamado ao emitir</label>
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="tem_devolucao" value="1" style="width:auto"{{if $t.TemDevolucao}} checked{{end}}> Tem devolução (por equipamento)</label>
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="exige_codigo" value="1" style="width:auto"{{if $t.ExigeCodigo}} checked{{end}}> Exige código por e-mail no aceite</label>
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="envia_rh" value="1" style="width:auto"{{if $t.EnviaRH}} checked{{end}}> Envia o PDF ao RH</label>
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="exige_propria_maquina" value="1" style="width:auto"{{if $t.ExigePropriaMaquina}} checked{{end}}> Exigir assinatura na própria máquina</label>
+    </div>
+    <div class="cheio"><button class="btn">Salvar regras</button></div>
+  </form>
+</section>
+
+<section class="cartao" id="editor">
+  <h2>Texto, campos e aceites {{with $t.Rascunho}}<small class="sub">· rascunho {{.Sigla}}</small>{{end}}</h2>
+  {{if .D.ErroModelo}}<div class="aviso erro">{{.D.ErroModelo}}</div>{{end}}
+  {{range .D.Avisos}}<div class="aviso" style="border-color:var(--amarelo)">{{.}}</div>{{end}}
+  {{if not $t.Rascunho}}
+    <p>A versão publicada fica congelada. Para mudar o texto, abra um rascunho (ele começa como cópia da versão publicada).</p>
+    <form method="post" action="/admin/termos/modelos/{{$t.ID}}/rascunho"><input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="abrir" value="1"><button class="btn primario">Abrir rascunho</button></form>
+    {{with $v}}<details style="margin-top:12px"><summary>Ver a definição publicada</summary>
+      <pre class="editor-termo" style="min-height:0;max-height:400px;overflow:auto">{{.Corpo}}</pre><pre class="editor-campos" style="min-height:0">{{.CamposDef}}</pre></details>{{end}}
+  {{else}}
+  <form method="post" action="/admin/termos/modelos/{{$t.ID}}/rascunho" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label>Sigla da versão<input name="sigla" value="{{$v.Sigla}}" required maxlength="40" placeholder="TRE-v1.1"></label>
+    <label style="display:flex;gap:8px;align-items:center;align-self:end"><input type="checkbox" name="exige_reassinatura" value="1" style="width:auto"{{if $v.ExigeReassinatura}} checked{{end}}> <span><b>Exige reassinatura</b> ao publicar<br><small class="sub">{{.D.QtdAssinados}} termo(s) assinados/aguardando seriam reemitidos. Desmarcado = só correção.</small></span></label>
+    <label class="cheio">Texto do termo<textarea name="corpo" class="editor-termo" spellcheck="true">{{$v.Corpo}}</textarea></label>
+    <label class="cheio">Campos (um por linha: chave | Rótulo | tipo | quem | opções)<textarea name="campos" class="editor-campos" spellcheck="false">{{$v.CamposDef}}</textarea></label>
+    <label class="cheio">Aceites (um por linha; "| doc=chave" liga a um documento de referência)<textarea name="aceites" rows="3" spellcheck="true">{{$v.AceitesDef}}</textarea></label>
+    <label class="cheio">Uso interno (só no painel, nunca no PDF do colaborador)<textarea name="uso_interno" rows="4">{{$v.UsoInterno}}</textarea></label>
+    <div class="cheio" style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn primario">Salvar rascunho</button>
+      <button class="btn perigo" name="descartar" value="1" formnovalidate onclick="return confirm('Descartar o rascunho? O texto não salvo e o rascunho somem.')">Descartar rascunho</button>
+    </div>
+  </form>
+  {{end}}
+  <details style="margin-top:14px"><summary><b>Como escrever o texto e os campos</b></summary>
+    <div class="duas" style="margin-top:10px">
+    <pre style="white-space:pre-wrap;font-size:12.5px"># Título (centralizado)
+## 1. Seção (faixa colorida)
+### Subtítulo
+Parágrafo: linhas seguidas viram um parágrafo; linha em branco separa.
+6.1 Item numerado (o número sai em negrito)
+- marcador
+> destaque (caixa)
+| Rótulo | {campo} | Rótulo | {campo} |   tabela (2 a 6 colunas)
+|---|---|                                 separa o cabeçalho da tabela
+| Item | [ ] | [x] |                      caixas na tabela
+{campo}            sozinho na linha: checklist vira tabela
+{aceites}          caixas de aceite
+{evidencias}       quadro de evidências da assinatura
+[[devolucao]] ... [[/devolucao]]   só depois da devolução
+===                quebra de página
+**negrito** e {campo} valem em qualquer texto.</pre>
+    <pre style="white-space:pre-wrap;font-size:12.5px">chave | Rótulo | tipo | quem | opções
+tipo: auto, texto, textolongo, opcao, checklist, fotos, datahora
+quem: auto (Harvest), ti, colaborador, devolucao
+opções:
+  itens=A;B;C        (checklist)
+  colunas=Sim;Não    (checklist; padrão Sim;Não)
+  obs=Nº de série    (coluna de observação)
+  opcoes=a;b         (opcao)
+  minimo=4           (fotos)
+  opcional
+  se=regime:hibrido,teletrabalho  (obrigatório só nesse caso)
+
+Exemplos:
+local_uso | Local de uso | texto | colaborador | se=regime:hibrido,teletrabalho
+estado | Componente | checklist | ti | itens=Tela;Teclado | colunas=Perfeito;Riscado</pre>
+    </div>
+    <p><b>Campos automáticos</b> (tipo auto; o Harvest preenche):</p>
+    <div style="columns:3 220px;font-size:12.5px">{{range .D.Catalogo}}<div><code>{{.Valor}}</code> — {{.Rotulo}}</div>{{end}}</div>
+  </details>
+</section>
+
+<section class="cartao" id="previa">
+  <h2>Prévia em PDF {{with $t.Rascunho}}{{if .PreviaEm}}<span class="selo verde">gerada {{brt .PreviaEm}}</span>{{else}}<span class="selo amarelo">obrigatória antes de publicar</span>{{end}}{{end}}</h2>
+  <form method="get" action="/admin/termos/modelos/{{$t.ID}}/previa.pdf" target="_blank" class="linha-form">
+    <select name="pessoa"><option value="">— pessoa (opcional) —</option>{{range .D.Pessoas}}<option value="{{.AdminID}}">{{.NomeExibicao}}</option>{{end}}</select>
+    {{if $t.PorEquipamento}}<select name="equipamento"><option value="">— equipamento (opcional) —</option>{{range .D.Maquinas}}<option value="m{{.ID}}">{{.Hostname}}</option>{{end}}{{range .D.Ativos}}<option value="a{{.ID}}">{{.Nome}}</option>{{end}}</select>
+    <label style="display:inline-flex;gap:8px;align-items:center;flex:none;white-space:nowrap"><input type="checkbox" name="devolucao" value="1" style="width:auto;flex:none;min-width:0"> incluir o quadro de devolução</label>{{end}}
+    <button class="btn">Gerar prévia</button>
+  </form>
+  <p class="sub">A prévia só <b>mostra</b> como o PDF vai ficar; ela não grava nada. Escolha uma pessoa e um equipamento já cadastrados para ver o texto preenchido com os dados reais (sem escolher, os campos aparecem como [Rótulo]).</p>
+  <details style="margin-top:8px"><summary><b>De onde vem cada dado do termo</b></summary>
+    <ul class="sub" style="margin:8px 0 0">
+      <li><b>Colaborador</b> (nome, CPF, cargo, setor, gestor, vínculo, regime, telefone): ficha da pessoa — ela preenche em <a href="/minha-ficha">Minha ficha</a> e a T.I corrige/valida em <a href="/admin/colaboradores">Colaboradores</a>.</li>
+      <li><b>Empresa e unidade</b>: cadastradas em <a href="/admin/termos#empresas">Administração → Termos → Empresas</a>; a pessoa escolhe da lista.</li>
+      <li><b>Equipamento</b> (fabricante, modelo, série, hostname, sistema, processador/RAM/disco, MAC): o agente coleta sozinho; <b>patrimônio</b> em "Cadastro interno" e <b>tipo, condição, NF e valor</b> em "Gestão do ativo", na ficha da máquina. Celular/monitor sem agente: <a href="/termos/ativos">Ativos sem agente</a>.</li>
+      <li><b>Acessórios, checklist de segurança, estado, fotos e observações</b>: a T.I preenche ao emitir o termo (Emitir termo → Preencher). O checklist de segurança vem pré-marcado pelo agente 1.22.</li>
+      <li><b>Local de uso</b> e os aceites: o colaborador preenche na hora de assinar.</li>
+      <li><b>Nº do termo, chamado, datas, quem entregou, evidências</b>: o Harvest gera.</li>
+    </ul>
+  </details>
+  {{if $t.Rascunho}}
+  <form method="post" action="/admin/termos/modelos/{{$t.ID}}/publicar" style="margin-top:12px" onsubmit="return confirm('Publicar {{$t.Rascunho.Sigla}}?{{if $t.Rascunho.ExigeReassinatura}} Os termos assinados deste tipo serão REEMITIDOS e as pessoas terão de assinar de novo.{{end}}')">
+    <input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn primario">Publicar {{$t.Rascunho.Sigla}}</button>
+  </form>{{end}}
+</section>
+
+<section class="cartao">
+  <h2>Versões</h2>
+  <table class="tabela lista"><tr><th>Sigla</th><th>Situação</th><th>Publicada</th><th></th></tr>
+  {{range .D.Versoes}}<tr><td><b>{{.Sigla}}</b></td><td>{{.Situacao}}{{if .ExigeReassinatura}} · reassinatura{{end}}</td><td><small>{{if .PublicadoEm}}{{brt .PublicadoEm}} · {{.PublicadoPor}}{{end}}</small></td>
+    <td class="acoes"><a class="btn pequeno" href="/admin/termos/versoes/{{.ID}}">Ver</a> <a class="btn pequeno" href="/admin/termos/modelos/{{$t.ID}}/previa.pdf?versao={{.ID}}" target="_blank">PDF</a></td></tr>{{end}}
+  </table>
+</section>
+{{if .Sessao.Admin.EhAdmin}}</div></div>{{end}}
+{{end}}

@@ -1,0 +1,46 @@
+{{define "conteudo"}}{{$t := .D.T}}{{$v := .D.Valores}}
+<p><a href="/meus-termos">← Meus termos</a></p>
+<div class="cabecalho"><h1>{{$t.TipoNome}}</h1><span class="selo {{$t.CorSituacao}}">{{$t.RotuloSituacao}}</span></div>
+{{if eq $t.Situacao "aguardando"}}
+<div class="aviso ok">Leia o termo com atenção. No fim da página você confirma os seus dados, marca os aceites e assina com um código enviado ao seu e-mail.
+  {{if .D.Chamado}}Dúvidas antes de assinar: fale com a T.I no <a href="/chamados/{{.D.Chamado}}">chamado #{{.D.Chamado}}</a>.{{end}}</div>
+{{else if .D.Assinaturas}}
+<div class="aviso ok">Assinado em {{brt (index .D.Assinaturas 0).AssinadoEm}} · código de verificação <code>{{(index .D.Assinaturas 0).Codigo}}</code> · <a href="/meus-termos/{{$t.ID}}/pdf" target="_blank">baixar o PDF</a>
+  {{if .D.Chamado}}<br>Se encontrar algum defeito ou avaria não registrada, registre no <a href="/chamados/{{.D.Chamado}}">chamado #{{.D.Chamado}}</a> em até 48 horas da assinatura.{{end}}</div>
+{{end}}
+
+{{.D.HTML}}
+
+{{if eq $t.Situacao "aguardando"}}
+<section class="cartao" id="assinar" style="max-width:900px;margin:18px auto">
+  <h2>Assinar</h2>
+  <form method="post" action="/meus-termos/{{$t.ID}}/assinar" class="passos-assinatura">
+    <input type="hidden" name="csrf" value="{{.Sessao.CSRF}}">
+    {{range .D.Campos}}{{$c := .}}
+      <label>{{.Rotulo}}{{if .SeCampo}} <small class="sub">(obrigatório em regime {{join .SeValor " ou "}})</small>{{else if .Opcional}} <small class="sub">(opcional)</small>{{end}}
+      {{if eq .Tipo "opcao"}}<select name="c_{{.Chave}}"><option value="">— escolha —</option>{{range .Opcoes}}<option{{if eq . (campoTxt $v $c.Chave)}} selected{{end}}>{{.}}</option>{{end}}</select>
+      {{else if eq .Tipo "textolongo"}}<textarea name="c_{{.Chave}}" rows="3" maxlength="2000">{{campoTxt $v .Chave}}</textarea>
+      {{else if eq .Tipo "datahora"}}<input type="datetime-local" name="c_{{.Chave}}" value="{{campoTxt $v .Chave}}">
+      {{else}}<input name="c_{{.Chave}}" value="{{campoTxt $v .Chave}}" maxlength="300">{{end}}</label>
+    {{end}}
+    {{range $i, $a := .D.Aceites}}
+      <label style="display:flex;gap:10px;align-items:flex-start;font-weight:600"><input type="checkbox" name="aceite_{{$i}}" value="1" style="width:auto;margin-top:3px" required> <span>{{$a.Texto}}{{if $a.Doc}}{{with index $.D.Docs $a.Doc}} — <a href="/documentos/{{$a.Doc}}" target="_blank" rel="noopener">ler: {{.}}</a>{{end}}{{end}}</span></label>
+    {{end}}
+    {{if .D.Tipo.ExigeCodigo}}
+      <div class="cartao" style="margin:0;background:var(--cartao2)">
+        <p><b>1.</b> Clique em <b>Enviar código</b>: um código de 6 dígitos chega no seu e-mail <b>{{$t.Email}}</b> (vale 10 minutos).
+        {{if .D.Tipo.ExigePropriaMaquina}}{{if not $t.LiberarMaquinaMotivo}}<br><small>Este termo precisa ser assinado <b>no próprio equipamento</b> ({{$t.Equipamento}}), com o seu usuário do Windows logado nele.</small>{{end}}{{end}}</p>
+        <button class="btn" name="acao" value="codigo">Enviar código</button>
+        {{if .D.CodigoPendente}}<span class="sub"> · código enviado, vale até {{brt .D.CodigoExpira}}</span>{{end}}
+        <p style="margin-top:14px"><b>2.</b> Digite o código e confirme.</p>
+        <div class="linha-form"><input name="codigo" class="codigo-6" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="000000">
+        <button class="btn primario" name="acao" value="assinar">Assinar o termo</button></div>
+      </div>
+    {{else}}
+      <div><button class="btn primario" name="acao" value="assinar">Assinar o termo</button></div>
+    {{end}}
+    <p class="sub">Ao assinar, ficam registrados: data e hora (Brasília), endereço IP, navegador, a máquina em que você está logado e um código de verificação. Você recebe o PDF no e-mail.</p>
+  </form>
+</section>
+{{end}}
+{{end}}

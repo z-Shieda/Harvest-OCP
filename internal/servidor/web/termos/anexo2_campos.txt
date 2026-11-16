@@ -1,0 +1,9 @@
+termo_numero | Nº do termo | auto | auto
+termo_versao | Versão do modelo | auto | auto
+termo_emitido_em | Emitido em | auto | auto
+colaborador_nome | Nome | auto | auto
+colaborador_cpf_matricula | CPF / matrícula | auto | auto
+colaborador_setor | Setor | auto | auto
+colaborador_cargo | Função / cargo | auto | auto
+colaborador_empresa | Empresa | auto | auto
+colaborador_email | E-mail corporativo | auto | auto

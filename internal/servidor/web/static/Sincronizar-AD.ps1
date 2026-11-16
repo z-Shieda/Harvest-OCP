@@ -16,6 +16,8 @@ param(
     [switch]$Agendar
 )
 $ErrorActionPreference = 'Stop'
+# Windows PowerShell 5.1 em servidores antigos usa TLS 1.0 por padrao; a nuvem exige TLS 1.2+.
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 $log = Join-Path $env:ProgramData 'Harvest\sincronizar-ad.log'
 New-Item -ItemType Directory -Force -Path (Split-Path $log) | Out-Null
 function Log($t) { $l = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') $t"; Write-Host $l; Add-Content -Path $log -Value $l -Encoding UTF8 }

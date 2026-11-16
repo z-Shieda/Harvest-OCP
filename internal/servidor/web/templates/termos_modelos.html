@@ -1,0 +1,33 @@
+{{define "conteudo"}}{{$csrf := .Sessao.CSRF}}
+{{if .Sessao.Admin.EhAdmin}}<div class="admin-wrap">{{template "admin_secoes" (dict "Atual" "modelos")}}<div class="admin-corpo">{{end}}
+<h1>Modelos de termo</h1>
+<div class="rolagem"><table class="tabela lista">
+  <tr><th>Termo</th><th>Abrangência</th><th>Versão publicada</th><th>Rascunho</th><th></th></tr>
+  {{range .D.Tipos}}<tr{{if not .Ativo}} style="opacity:.55"{{end}}>
+    <td><b>{{.Nome}}</b>{{if not .Ativo}} <span class="selo">inativo</span>{{end}}</td>
+    <td>{{if .PorEquipamento}}Por equipamento{{else}}Por pessoa{{end}}</td>
+    <td>{{with .Publicada}}{{.Sigla}} <small>· {{dataBR .PublicadoEm}}</small>{{else}}<span class="selo vermelho">nenhuma</span>{{end}}</td>
+    <td>{{with .Rascunho}}<span class="selo amarelo">{{.Sigla}}</span>{{end}}</td>
+    <td class="acoes"><a class="btn pequeno" href="/admin/termos/modelos/{{.ID}}">Abrir</a></td></tr>{{end}}
+</table></div>
+<div class="duas" style="margin-top:18px">
+<section class="cartao">
+  <h2>Novo tipo de termo</h2>
+  <p class="sub">Cria o tipo com um texto de exemplo. Depois escreva o texto, declare os campos, gere a prévia e publique.</p>
+  <form method="post" action="/admin/termos/modelos/novo" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label class="cheio">Nome<input name="nome" required maxlength="160" placeholder="Termo de Responsabilidade (PSI, Anexo I)"></label>
+    <label>Abrangência<select name="abrangencia"><option value="pessoa">Por pessoa</option><option value="equipamento">Por equipamento</option></select></label>
+    <div class="cheio"><b>Vínculos que podem assinar</b><br>{{range .D.Vinculos}}<label style="display:inline-flex;gap:6px;align-items:center;margin-right:14px"><input type="checkbox" name="vinculos" value="{{.Valor}}" style="width:auto"{{if ne .Valor "pj"}} checked{{end}}> {{.Rotulo}}</label>{{end}}</div>
+    <div class="cheio"><button class="btn primario">Criar</button></div>
+  </form>
+</section>
+<section class="cartao">
+  <h2>Documentos de referência</h2>
+  <p class="sub">Documentos que os aceites citam (ex.: a PSI completa), para a pessoa ler antes de assinar.</p>
+  <ul>{{range .D.Documentos}}<li><a href="/documentos/{{.Chave}}" target="_blank">{{.Titulo}}</a> <small>{{.Versao}} · chave <code>{{.Chave}}</code></small></li>{{end}}</ul>
+  <a class="btn" href="/admin/termos/documentos">Gerenciar documentos</a>
+</section>
+</div>
+{{if .Sessao.Admin.EhAdmin}}</div></div>{{end}}
+{{end}}

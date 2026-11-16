@@ -1,0 +1,9 @@
+{{define "conteudo"}}{{$v := .D.V}}
+{{if .Sessao.Admin.EhAdmin}}<div class="admin-wrap">{{template "admin_secoes" (dict "Atual" "modelos")}}<div class="admin-corpo">{{end}}
+<p><a href="/admin/termos/modelos/{{.D.T.ID}}">← {{.D.T.Nome}}</a></p>
+<div class="cabecalho"><h1>{{$v.Sigla}}</h1><span class="selo">{{if eq $v.Situacao "publicada"}}publicada{{else if eq $v.Situacao "rascunho"}}rascunho{{else}}arquivada{{end}}</span></div>
+<p class="sub">{{if $v.PublicadoEm}}Publicada em {{brt $v.PublicadoEm}} por {{$v.PublicadoPor}}{{if $v.ExigeReassinatura}} · exigiu reassinatura{{end}}.{{end}} Versões publicadas ficam congeladas: os termos assinados com elas continuam mostrando este texto.</p>
+<section class="cartao"><h2>Campos</h2>{{template "tabela_campos" .D.Campos}}</section>
+<section class="cartao"><h2>Texto</h2>{{.D.HTML}}</section>
+{{if .Sessao.Admin.EhAdmin}}</div></div>{{end}}
+{{end}}

@@ -1,0 +1,115 @@
+# ANEXO II – TERMO DE CIÊNCIA E RESPONSABILIDADE SOBRE MONITORAMENTO DE EQUIPAMENTOS CORPORATIVOS
+
+**GRUPO OCUPACIONAL – CNPJ 26.231.266/0001-39** · Política de Segurança da Informação (PSI) v4
+
+| Nº do termo | Versão do modelo | Emitido em |
+|---|---|---|
+| {termo_numero} | {termo_versao} | {termo_emitido_em} |
+
+| **Nome** | {colaborador_nome} | **CPF / Matrícula** | {colaborador_cpf_matricula} |
+| **Setor** | {colaborador_setor} | **Função / Cargo** | {colaborador_cargo} |
+| **Empresa** | {colaborador_empresa} | **E-mail corporativo** | {colaborador_email} |
+
+Declaro que fui informado(a) e estou ciente de que os computadores, notebooks e demais recursos de Tecnologia da Informação disponibilizados pelo GRUPO OCUPACIONAL são ativos corporativos destinados prioritariamente ao exercício das atividades profissionais e poderão ser monitorados nos termos desta PSI.
+
+## 1. MONITORAMENTO E GRAVAÇÃO DE TELA
+
+Estou ciente de que o GRUPO OCUPACIONAL utiliza a solução WORKMONITOR para monitoramento dos equipamentos corporativos e de que, durante a utilização do equipamento, a ferramenta poderá realizar a captura e a gravação contínua das informações exibidas na tela da estação de trabalho.
+
+Compreendo que informações, aplicações, páginas, documentos e demais conteúdos exibidos ou acessados durante o uso do equipamento corporativo poderão ser registrados pela solução de monitoramento.
+
+Estou ciente de que também poderão ser registrados a atividade de teclado e mouse, incluindo as teclas digitadas, os aplicativos e sites utilizados e o respectivo tempo de uso, os horários de início e término da atividade no equipamento e, quando integrados ao Microsoft 365, informações da agenda corporativa do Outlook (horário, assunto, local e participantes dos compromissos).
+
+Reconheço que o monitoramento deverá observar as finalidades previstas na Política de Segurança da Informação e a legislação aplicável, não autorizando a utilização irrestrita das gravações.
+
+## 2. FINALIDADES DO MONITORAMENTO
+
+Estou ciente de que o monitoramento poderá ser utilizado para proteção dos ativos e informações corporativas, prevenção e investigação de incidentes de segurança, auditoria, conformidade, apuração de violações das políticas internas, acompanhamento das atividades profissionais e da jornada de trabalho, análise de produtividade, melhoria de processos e geração de indicadores relacionados ao uso dos recursos corporativos.
+
+## 3. INTELIGÊNCIA ARTIFICIAL E ANÁLISE DE PRODUTIVIDADE
+
+Estou ciente de que o WORKMONITOR possui mecanismos automatizados e recursos de Inteligência Artificial capazes de analisar informações relacionadas à utilização das estações corporativas e gerar indicadores, classificações, relatórios ou análises relacionadas à atividade e à produtividade.
+
+Compreendo que os indicadores gerados pela ferramenta constituem instrumentos auxiliares de gestão e deverão ser avaliados no contexto das atividades desempenhadas. Sempre que uma análise automatizada puder produzir consequência relevante ao colaborador, seus resultados deverão, quando aplicável, ser submetidos à análise humana antes da adoção de medidas administrativas ou disciplinares.
+
+## 4. ARMAZENAMENTO, SEGURANÇA E RETENÇÃO DAS GRAVAÇÕES
+
+Estou ciente de que as gravações serão armazenadas em infraestrutura de computação em nuvem hospedada na Amazon Web Services (AWS), na região de São Paulo (Brasil), pelo período ordinário de 90 (noventa) dias, ressalvadas hipóteses justificadas de preservação por período adicional, conforme previsto na PSI e na legislação aplicável.
+
+O GRUPO OCUPACIONAL adotará controles técnicos e administrativos de segurança compatíveis com a criticidade das informações, utilizando recursos de segurança disponibilizados pela infraestrutura AWS e pela aplicação WORKMONITOR, conforme as configurações e responsabilidades aplicáveis a cada parte, com o objetivo de proteger as gravações contra acesso não autorizado, alteração, perda, destruição ou divulgação indevida.
+
+As gravações serão tratadas como informações corporativas de acesso restrito.
+
+## 5. ACESSO ÀS GRAVAÇÕES
+
+Estou ciente de que, como regra geral, as gravações referentes à minha estação de trabalho poderão ser acessadas pelo gestor formalmente autorizado da minha área, observadas as respectivas atribuições profissionais e a necessidade de acesso.
+
+Quando necessário para investigação de incidentes, auditoria, conformidade, suporte técnico, proteção jurídica ou atendimento de obrigação legal, o acesso poderá ser concedido, mediante autorização adequada, a profissionais das áreas de Tecnologia da Informação, Segurança da Informação, Recursos Humanos, Jurídico, Compliance, Encarregado de Proteção de Dados ou Diretoria.
+
+Os usuários autorizados a consultar as gravações estarão sujeitos aos deveres de confidencialidade e não poderão utilizá-las para finalidade incompatível com suas atribuições.
+
+Estou ciente de que todas as consultas às gravações são registradas em log de auditoria, com identificação do usuário, data e hora da consulta.
+
+Gravações que contenham dados de saúde de pacientes ou outros dados pessoais sensíveis estão sujeitas a sigilo profissional e somente poderão ser consultadas quando estritamente necessário, por profissionais autorizados e sujeitos ao dever de sigilo.
+
+## 6. UTILIZAÇÃO PESSOAL DO EQUIPAMENTO
+
+Considerando que a tela do equipamento corporativo poderá ser gravada, comprometo-me a evitar a utilização do equipamento para acessar, inserir, armazenar ou transmitir informações pessoais que não tenham relação com minhas atividades profissionais.
+
+Compreendo que essa orientação também tem por finalidade proteger minha privacidade e a de terceiros, reduzindo a possibilidade de captura involuntária de informações particulares durante o monitoramento.
+
+Estou ciente de que redes sociais e aplicativos de mensagens (como WhatsApp, Instagram, LinkedIn e Facebook) podem ser utilizados nos equipamentos corporativos para atividades relacionadas ao trabalho, sendo vedado o seu uso para fins pessoais.
+
+## 7. CONDUTAS A SEREM EVITADAS
+
+Especialmente, deverão ser evitadas as seguintes condutas nos equipamentos corporativos:
+
+- acessar contas pessoais de e-mail;
+- acessar internet banking ou aplicativos bancários particulares;
+- consultar investimentos, cartões de crédito ou informações financeiras pessoais;
+- realizar compras particulares em lojas virtuais;
+- inserir números de cartão de crédito, códigos de segurança, informações bancárias ou dados de pagamento pessoais;
+- acessar portais médicos, exames, prontuários ou informações pessoais de saúde;
+- acessar documentos pessoais próprios ou de terceiros;
+- inserir CPF, RG, endereço, telefone, informações familiares ou outros dados pessoais sem relação com a atividade profissional;
+- acessar fotografias, vídeos, arquivos ou documentos particulares;
+- armazenar senhas pessoais em navegadores ou aplicativos corporativos;
+- utilizar serviços particulares de armazenamento em nuvem;
+- utilizar o equipamento corporativo para atividades particulares que envolvam informações confidenciais de terceiros.
+
+## 8. DADOS DE CLIENTES, PACIENTES E TERCEIROS
+
+Comprometo-me a acessar dados pessoais, informações confidenciais ou documentos pertencentes a clientes, pacientes, candidatos, fornecedores, parceiros, colaboradores ou terceiros somente quando houver necessidade relacionada ao exercício das minhas funções.
+
+Estou ciente de que a consulta de informações sem necessidade profissional, por curiosidade ou interesse particular, poderá caracterizar utilização inadequada dos recursos corporativos e violação das políticas internas.
+
+## 9. INTEGRIDADE DO SISTEMA DE MONITORAMENTO
+
+Comprometo-me a não desinstalar, desativar, bloquear, adulterar, interromper ou tentar contornar o funcionamento do WORKMONITOR ou de qualquer outro mecanismo de segurança e monitoramento instalado pela organização.
+
+Caso identifique comportamento anormal da ferramenta ou situação que possa representar risco à segurança ou à privacidade das informações, comprometo-me a comunicar imediatamente a Gerência de Tecnologia da Informação.
+
+## 10. DECLARAÇÃO DE CIÊNCIA
+
+- Declaro que recebi informações claras sobre a existência, as principais finalidades, a retenção e as regras de acesso relacionadas ao monitoramento dos equipamentos corporativos;
+- Declaro estar ciente de que o equipamento corporativo poderá ser monitorado durante sua utilização e de que a tela poderá ser registrada;
+- Declaro estar ciente da utilização de mecanismos automatizados e de Inteligência Artificial para geração de indicadores relacionados às atividades profissionais;
+- Declaro ter sido orientado(a) a evitar o uso do equipamento corporativo para atividades pessoais que possam expor informações particulares próprias ou de terceiros;
+- Declaro estar ciente de que o uso de redes sociais e aplicativos de mensagens nos equipamentos corporativos é permitido apenas para atividades relacionadas ao trabalho;
+- Comprometo-me a observar a Política de Segurança da Informação e as demais normas internas do GRUPO OCUPACIONAL.
+
+Este documento tem por finalidade registrar minha ciência acerca das práticas de monitoramento e das regras de utilização dos ativos corporativos, sem afastar os direitos e as obrigações previstos na legislação aplicável.
+
+O monitoramento fundamenta-se no legítimo interesse do GRUPO OCUPACIONAL, na execução do contrato de trabalho e no cumprimento de obrigações legais (art. 7º, II, V e IX, da LGPD). Esta assinatura registra ciência e não constitui consentimento.
+
+O GRUPO OCUPACIONAL ainda não designou Encarregado pelo Tratamento de Dados Pessoais. Dúvidas e solicitações sobre o tratamento dos meus dados podem ser encaminhadas à Diretoria pelo e-mail informatica@ocupacional.com.br.
+
+## ACEITE ELETRÔNICO
+
+Este termo substitui a assinatura em papel: é assinado eletronicamente no Harvest, com autenticação individual do colaborador (senha e código enviado ao e-mail corporativo), nos termos do **art. 10, § 2º, da MP nº 2.200-2/2001** e da **Lei nº 14.063/2020**.
+
+{aceites}
+
+## REGISTRO DE EVIDÊNCIAS DO ACEITE (gerado automaticamente)
+
+{evidencias}

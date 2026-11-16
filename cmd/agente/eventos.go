@@ -203,6 +203,13 @@ func tratarEvento(cfg Config, nome string, dados []byte, reconectar func()) {
 				aoAtualizar()
 			}
 		}()
+	case "quem":
+		// 1.22: o servidor quer saber quem está logado agora (assinatura de termo)
+		var ev modelo.EventoQuem
+		if json.Unmarshal(dados, &ev) != nil || ev.ID == "" {
+			return
+		}
+		go responderQuem(cfg, ev)
 	case "teste":
 		var ev modelo.EventoTeste
 		if json.Unmarshal(dados, &ev) != nil || ev.ID == "" {
@@ -248,6 +255,22 @@ func responderTeste(cfg Config, ev modelo.EventoTeste) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-Agente-Token", cfg.Token)
 	cli := &http.Client{Timeout: 30 * time.Second}
+	if resp, err := cli.Do(req); err == nil {
+		resp.Body.Close()
+	}
+}
+
+// responderQuem manda ao servidor o hostname e os usuários das sessões ativas.
+func responderQuem(cfg Config, ev modelo.EventoQuem) {
+	r := modelo.RespostaQuem{ID: ev.ID, AgentID: idDoAgente(), Hostname: nomeMaquina(), Usuarios: usuariosLogados()}
+	b, _ := json.Marshal(r)
+	req, err := http.NewRequest(http.MethodPost, strings.TrimRight(cfg.Servidor, "/")+"/api/v1/eventos/quem", bytes.NewReader(b))
+	if err != nil {
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Agente-Token", cfg.Token)
+	cli := &http.Client{Timeout: 10 * time.Second}
 	if resp, err := cli.Do(req); err == nil {
 		resp.Body.Close()
 	}

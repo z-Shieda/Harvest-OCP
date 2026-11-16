@@ -1,0 +1,119 @@
+# TERMO DE ENTREGA, RESPONSABILIDADE E USO DE EQUIPAMENTO CORPORATIVO
+
+**GRUPO OCUPACIONAL – OCUPACIONAL - MEDICINA DO TRABALHO LTDA. – CNPJ 26.231.266/0001-39**
+
+| Chamado Harvest nº | Nº do termo | Versão do modelo | Emitido em |
+|---|---|---|---|
+| {chamado_numero} | {termo_numero} | {termo_versao} | {termo_emitido_em} |
+
+Documento emitido e assinado eletronicamente pelo sistema interno de chamados Harvest, dispensada a via em papel. Os dados do colaborador e do equipamento vêm do cadastro do colaborador e do inventário do equipamento. Uma cópia em PDF é enviada ao e-mail corporativo do colaborador após o aceite.
+
+## 1. IDENTIFICAÇÃO DO COLABORADOR
+
+| **Nome completo** | {colaborador_nome} | **CPF** | {colaborador_cpf} |
+| **Matrícula** | {colaborador_matricula} | **E-mail corporativo** | {colaborador_email} |
+| **Cargo / Função** | {colaborador_cargo} | **Setor / Centro de custo** | {colaborador_setor} |
+| **Empresa empregadora** | {colaborador_empresa} | **Unidade** | {colaborador_unidade} |
+| **Gestor imediato** | {colaborador_gestor} | **Tipo de vínculo** | {colaborador_vinculo} |
+| **Regime de trabalho** | {colaborador_regime} | **Telefone de contato** | {colaborador_telefone} |
+
+**Local de uso do equipamento** (obrigatório em regime híbrido ou teletrabalho): {local_uso}
+
+## 2. IDENTIFICAÇÃO DO EQUIPAMENTO
+
+| **Tipo** | {equipamento_tipo} | **Fabricante / Modelo** | {equipamento_fabricante_modelo} |
+| **Nº de série** | {equipamento_serial} | **Nº de patrimônio** | {equipamento_patrimonio} |
+| **Nome do computador** | {equipamento_hostname} | **Sistema operacional** | {equipamento_so} |
+| **Processador / RAM / Disco** | {equipamento_hardware} | **Endereço MAC** | {equipamento_mac} |
+| **IMEI / Linha (celular)** | {equipamento_imei_linha} | **Condição** | {equipamento_condicao} |
+| **Nota fiscal / Aquisição** | {equipamento_nf} | **Valor de referência** | {equipamento_valor} |
+| **Data e hora da entrega** | {entregue_em} | **Entregue por** | {entregue_por} |
+
+## 3. ACESSÓRIOS ENTREGUES
+
+{acessorios}
+
+## 4. CONFIGURAÇÃO DE SEGURANÇA NA ENTREGA (verificada pela TI)
+
+{seguranca}
+
+## 5. ESTADO DO EQUIPAMENTO NA ENTREGA
+
+{estado}
+
+{fotos_entrega}
+
+**Registro fotográfico obrigatório**, anexado ao chamado: tampa, tela ligada, teclado e base com etiqueta de série/patrimônio (mínimo de 4 fotos).
+
+**Observações sobre o estado:** {obs_estado}
+
+**Divergência:** caso o colaborador identifique qualquer defeito ou avaria não registrada acima, deverá registrá-la no próprio chamado em até **48 (quarenta e oito) horas** do recebimento. Decorrido esse prazo sem registro, prevalece o estado aqui descrito.
+
+## 6. COMPROMISSOS DO COLABORADOR
+
+Declaro que recebi o equipamento e os acessórios descritos acima, nas condições registradas, e me comprometo a:
+
+6.1 Utilizar o equipamento **exclusivamente para as atividades profissionais** do GRUPO OCUPACIONAL, conforme a Política de Segurança da Informação (PSI) vigente.
+6.2 Zelar pela guarda, conservação e segurança do equipamento, mantendo-o sob minha posse, sem deixá-lo desacompanhado em veículos, locais públicos ou de fácil acesso, e transportando-o desligado e em case/mochila.
+6.3 Não emprestar, ceder ou permitir que terceiros, inclusive familiares, utilizem ou acessem o equipamento, e não compartilhar minhas credenciais de acesso.
+6.4 Não instalar programas, jogos, extensões ou aplicativos não autorizados pela TI, nem desativar, remover ou contornar o antivírus, a criptografia, o agente de inventário ou o agente de monitoramento.
+6.5 Não abrir, desmontar, reparar ou levar o equipamento a assistência técnica não autorizada pela TI.
+6.6 Não remover, alterar ou danificar etiquetas de patrimônio, número de série ou lacres.
+6.7 Armazenar arquivos de trabalho apenas nos repositórios corporativos (OneDrive / SharePoint), ciente de que dados salvos apenas no disco local podem ser perdidos e de que **não devo guardar arquivos pessoais** no equipamento.
+6.8 Comunicar imediatamente à TI, por chamado no Harvest, qualquer defeito, falha, dano, perda, extravio ou suspeita de acesso indevido.
+6.9 Apresentar o equipamento à TI sempre que solicitado para inspeção, manutenção, atualização ou inventário.
+
+## 7. DANOS, PERDA, FURTO E ROUBO
+
+7.1 Em caso de **furto ou roubo**, devo registrar Boletim de Ocorrência e anexá-lo ao chamado no Harvest em até **24 (vinte e quatro) horas**, comunicando também meu gestor imediato. A TI poderá bloquear o acesso e apagar remotamente os dados do equipamento.
+7.2 O desgaste natural decorrente do uso normal e os defeitos de fabricação **não** geram qualquer responsabilidade ao colaborador.
+7.3 Nos termos do **art. 462, § 1º, da CLT**, autorizo expressamente o desconto em folha de pagamento ou nas verbas rescisórias do valor correspondente ao reparo ou à reposição do equipamento ou acessório quando o dano, a perda ou o extravio decorrer de **dolo ou culpa** (negligência, imprudência ou imperícia), tais como queda, contato com líquidos, transporte inadequado, abertura indevida ou furto facilitado por descuido.
+7.4 O valor será apurado em procedimento interno, com ciência prévia e direito de manifestação do colaborador, tendo como teto o **valor contábil (depreciado)** do bem na data do fato ou o custo do reparo, o que for menor, e observará os limites legais, inclusive o do art. 477, § 5º, da CLT na rescisão.
+
+## 8. MONITORAMENTO E INVENTÁRIO
+
+8.1 Estou ciente de que o equipamento é ativo corporativo, sujeito ao inventário automático do Harvest (hardware, software instalado, rede e status de segurança) e ao monitoramento descrito na PSI e em seu **Anexo II – Termo de Ciência e Responsabilidade sobre Monitoramento de Equipamentos Corporativos**, o qual declaro ter lido e aceito.
+8.2 Por se tratar de ferramenta de trabalho, não há expectativa de privacidade quanto ao conteúdo armazenado ou processado no equipamento, respeitados os limites e as garantias previstos na PSI e na legislação.
+
+## 9. TELETRABALHO E TRABALHO HÍBRIDO (quando aplicável)
+
+9.1 O fornecimento do equipamento para o teletrabalho ou trabalho híbrido observa o **art. 75-D da CLT**; o equipamento e a infraestrutura fornecidos **não integram a remuneração** nem constituem salário-utilidade (art. 75-D, parágrafo único, e art. 458, § 2º, I, da CLT).
+9.2 Declaro ter recebido orientações sobre ergonomia e prevenção de doenças e acidentes no trabalho remoto (art. 75-E da CLT e NR-17), comprometendo-me a segui-las, e informei acima o local de uso do equipamento, que comunicarei à empresa caso seja alterado.
+
+## 10. DEVOLUÇÃO
+
+10.1 Devo devolver o equipamento e todos os acessórios, nas condições recebidas (ressalvado o desgaste natural), **no último dia de trabalho** em caso de desligamento, ou em até **5 (cinco) dias úteis** após solicitação da empresa, troca de equipamento, mudança de função ou afastamento superior a 30 dias.
+10.2 Na devolução, a TI fará a vistoria e o registro fotográfico no Harvest, comparando com este termo, e realizará a formatação segura do equipamento. Cabe ao colaborador retirar antes eventual conteúdo pessoal, ciente de que nada será preservado.
+10.3 A não devolução no prazo autoriza a empresa a adotar as medidas legais cabíveis e o desconto previsto no item 7.3, sem prejuízo do bloqueio remoto do equipamento.
+
+## 11. PROTEÇÃO DE DADOS PESSOAIS (LGPD)
+
+11.1 Os dados pessoais deste termo são tratados pelo GRUPO OCUPACIONAL para gestão de ativos, segurança da informação e defesa em processos, com base no **art. 7º, incisos II, V, VI e IX, da Lei nº 13.709/2018** (cumprimento de obrigação legal, execução do contrato de trabalho, exercício regular de direitos e legítimo interesse).
+11.2 Os dados e as evidências do aceite serão mantidos durante o vínculo e por até **5 (cinco) anos** após o seu término, prazo de prescrição trabalhista (art. 7º, XXIX, da Constituição Federal), sendo acessados apenas pela TI, pelo RH e pela Diretoria.
+11.3 Solicitações sobre seus dados podem ser feitas pelo canal de privacidade: informatica@ocupacional.com.br
+
+## 12. ACEITE ELETRÔNICO
+
+As partes reconhecem a validade deste termo assinado eletronicamente no Harvest, mediante autenticação individual do colaborador, nos termos do **art. 10, § 2º, da MP nº 2.200-2/2001** e da **Lei nº 14.063/2020**. Declaro que li e compreendi integralmente este termo, que tive a oportunidade de esclarecer dúvidas com a TI antes do aceite e que recebi cópia em PDF no meu e-mail corporativo.
+
+{aceites}
+
+## REGISTRO DE EVIDÊNCIAS DO ACEITE (gerado automaticamente)
+
+{evidencias}
+
+[[devolucao]]
+===
+## QUADRO DE DEVOLUÇÃO (preenchido pela TI no encerramento)
+
+Vinculado ao mesmo chamado e ao mesmo nº de termo. O colaborador recebe o resultado da vistoria e confirma eletronicamente.
+
+| **Data e hora da devolução** | {devolvido_em} | **Recebido por** | {recebido_por} |
+| **Motivo** | {motivo_devolucao} | **Fotos da devolução** | {fotos_devolucao} |
+
+{vistoria}
+
+{encerramento}
+
+**Pendências / danos apurados e valor (item 7):** {pendencias_devolucao}
+[[/devolucao]]

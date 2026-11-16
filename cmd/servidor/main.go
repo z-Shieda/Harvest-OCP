@@ -23,7 +23,7 @@ import (
 	"inventario/internal/servidor"
 )
 
-var versao = "1.22.0"
+var versao = "1.24.0"
 
 func main() {
 	exe, _ := os.Executable()
@@ -110,6 +110,7 @@ func main() {
 	srv.CarregarAssinatura()
 	// backup automático diário com retenção (14 dias) na pasta "backups" ao lado do banco
 	srv.BackupAutomatico(filepath.Join(filepath.Dir(*banco), "backups"), 14)
+	srv.IniciarFilaEmails() // 1.23: convites e avisos do módulo Termos, com nova tentativa
 	hs := &http.Server{
 		Addr:              fmt.Sprintf(":%d", *porta),
 		Handler:           srv.Rotas(),

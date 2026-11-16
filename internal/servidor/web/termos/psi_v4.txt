@@ -1,0 +1,707 @@
+# POLÍTICA DE SEGURANÇA DA INFORMAÇÃO (PSI) – v4
+
+## 1. APRESENTAÇÃO
+
+A presente Política de Segurança da Informação (PSI) é o documento que orienta e estabelece as diretrizes corporativas de segurança da informação do GRUPO OCUPACIONAL para a proteção dos ativos de informação e a prevenção de responsabilidades legais para todos os usuários. Dessa forma, deve ser cumprida e aplicada a todos os usuários corporativos vinculados às áreas da empresa e aos respectivos usuários das informações.
+
+Para os fins desta PSI e de seus anexos, a expressão "GRUPO OCUPACIONAL" compreende a OCUPACIONAL - MEDICINA DO TRABALHO LTDA., inscrita no CNPJ sob o nº 26.231.266/0001-39, com sede em Belo Horizonte/MG, e as demais empresas que integram o grupo, na qualidade de controladoras dos dados pessoais tratados nos termos desta Política.
+
+A PSI está fundamentada nas recomendações propostas pela norma ABNT NBR ISO/IEC 27002:2022, reconhecida mundialmente como código de prática para a gestão da segurança da informação, e pela Lei nº 13.709/2018 – Lei Geral de Proteção de Dados Pessoais (LGPD).
+
+Assim, com a intenção de garantir a segurança da infraestrutura tecnológica direcionada ao uso corporativo, além das melhorias efetuadas, é necessário que os usuários, colaboradores e terceiros assinem o Termo de Responsabilidade (ANEXO I) e, quando aplicável, o Termo de Ciência e Responsabilidade sobre Monitoramento de Equipamentos Corporativos (ANEXO II), destinados a orientá-los quanto à correta utilização dos ativos de tecnologia da informação disponibilizados.
+
+## 2. OBJETIVO
+
+Esta **PSI** tem por objetivo estabelecer diretrizes que permitam aos funcionários, terceirizados e visitantes do **GRUPO OCUPACIONAL** seguir padrões de comportamento relacionados à segurança da informação adequados às necessidades de proteção legal do **GRUPO OCUPACIONAL**.
+
+Também tem por objetivo nortear a definição de normas e procedimentos específicos de segurança da informação, bem como a implementação de controles e processos para seu adequado funcionamento.
+
+Preservar as informações do GRUPO OCUPACIONAL quanto aos seguintes princípios:
+
+**Integridade:** garantia de que a informação seja mantida em seu estado original, visando protegê-la, na guarda ou transmissão, contra alterações indevidas, intencionais ou acidentais.
+
+**Confidencialidade:** garantia de que o acesso à informação seja obtido somente por pessoas autorizadas.
+
+**Disponibilidade:** garantia de que os usuários autorizados obtenham acesso à informação e aos ativos correspondentes sempre que necessário.
+
+## 3. APLICAÇÕES DA PSI
+
+As diretrizes aqui estabelecidas deverão ser seguidas por todos os funcionários, prestadores de serviços e visitantes e se aplicam à informação em qualquer meio ou suporte.
+
+Esta política dá ciência a cada funcionário de que os ambientes, sistemas, computadores e redes do **GRUPO OCUPACIONAL** poderão ser monitorados e gravados, com prévia informação, conforme previsto na legislação.
+
+É dever do GRUPO OCUPACIONAL dar ciência aos funcionários de eventuais alterações nesta PSI e nos procedimentos e normas relacionados, por meio da Gerência de Tecnologia da Informação ou da Diretoria.
+
+## 4. PRINCÍPIOS DA PSI
+
+Toda informação produzida ou recebida pelos funcionários como resultado da atividade profissional, independentemente do regime de contratação, pertence ao **GRUPO OCUPACIONAL**, sendo que eventuais exceções devem ser explícitas e formalizadas em contrato entre as partes.
+
+Os equipamentos de informática, comunicação, sistemas e informações são utilizados pelos funcionários para a realização das atividades profissionais.
+
+O GRUPO OCUPACIONAL, por meio da Gerência de Tecnologia da Informação, poderá registrar todo o uso dos sistemas e serviços, visando garantir a disponibilidade e a segurança das informações utilizadas.
+
+## 5. REQUISITOS DA PSI
+
+Para a uniformidade da informação, a **PSI** é aplicada a todos os funcionários, terceirizados e visitantes, devendo ser cumprida no ambiente interno e externo do **GRUPO OCUPACIONAL**.
+
+Tanto a PSI quanto o Termo de Responsabilidade deverão ser revistos e atualizados periodicamente, sempre que algum fato relevante ou evento motive sua revisão antecipada, conforme manifestação da Gerência de Tecnologia da Informação e aprovação da Diretoria.
+
+Deverá constar em todos os contratos ou documentos equivalentes do GRUPO OCUPACIONAL o Termo de Responsabilidade (ANEXO I), como condição imprescindível para que possa ser concedido o acesso aos ativos de informação disponibilizados pelo GRUPO OCUPACIONAL.
+
+A responsabilidade em relação à segurança da informação deve ser comunicada na fase de contratação dos funcionários ou prestadores de serviço. Todos os funcionários devem ser orientados sobre os procedimentos de segurança, bem como o uso correto dos ativos, a fim de reduzir possíveis riscos. Eles devem ler e assinar o termo de responsabilidade, visando dar ciência de tais normas.
+
+Todo incidente que afete a segurança da informação deverá ser comunicado à **Gerência de Tecnologia da Informação**, que deverá relatar à **Diretoria** em caso de necessidade.
+
+Um plano de contingência e de continuidade dos principais sistemas e serviços deverá ser implantado e testado pela Gerência de Tecnologia da Informação, no mínimo anualmente, visando reduzir os riscos de perda de confidencialidade, integridade e disponibilidade dos ativos de informação.
+
+Todos os requisitos de segurança da informação, incluindo a necessidade de planos de contingência, devem ser identificados na fase de levantamento de escopo de um projeto ou sistema, e justificados, acordados, documentados, implantados e testados durante a fase de execução.
+
+Deverão ser criados e instituídos controles apropriados, trilhas de auditoria ou registros de atividades em todos os pontos e sistemas em que o GRUPO OCUPACIONAL julgar necessário, para reduzir os riscos aos seus ativos de informação, como, por exemplo, nas estações de trabalho, notebooks, acessos à internet, correio eletrônico e sistemas corporativos e financeiros desenvolvidos pelo GRUPO OCUPACIONAL e/ou por terceiros.
+
+O GRUPO OCUPACIONAL não se responsabiliza pelo uso indevido, negligente ou imprudente dos recursos e serviços concedidos aos seus funcionários, ressalvadas as responsabilidades previstas em lei, reservando-se o direito de analisar dados e evidências para obtenção de provas a serem utilizadas em processos investigatórios, bem como de adotar as medidas legais cabíveis.
+
+Esta **PSI** é implementada no **GRUPO OCUPACIONAL** por meio de procedimentos específicos, obrigatórios para todos os funcionários, independentemente do nível hierárquico ou função no **GRUPO OCUPACIONAL**, independentemente do regime de contratação ou prestação de serviço.
+
+O não cumprimento dos requisitos previstos nesta PSI e nas Normas de Segurança da Informação acarretará violação às regras internas do GRUPO OCUPACIONAL e sujeitará o usuário às medidas administrativas e legais cabíveis, quando for o caso, a serem analisadas pela Gerência de Tecnologia da Informação e pela Diretoria.
+
+## 6. DAS RESPONSABILIDADES ESPECÍFICAS
+
+**Dos funcionários em geral**
+
+Entende-se por funcionário toda e qualquer pessoa física contratada pelo GRUPO OCUPACIONAL sob o regime da CLT que exerça alguma atividade dentro ou fora do GRUPO OCUPACIONAL.
+
+O funcionário responderá pelos prejuízos ou danos que causar ao GRUPO OCUPACIONAL e/ou a terceiros em decorrência da não observância das diretrizes e normas aqui referidas, nos casos de dolo ou culpa, observado o disposto no art. 462, § 1º, da CLT.
+
+**Dos funcionários temporários**
+
+Devem entender os riscos associados à sua condição especial e cumprir rigorosamente o que está previsto no aceite concedido pela **Gerência de Tecnologia da Informação**.
+
+A concessão poderá ser revogada a qualquer tempo.
+
+**Dos Gestores de Pessoas e/ou Processos**
+
+Ter postura exemplar em relação à segurança da informação, servindo como modelo de conduta para os funcionários sob a sua gestão.
+
+Atribuir aos funcionários, na fase de contratação e de formalização dos contratos individuais de trabalho, de prestação de serviços ou de parceria, a responsabilidade do cumprimento da **PSI** do **GRUPO OCUPACIONAL**.
+
+Exigir dos funcionários a assinatura do Termo de Responsabilidade, assumindo o dever de seguir as normas estabelecidas, bem como se comprometendo a manter sigilo e confidencialidade, mesmo após o desligamento, sobre todos os ativos de informação do GRUPO OCUPACIONAL.
+
+Antes de conceder acesso às informações do **GRUPO OCUPACIONAL**, exigir a assinatura do Termo de Responsabilidade dos funcionários casuais e prestadores de serviços que não estejam cobertos por um contrato existente, por exemplo, durante a fase de levantamento para apresentação de propostas de prestação de serviço.
+
+Adaptar as normas, os processos, procedimentos e sistemas sob sua responsabilidade para atender a esta **PSI**.
+
+**Dos Custodiantes da Informação**
+
+**Da Área de Tecnologia da Informação**
+
+Testar a eficácia dos controles utilizados e informar aos gestores os riscos residuais.
+
+Acordar com os gestores o nível de serviço que será prestado e os procedimentos de resposta aos incidentes.
+
+Configurar os equipamentos, ferramentas e sistemas concedidos aos funcionários com todos os controles necessários para cumprir os requisitos de segurança estabelecidos por esta PSI e em sua versão educacional.
+
+A Gerência de Tecnologia da Informação, em razão da característica de seus privilégios, pode acessar os arquivos e dados de outros usuários. No entanto, isso só será permitido quando necessário para a execução de atividades operacionais sob sua responsabilidade, como, por exemplo, manutenção de computadores, realização de cópias de segurança, auditorias ou testes no ambiente.
+
+Segregar as funções administrativas e operacionais, a fim de restringir ao mínimo necessário os poderes de cada indivíduo e eliminar ou, ao menos, reduzir a existência de pessoas que possam excluir os logs e as trilhas de auditoria das próprias ações.
+
+Garantir segurança especial para sistemas com acesso de visitante, incluindo o ambiente corporativo.
+
+Gerar e manter as trilhas para auditoria com nível de detalhe suficiente para rastrear possíveis falhas e fraudes. Para as trilhas geradas e/ou mantidas em meio eletrônico, implantar controles de integridade para torná-las juridicamente válidas como evidências.
+
+Administrar, proteger e testar as cópias de segurança dos programas e dados relacionados aos processos críticos e relevantes para o **GRUPO OCUPACIONAL**.
+
+Implantar controles que gerem registros auditáveis para retirada e transporte de mídias das informações custodiadas pela **Gerência de Tecnologia da Informação**, nos ambientes totalmente controlados por ela.
+
+A **Gerência de Tecnologia da Informação** deve ser previamente informada sobre o fim do prazo de retenção, para que tenha a alternativa de alterá-lo antes que a informação seja definitivamente descartada pelo custodiante.
+
+Quando ocorrer movimentação interna dos ativos de TI, garantir que as informações de um usuário não serão removidas de forma irrecuperável antes de disponibilizar o ativo para outro usuário.
+
+Planejar, implantar, fornecer e monitorar as capacidades de armazenamento, processamento e transmissão necessárias para garantir a segurança requerida.
+
+Atribuir cada conta ou dispositivo de acesso a computadores, sistemas, bases de dados e qualquer outro ativo de informação a um responsável identificável como pessoa física, sendo que:
+
+Os logins individuais de funcionários serão de responsabilidade do próprio funcionário.
+
+Os logins de terceiros serão de responsabilidade do gestor da área contratante.
+
+Proteger continuamente todos os ativos de informação da empresa contra códigos maliciosos e garantir que todos os novos ativos somente entrem no ambiente corporativo após estarem livres de códigos maliciosos e/ou indesejados.
+
+Garantir que não sejam introduzidas vulnerabilidades ou fragilidades no ambiente corporativo, sendo ideal a auditoria de código e a proteção contratual para controle e responsabilização no caso de uso de terceiros.
+
+Definir as regras formais para instalação de software e hardware em ambiente corporativo, exigindo o seu cumprimento dentro do **GRUPO OCUPACIONAL**.
+
+Garantir, da forma mais rápida possível, com solicitação formal, o bloqueio de acesso de usuários por motivo de desligamento, incidente, investigação ou outra situação que exija medida restritiva para fins de salvaguardar os ativos do **GRUPO OCUPACIONAL**.
+
+Garantir que todos os servidores, estações e demais dispositivos com acesso à rede corporativa operem com o relógio sincronizado com os servidores de tempo oficiais do governo brasileiro.
+
+Monitorar o ambiente de TI, gerando indicadores e históricos de:
+
+Uso da capacidade instalada da rede e dos equipamentos;
+
+Tempo de resposta no acesso à internet e aos sistemas críticos do **GRUPO OCUPACIONAL**;
+
+Períodos de indisponibilidade no acesso à internet e aos sistemas críticos do **GRUPO OCUPACIONAL**;
+
+Incidentes de segurança (vírus, trojans, furtos, acessos indevidos, e assim por diante);
+
+Atividade de todos os funcionários durante os acessos às redes externas, inclusive internet (por exemplo: sites visitados, e-mails recebidos/enviados, upload/download de arquivos, entre outros);
+
+Propor as metodologias e os processos específicos para a segurança da informação, como avaliação de risco e sistema de classificação da informação.
+
+Propor e apoiar iniciativas que visem à segurança dos ativos de informação do **GRUPO OCUPACIONAL**.
+
+Publicar e promover as versões da **PSI** e as Normas de Segurança da Informação aprovadas pela **Gerência de Tecnologia da Informação** e **Diretoria**.
+
+Promover a conscientização dos funcionários em relação à relevância da segurança da informação para o **GRUPO OCUPACIONAL**, mediante campanhas, palestras, treinamentos e outros meios de endomarketing.
+
+Apoiar a avaliação e a adequação de controles específicos de segurança da informação para novos sistemas ou serviços.
+
+Analisar criticamente incidentes em conjunto com a **Gerência de Tecnologia da Informação** e **Diretoria**.
+
+**Do monitoramento e da auditoria do ambiente**
+
+Para garantir as regras mencionadas nesta **PSI**, o **GRUPO OCUPACIONAL** poderá:
+
+Implantar sistemas de monitoramento nas estações de trabalho, servidores, correio eletrônico, conexões com a internet e outros componentes da rede. As informações geradas por esses sistemas poderão ser usadas para identificar usuários e respectivos acessos efetuados, bem como o material manipulado;
+
+Compartilhar as informações obtidas pelos sistemas de monitoramento e auditoria somente com pessoas autorizadas, mediante ordem judicial, obrigação legal ou determinação da Diretoria, observadas a necessidade, a finalidade e a confidencialidade, sendo vedada a sua divulgação pública;
+
+Realizar, a qualquer tempo, inspeção física nas máquinas de sua propriedade;
+
+Instalar sistemas de proteção, preventivos e detectáveis, para garantir a segurança das informações e dos perímetros de acesso.
+
+**Do correio eletrônico**
+
+O objetivo desta norma é informar aos funcionários do **GRUPO OCUPACIONAL** quais são as atividades permitidas e proibidas quanto ao uso do correio eletrônico corporativo.
+
+O uso do correio eletrônico do GRUPO OCUPACIONAL destina-se a fins corporativos relacionados às atividades do funcionário no GRUPO OCUPACIONAL. A utilização desse serviço para fins pessoais é permitida desde que feita com bom senso, não prejudique o GRUPO OCUPACIONAL e não cause impacto no tráfego da rede.
+
+Acrescentamos que é proibido aos funcionários o uso do correio eletrônico do **GRUPO OCUPACIONAL**:
+
+Enviar mensagens não solicitadas para múltiplos destinatários, exceto se relacionadas a uso legítimo do **GRUPO OCUPACIONAL**;
+
+Enviar mensagens por correio eletrônico pelo endereço de seu departamento ou usando o nome de usuário de outra pessoa ou endereço de correio eletrônico que não esteja autorizado a utilizar;
+
+Enviar qualquer mensagem por meios eletrônicos que torne seu remetente e/ou o **GRUPO OCUPACIONAL** ou suas unidades vulneráveis a ações civis ou criminais;
+
+Divulgar informações não autorizadas ou imagens de tela, sistemas, documentos e afins sem autorização expressa e formal concedida pelo proprietário desse ativo de informação;
+
+Falsificar informações de endereçamento, adulterar cabeçalhos para esconder a identidade de remetentes e/ou destinatários, com o objetivo de evitar as punições previstas;
+
+Apagar mensagens pertinentes de correio eletrônico quando estiverem sujeitas a algum tipo de investigação.
+
+Produzir, transmitir ou divulgar mensagem que:
+
+Contenha qualquer ato ou forneça orientação que conflite ou contrarie os interesses do **GRUPO OCUPACIONAL**;
+
+Contenha ameaças eletrônicas, como: spam, mail bombing, vírus de computador e que o usuário tenha ciência do feito;
+
+Contenha arquivos com código executável (.exe, .bat, .reg, .dll etc.) ou qualquer outra extensão que represente risco à segurança;
+
+Vise obter acesso não autorizado a outro computador, servidor ou rede;
+
+Vise interromper um serviço, servidores ou rede de computadores por meio de qualquer método ilícito ou não autorizado;
+
+Vise burlar qualquer sistema de segurança;
+
+Vise vigiar secretamente ou assediar outro usuário;
+
+Vise acessar informações confidenciais sem explícita autorização do proprietário;
+
+Vise acessar indevidamente informações que possam causar prejuízos a qualquer pessoa;
+
+Inclua imagens criptografadas ou de qualquer forma mascaradas;
+
+Tenha conteúdo considerado impróprio, obsceno ou ilegal;
+
+Seja de caráter calunioso, difamatório, degradante, infame, ofensivo, violento, ameaçador, pornográfico, entre outros;
+
+Contenha perseguição preconceituosa baseada em sexo, raça, incapacidade física ou mental ou outras situações protegidas;
+
+Tenha fins políticos locais ou do país (propaganda política);
+
+Inclua material protegido por direitos autorais sem a permissão do detentor dos direitos.
+
+As mensagens de correio eletrônico sempre deverão incluir assinatura no formato padrão definido pelo **GRUPO OCUPACIONAL**.
+
+**Da internet**
+
+Todas as regras atuais do GRUPO OCUPACIONAL visam, basicamente, ao desenvolvimento de um comportamento eminentemente ético e profissional no uso da internet. Embora a conexão direta e permanente da rede corporativa do GRUPO OCUPACIONAL com a internet ofereça grande potencial de benefícios, ela também expõe os ativos de informação a riscos significativos.
+
+Qualquer informação acessada, transmitida, recebida ou produzida na internet está sujeita a monitoramento e auditoria. Portanto, o GRUPO OCUPACIONAL, em conformidade com a legislação aplicável, reserva-se o direito de monitorar e registrar todos os acessos à internet.
+
+Os equipamentos, tecnologia e serviços fornecidos para o acesso à internet são de propriedade do **GRUPO OCUPACIONAL**, que pode analisar e, se necessário, bloquear qualquer arquivo, site, correio eletrônico, domínio ou aplicação armazenados na rede/internet, estejam eles em disco local, na estação ou em áreas privadas da rede, visando assegurar o cumprimento de sua Política de Segurança da Informação.
+
+O **GRUPO OCUPACIONAL**, ao monitorar a rede interna, pretende garantir a integridade dos dados e programas. Toda tentativa de alteração dos parâmetros de segurança, por qualquer funcionário, sem o devido credenciamento e a autorização para tal, será julgada inadequada e os riscos relacionados serão informados ao funcionário e ao respectivo gestor. O uso de qualquer recurso para atividades ilícitas poderá acarretar as ações administrativas e as penalidades decorrentes de processos civil e criminal, sendo que nesses casos o **GRUPO OCUPACIONAL** cooperará ativamente com as autoridades competentes.
+
+A internet disponibilizada pelo GRUPO OCUPACIONAL destina-se prioritariamente às atividades profissionais. O uso pessoal eventual é tolerado, desde que não prejudique o andamento dos trabalhos e respeite as proibições desta PSI e do Termo de Responsabilidade (ANEXO I).
+
+Redes sociais e aplicativos de mensagens (por exemplo, WhatsApp, Instagram, LinkedIn e Facebook) também são canais de comunicação do GRUPO OCUPACIONAL. Por isso, o seu uso nos equipamentos corporativos é permitido para atividades relacionadas ao trabalho, sendo vedado o seu uso para fins pessoais.
+
+É proibida a divulgação e/ou o compartilhamento indevido de informações da área administrativa em listas de discussão, sites ou comunidades de relacionamento, salas de bate-papo ou chat, comunicadores instantâneos ou qualquer outra tecnologia correlata que venha surgir na internet.
+
+Os funcionários não poderão, em hipótese alguma, utilizar os recursos do GRUPO OCUPACIONAL para fazer download ou distribuir software ou dados pirateados, atividade considerada ilícita de acordo com a legislação nacional.
+
+Como regra geral, materiais de cunho sexual não poderão ser expostos, armazenados, distribuídos, editados, impressos ou gravados por meio de qualquer recurso.
+
+Os funcionários não poderão utilizar os recursos do **GRUPO OCUPACIONAL** para deliberadamente propagar qualquer tipo de vírus, worm, cavalo de troia, spam, assédio, perturbação ou programas de controle de outros computadores.
+
+Não é permitido o acesso a sites de proxy, sob pena de medidas administrativas, pois se trata de mecanismo destinado a burlar sistemas de segurança.
+
+Deverá ser respeitado o nível de acesso de cada usuário. Quando necessário, o gestor deverá solicitar a liberação de determinado site junto à Gerência de Tecnologia da Informação e/ou à Diretoria.
+
+**Da identificação**
+
+Os dispositivos de identificação e senhas protegem a identidade do funcionário usuário, evitando e prevenindo que uma pessoa se faça passar por outra perante o **GRUPO OCUPACIONAL** e/ou terceiros.
+
+O uso dos dispositivos e/ou senhas de identificação de outra pessoa é proibido e constitui falta grave, sem prejuízo das responsabilidades civis e criminais cabíveis.
+
+Tal norma visa estabelecer critérios de responsabilidade sobre o uso dos dispositivos de identificação e deverá ser aplicada a todos os funcionários.
+
+Todos os dispositivos de identificação utilizados no **GRUPO OCUPACIONAL**, como o login do funcionário, o crachá, as identificações de acesso aos sistemas, os certificados e assinaturas digitais e os dados biométricos têm de estar associados a uma pessoa física e atrelados inequivocamente aos seus documentos oficiais reconhecidos pela legislação brasileira.
+
+O usuário, vinculado a tais dispositivos identificadores, será responsável pelo seu uso correto perante o **GRUPO OCUPACIONAL** e a legislação (cível e criminal).
+
+Todo e qualquer dispositivo de identificação pessoal, portanto, não poderá ser compartilhado com outras pessoas em nenhuma hipótese.
+
+Se existir login de uso compartilhado por mais de um funcionário, a responsabilidade perante o **GRUPO OCUPACIONAL** e a legislação (cível e criminal) será dos usuários que dele se utilizarem. Somente se for identificado conhecimento ou solicitação do gestor de uso compartilhado ele deverá ser responsabilizado.
+
+É proibido o compartilhamento de login para funções de administração de sistemas.
+
+O Departamento de Recursos Humanos do **GRUPO OCUPACIONAL** é o responsável pela emissão e pelo controle dos documentos físicos de identidade dos funcionários.
+
+Devem ser distintamente identificados os visitantes, estagiários, empregados temporários, empregados regulares e prestadores de serviços, sejam eles pessoas físicas e/ou jurídicas. Ao realizar o primeiro acesso ao ambiente de rede local, o usuário deverá trocar imediatamente a sua senha conforme as orientações apresentadas pela **Gerência de Tecnologia da Informação**.
+
+As senhas dos usuários devem respeitar os critérios de, no mínimo, 1 (uma) letra maiúscula, 1 (uma) letra minúscula, 1 (um) número e 1 (um) caractere especial (! @ # $ %), deverão ter no mínimo 8 (oito) caracteres e não poderão corresponder ao próprio nome ou sobrenome do usuário.
+
+É de responsabilidade de cada usuário a memorização de sua própria senha, bem como a proteção e a guarda dos dispositivos de identificação que lhe forem designados.
+
+Os usuários podem alterar a própria senha e devem ser orientados a fazê-lo caso suspeitem de que terceiros tenham obtido acesso indevido ao seu login e/ou senha.
+
+Todos os acessos devem ser imediatamente bloqueados quando se tornarem desnecessários. Portanto, assim que algum usuário for demitido ou solicitar demissão, o Departamento de Recursos Humanos deverá comunicar imediatamente tal fato à Gerência de Tecnologia da Informação, a fim de que essa providência seja tomada. A mesma conduta se aplica aos usuários cujo contrato ou prestação de serviços tenha se encerrado, bem como aos usuários de teste e outras situações similares.
+
+Caso o funcionário esqueça sua senha, deverá solicitar formalmente a troca ou comparecer pessoalmente à Gerência de Tecnologia da Informação, responsável por cadastrar uma nova senha.
+
+**Dos computadores e recursos tecnológicos**
+
+Os equipamentos disponíveis aos funcionários são de propriedade do **GRUPO OCUPACIONAL**, cabendo a cada um utilizá-los e manuseá-los corretamente para as atividades de interesse do **GRUPO OCUPACIONAL**, bem como cumprir as recomendações constantes nos procedimentos operacionais fornecidos.
+
+É proibido todo procedimento de manutenção física ou lógica, instalação, desinstalação, configuração ou modificação, sem o conhecimento prévio da **Gerência de Tecnologia da Informação**.
+
+Arquivos pessoais e/ou não pertinentes às atividades do GRUPO OCUPACIONAL (fotos, músicas, vídeos etc.) não deverão ser copiados ou movidos para os drives de rede, pois podem sobrecarregar o armazenamento nos servidores. Caso seja identificada a existência desses arquivos, eles poderão ser excluídos definitivamente sem aviso prévio ao usuário.
+
+Documentos imprescindíveis para as atividades dos funcionários do **GRUPO OCUPACIONAL** deverão ser salvos em drives de rede. Tais arquivos, se gravados apenas localmente nos computadores (por exemplo, no drive C:), não terão garantia de backup e poderão ser perdidos caso ocorra uma falha no computador, sendo, portanto, de responsabilidade do próprio usuário.
+
+Os funcionários do **GRUPO OCUPACIONAL** e/ou detentores de contas privilegiadas não devem executar nenhum tipo de comando ou programa que venha sobrecarregar os serviços existentes na rede corporativa sem a prévia solicitação e a autorização da **Gerência de Tecnologia da Informação**.
+
+No uso dos computadores, equipamentos e recursos de informática, algumas regras devem ser atendidas:
+
+Os funcionários devem informar à Gerência de Tecnologia da Informação qualquer identificação de dispositivo estranho conectado ao seu computador;
+
+É vedada a abertura ou o manuseio de computadores ou outros equipamentos de informática para qualquer tipo de reparo que não seja realizado pela **Gerência de Tecnologia da Informação** ou por terceiros devidamente contratados para o serviço;
+
+Não é permitido conectar aos equipamentos corporativos dispositivos de acesso à rede não autorizados (como modems, roteadores ou adaptadores de internet móvel), salvo autorização da Gerência de Tecnologia da Informação, inclusive para uso em planos de contingência;
+
+O funcionário deverá manter a configuração do equipamento disponibilizado pelo **GRUPO OCUPACIONAL**, seguindo os devidos controles de segurança exigidos pela Política de Segurança da Informação e pelas normas específicas do **GRUPO OCUPACIONAL**, assumindo a responsabilidade como custodiante de informações;
+
+Deverão ser protegidos por senha (bloqueados), nos termos previstos pela Norma de Autenticação, todos os terminais de computador e impressoras quando não estiverem sendo utilizados.
+
+**Dos dispositivos móveis**
+
+O GRUPO OCUPACIONAL deseja facilitar a mobilidade e o fluxo de informação entre seus funcionários. Por isso, permite o uso de equipamentos portáteis. Os dispositivos móveis corporativos e pessoais deverão utilizar sempre a rede de acesso destinada a VISITANTES, não sendo permitida, em nenhuma hipótese, sua conexão à rede CORPORATIVA.
+
+Essa norma visa estabelecer critérios de manuseio, prevenção e responsabilidade sobre o uso de dispositivos móveis e deverá ser aplicada a todos os funcionários que utilizem tais equipamentos.
+
+O funcionário, portanto, assume o compromisso de não utilizar, revelar ou divulgar a terceiros, de modo algum, direta ou indiretamente, em proveito próprio ou de terceiros, qualquer informação, confidencial ou não, que tenha ou venha a ter conhecimento em razão de suas funções no **GRUPO OCUPACIONAL**, mesmo depois de terminado o vínculo contratual mantido com o **GRUPO OCUPACIONAL**.
+
+**Da sala do servidor**
+
+Todo acesso ao Datacenter deverá ser registrado (usuário, data e hora) junto à Gerência de Tecnologia da Informação.
+
+Deverá ser executada semanalmente uma auditoria nos acessos ao Datacenter por meio do relatório do sistema de registro.
+
+**Do backup**
+
+Todos os backups devem ser automatizados por sistemas de agendamento e, preferencialmente, executados fora do horário comercial, nas chamadas "janelas de backup" --- períodos em que há pouco ou nenhum acesso de usuários ou processos automatizados aos sistemas de informática.
+
+As mídias de backup (como HDs externos e demais mídias removíveis) devem ser acondicionadas em local seco, climatizado, seguro (de preferência em cofres corta-fogo segundo as normas da ABNT) e distantes o máximo possível do Datacenter, preferencialmente fora do ambiente do **GRUPO OCUPACIONAL**.
+
+Os BACKUPS serão realizados de 2 (duas) formas:
+
+Diariamente, em HD externo, sendo que cada dia da semana substituirá o correspondente da semana seguinte, evitando a falta de espaço para armazenamento de dados. Se necessário, esse sistema poderá ser alterado e será adotado outro procedimento definido pela Gerência de Tecnologia da Informação e pela Diretoria.
+
+Semanalmente, em HD externo, sendo que o armazenamento dos dados será realizado toda sexta-feira e contará com um responsável externo ao âmbito da Gerência de Tecnologia da Informação para manter esses dados em local seguro.
+
+**Do monitoramento das estações de trabalho corporativas**
+
+Os notebooks, computadores e demais ativos de tecnologia disponibilizados pelo GRUPO OCUPACIONAL constituem recursos corporativos destinados prioritariamente ao desempenho das atividades profissionais dos colaboradores.
+
+**Como parte de seus controles de Segurança da Informação, proteção dos ativos tecnológicos, prevenção de incidentes, auditoria, conformidade, gestão operacional e acompanhamento das atividades realizadas nos equipamentos corporativos, o GRUPO OCUPACIONAL utiliza a solução de monitoramento WORKMONITOR.**
+
+A utilização de equipamentos corporativos poderá ser monitorada durante todo o período em que o equipamento estiver em utilização, incluindo a captura e gravação das informações exibidas na tela da estação de trabalho.
+
+O monitoramento será realizado exclusivamente para finalidades legítimas relacionadas às atividades da organização, incluindo, entre outras:
+
+- proteção dos ativos e informações corporativas;
+
+- prevenção, identificação e investigação de incidentes de segurança;
+
+- identificação de utilização indevida dos recursos tecnológicos;
+
+- proteção de dados pessoais e informações confidenciais tratadas pela organização;
+
+- auditoria e conformidade;
+
+- apuração de incidentes ou violações das políticas internas;
+
+- acompanhamento das atividades profissionais;
+
+- acompanhamento da jornada de trabalho;
+
+- análise de produtividade e eficiência operacional;
+
+- melhoria de processos internos;
+
+- geração de indicadores relacionados à utilização dos recursos corporativos.
+
+O monitoramento não deverá ser utilizado para finalidades incompatíveis com aquelas previstas nesta Política.
+
+A solução WORKMONITOR poderá realizar a gravação da tela dos equipamentos corporativos durante o período de utilização.
+
+Consequentemente, informações visualizadas, digitadas, acessadas ou exibidas na estação de trabalho poderão ser registradas durante a execução das atividades profissionais.
+
+Além da gravação de tela, as soluções de monitoramento e os painéis de gestão do GRUPO OCUPACIONAL poderão registrar a atividade de teclado e mouse, incluindo as teclas digitadas, os aplicativos e sites utilizados e o respectivo tempo de uso, os horários de início e término da atividade no equipamento e, quando integrados ao ambiente Microsoft 365, informações da agenda corporativa do Outlook (horário, assunto, local e participantes dos compromissos).
+
+Por essa razão, os colaboradores deverão considerar que **não existe expectativa de privacidade pessoal quanto ao conteúdo exibido ou processado em equipamentos corporativos**, ressalvados os direitos assegurados pela legislação aplicável e as limitações estabelecidas pelas normas de proteção de dados pessoais.
+
+A existência do monitoramento não autoriza a utilização irrestrita das gravações, que deverão permanecer submetidas às regras de finalidade, necessidade, confidencialidade, segurança da informação e controle de acesso estabelecidas pela organização.
+
+As gravações realizadas pela ferramenta serão armazenadas em infraestrutura de computação em nuvem hospedada na **Amazon Web Services – AWS**, na região de São Paulo (Brasil), pelo período ordinário de **90 (noventa) dias**, após o qual deverão ser eliminadas ou tornadas indisponíveis conforme os procedimentos técnicos da solução utilizada, salvo necessidade justificada de preservação relacionada a:
+
+- investigação de incidente de segurança;
+
+- procedimento administrativo interno;
+
+- obrigação legal ou regulatória;
+
+- exercício regular de direitos;
+
+- processo judicial ou administrativo;
+
+- determinação de autoridade competente.
+
+O ambiente utilizado para armazenamento adota controles técnicos e administrativos compatíveis com a criticidade das informações tratadas, utilizando recursos de segurança disponibilizados pela infraestrutura AWS e pela aplicação WORKMONITOR, conforme as configurações e responsabilidades aplicáveis a cada parte.
+
+A organização deverá adotar medidas destinadas a proteger as gravações contra acesso não autorizado, alteração, perda, destruição, divulgação indevida ou qualquer forma de tratamento inadequado.
+
+O acesso às gravações será restrito e realizado de acordo com o princípio do menor privilégio.
+
+Como regra geral, as gravações dos colaboradores de uma determinada área estarão disponíveis exclusivamente aos **gestores formalmente autorizados daquela área**, observadas as atribuições profissionais e a necessidade de acesso.
+
+Quando necessário para investigação de incidentes, auditoria, conformidade, suporte técnico, proteção jurídica ou atendimento de obrigação legal, o acesso também poderá ser concedido, mediante autorização adequada, a profissionais das áreas de Tecnologia da Informação, Segurança da Informação, Recursos Humanos, Jurídico, Compliance, Encarregado de Proteção de Dados ou Diretoria.
+
+Gravações que contenham dados de saúde de pacientes, prontuários ou outros dados pessoais sensíveis exibidos em sistemas médicos estão sujeitas a sigilo profissional e somente poderão ser consultadas quando estritamente necessário às finalidades desta Política, por profissionais autorizados e sujeitos ao dever de sigilo.
+
+Todos os acessos administrativos e consultas às gravações são registrados em log de auditoria da solução, com identificação do usuário, data e hora da consulta, para fins de rastreabilidade e auditoria.
+
+É expressamente vedado utilizar, copiar, compartilhar, divulgar ou consultar gravações por curiosidade, interesse pessoal ou qualquer finalidade diferente daquela que justificou a concessão do acesso.
+
+A solução WORKMONITOR possui mecanismos automatizados e recursos de Inteligência Artificial capazes de processar informações relacionadas à utilização das estações corporativas e gerar indicadores, classificações, relatórios ou análises relacionadas à atividade e produtividade.
+
+Esses recursos poderão considerar informações como utilização de aplicações, períodos de atividade, interação com sistemas corporativos e outros indicadores disponibilizados pela plataforma.
+
+Os indicadores produzidos pelo sistema constituem instrumentos auxiliares de gestão e **não deverão, isoladamente, ser considerados prova definitiva de produtividade, improdutividade, desempenho inadequado ou descumprimento funcional**.
+
+Sempre que uma análise automatizada puder gerar consequência relevante ao colaborador, seus resultados deverão ser avaliados no contexto da atividade desempenhada e, quando aplicável, submetidos à análise humana antes da adoção de medidas administrativas ou disciplinares.
+
+A organização deverá buscar transparência quanto à utilização desses mecanismos e observar os direitos aplicáveis ao tratamento automatizado de dados pessoais.
+
+Considerando que a tela do equipamento corporativo poderá ser gravada, o colaborador deverá evitar utilizar o equipamento corporativo para acessar, inserir, armazenar ou transmitir informações pessoais que não possuam relação com suas atividades profissionais.
+
+O uso de redes sociais e aplicativos de mensagens para fins pessoais nos equipamentos corporativos é vedado, conforme a seção "Da internet". Além disso, deverão ser evitadas especialmente as seguintes condutas:
+
+- acessar contas pessoais de e-mail;
+
+- acessar internet banking ou aplicativos bancários particulares;
+
+- consultar investimentos, cartões de crédito ou informações financeiras pessoais;
+
+- realizar compras particulares em lojas virtuais;
+
+- inserir números de cartão de crédito, códigos de segurança, informações bancárias ou dados de pagamento pessoais;
+
+- acessar portais médicos, exames, prontuários ou informações pessoais de saúde;
+
+- acessar documentos pessoais próprios ou de terceiros;
+
+- inserir CPF, RG, endereço, telefone, informações familiares ou outros dados pessoais sem relação com a atividade profissional;
+
+- acessar fotografias, vídeos, arquivos ou documentos particulares;
+
+- armazenar senhas pessoais em navegadores ou aplicativos corporativos;
+
+- utilizar serviços particulares de armazenamento em nuvem;
+
+- utilizar o equipamento corporativo para atividades particulares que envolvam informações confidenciais de terceiros.
+
+Essas restrições têm também a finalidade de proteger a privacidade do próprio colaborador e de terceiros, reduzindo a possibilidade de captura involuntária de informações particulares durante o monitoramento da estação.
+
+O colaborador deverá observar cuidado especial ao acessar informações de clientes, pacientes, candidatos, fornecedores, parceiros ou quaisquer terceiros.
+
+Somente deverão ser acessadas informações necessárias à execução da atividade profissional.
+
+É vedada a consulta de informações pessoais ou corporativas por curiosidade, interesse particular ou sem necessidade relacionada às atribuições profissionais do colaborador.
+
+O colaborador permanece responsável pela adequada proteção de suas credenciais e deverá comunicar imediatamente à área de Tecnologia da Informação qualquer situação em que informações confidenciais possam ter sido indevidamente registradas, compartilhadas ou expostas.
+
+- É vedado ao colaborador:
+
+- desinstalar o WORKMONITOR;
+
+- interromper seus serviços;
+
+- alterar suas configurações;
+
+- bloquear suas comunicações;
+
+- manipular registros;
+
+- utilizar ferramentas destinadas a impedir ou contornar o monitoramento;
+
+adulterar configurações do equipamento com o objetivo de evitar o funcionamento da solução.
+
+Qualquer necessidade técnica de alteração ou desativação deverá ser previamente autorizada pela área de Tecnologia da Informação.
+
+O GRUPO OCUPACIONAL adota medidas técnicas e administrativas destinadas à proteção das informações coletadas pelo sistema de monitoramento, incluindo controles de acesso compatíveis com as funções desempenhadas, gestão de credenciais, segregação de privilégios, rastreabilidade, medidas de proteção da infraestrutura e demais controles considerados adequados ao risco.
+
+As gravações deverão ser tratadas como informações corporativas de acesso restrito.
+
+Os colaboradores autorizados a consultar gravações estarão sujeitos aos deveres de confidencialidade e não poderão compartilhar ou utilizar essas informações para finalidade incompatível com suas atribuições.
+
+O tratamento das informações coletadas por meio do WORKMONITOR deverá observar a legislação brasileira aplicável à proteção de dados pessoais, incluindo a Lei Geral de Proteção de Dados Pessoais – LGPD, bem como os princípios e regras internas de Segurança da Informação e Privacidade do GRUPO OCUPACIONAL.
+
+O tratamento das informações de monitoramento fundamenta-se no legítimo interesse do GRUPO OCUPACIONAL na segurança da informação, na proteção de seus ativos e na gestão de suas atividades (art. 7º, IX, da LGPD), na execução do contrato de trabalho (art. 7º, V) e no cumprimento de obrigações legais e regulatórias (art. 7º, II), não dependendo de consentimento do colaborador. A assinatura do Termo de Ciência (ANEXO II) registra a ciência do colaborador e não constitui consentimento nos termos do art. 7º, I, da LGPD.
+
+A organização deverá limitar o tratamento das informações ao necessário para atingir as finalidades estabelecidas nesta Política.
+
+Até a data desta versão, o GRUPO OCUPACIONAL não designou Encarregado pelo Tratamento de Dados Pessoais (art. 41 da LGPD). Enquanto não houver designação, solicitações relacionadas à proteção de dados pessoais, inclusive pedidos de acesso, correção ou esclarecimentos sobre o monitoramento, deverão ser encaminhadas à Diretoria pelo e-mail informatica@ocupacional.com.br, que responderá nos prazos legais.
+
+Os colaboradores deverão assinar o Termo de Ciência e Responsabilidade sobre Monitoramento de Equipamentos Corporativos, constante do ANEXO II desta PSI.
+
+## 7. DISPOSIÇÕES FINAIS
+
+Assim como a ética, a segurança deve ser entendida como parte fundamental da cultura interna do GRUPO OCUPACIONAL. Dessa forma, qualquer incidente de segurança será tratado como situação contrária à ética, às normas internas e aos padrões de conduta estabelecidos pelo GRUPO OCUPACIONAL.
+
+## 8. RECOMENDAÇÕES GERAIS
+
+A segurança da informação é um compromisso contínuo e exige a colaboração de todos os envolvidos. Funcionários, gestores e parceiros devem trabalhar juntos para garantir que as diretrizes aqui descritas sejam cumpridas e que novos desafios sejam enfrentados com responsabilidade e inovação. Sugere-se a revisão periódica desta Política, com atualizações que incorporem novas ameaças e melhores práticas do mercado.
+
+## ANEXO I – TERMO DE RESPONSABILIDADE
+
+**Política de uso da rede corporativa, computadores, internet e utilização de e-mails corporativos.**
+
+Eu, ________________
+
+**Setor**: ________________ **Função**:________________**CPF**: ________________
+
+Identidade: ________________ Telefone: ________________
+
+Declaro haver solicitado acesso à rede corporativa, computadores, Internet e/ou utilização de e-mail corporativo e comprometo-me a:
+
+a) Acessar a rede corporativa, computadores, Internet e/ou utilização de e-mail corporativo, somente com autorização (usuário/senha), por necessidade de serviço ou por determinação expressa de superior hierárquico, realizando as tarefas e operações em estrita observância aos procedimentos, normas e disposições contidas na **Política de Segurança da Informação vigente do GRUPO OCUPACIONAL**.
+
+b) Não revelar, fora do âmbito profissional, fato ou informação de qualquer natureza de que tenha conhecimento por força de minhas atribuições, salvo em decorrência de decisão competente na esfera legal ou judicial;
+
+c) Manter a necessária cautela quando da exibição de dados em tela, impressora ou na gravação em meios eletrônicos, a fim de evitar que deles venham a tomar ciência pessoas não autorizadas;
+
+d) Não me ausentar da estação de trabalho sem encerrar a sessão de uso do navegador (browser), bloquear a estação de trabalho e encerrar a sessão do e-mail corporativo, garantindo, assim, a impossibilidade de acesso indevido por terceiros;
+
+e) Não revelar minha senha de acesso à rede corporativa, aos computadores, à Internet e/ou à minha caixa postal (e-mail) corporativa a ninguém e tomar o máximo de cuidado para que ela permaneça somente de meu conhecimento;
+
+f) Alterar minha senha sempre que obrigatório ou quando houver suspeita de que tenha sido descoberta por terceiros, não utilizando combinações simples que possam ser facilmente identificadas;
+
+g) Respeitar as normas de segurança e restrições de sistema impostas pelos sistemas de segurança implantados no **GRUPO OCUPACIONAL**;
+
+h) Responder, em todas as instâncias, pelas consequências das ações ou omissões de minha parte que possam pôr em risco ou comprometer a exclusividade de conhecimento de minha senha ou das transações a que tenha acesso.
+
+Declaro, ainda, estar plenamente esclarecido e consciente que:
+
+1. Não é permitida a navegação aos sites pertencentes às categorias abaixo:
+
+- Pornográfico e de caráter sexual;
+
+- Compartilhamento de arquivos (ex.: P2P, Bit Torrent, emule, etc.);
+
+- Pornografia infantil (pedofilia);
+
+- Apologia ao terrorismo;
+
+- Apologia às drogas;
+
+- Crackers;
+
+- Redes sociais e mensageiros instantâneos para fins pessoais (o uso para atividades relacionadas ao trabalho é permitido);
+
+- Violência e agressividade (racismo, preconceito, etc.);
+
+- Violação de direito autoral (pirataria, etc.);
+
+- Áudio e vídeo, salvo com conteúdo relacionado diretamente a atividades administrativas ou profissionais;
+
+- Conteúdo impróprio, ofensivo, ilegal, discriminatório e similares;
+
+2. Não é permitida a troca de arquivos de vídeo ou música, bem como de quaisquer informações que estejam incluídas nas categorias acima;
+
+3. É proibida a transferência de qualquer tipo de programa, jogo, e similares, para a rede interna do **GRUPO OCUPACIONAL**, à exceção de servidores da **GERÊNCIA DE TECNOLOGIA DA INFORMAÇÃO** com autorização específica para tal;
+
+```{=html}
+<!-- -->
+```
+4. É proibido o download de arquivos com extensões do tipo .exe, .mp3, .wav, .bat, .com, .sys, .scr, .mpeg, .avi, .rmvb e .dll, bem como de programas de entretenimento ou jogos, salvo os estritamente relacionados aos serviços inerentes à função do funcionário;
+
+5. Não é permitido o acesso a programas de TV na internet ou a qualquer conteúdo sob demanda (streaming);
+
+6. É proibido o uso de jogos inclusive os da internet (on-line);
+
+7. O uso de e-mail corporativo não garante direito sobre este, nem confere autoridade para liberar acesso a outras pessoas, pois se constitui de informações pertencentes ao **GRUPO OCUPACIONAL**;
+
+```{=html}
+<!-- -->
+```
+8. Qualquer problema referente ao uso dos computadores da Rede de Computadores do **GRUPO OCUPACIONAL**, assim como ao uso da sua conta de e-mail corporativo do **GRUPO OCUPACIONAL**, deverá imediatamente ser relatado à **GERÊNCIA DE TECNOLOGIA DA INFORMAÇÃO**;
+
+9. O usuário assumirá a responsabilidade por dano causado por algum procedimento de iniciativa própria de tentativa de modificação da configuração, física ou lógica, do computador e/ou rede sem a autorização expressa da **GERÊNCIA DE TECNOLOGIA DA INFORMAÇÃO**;
+
+10. O usuário assumirá a responsabilidade pelo dano que possa causar caso não venha a cumprir o disposto neste termo de responsabilidade.
+
+Declaro, nesta data _____/_____/_____, ter ciência e estar de acordo com os procedimentos acima descritos, comprometendo-me a respeitá-los e cumpri-los plena e integralmente.
+
+Assinatura do colaborador
+
+## ANEXO II
+
+## TERMO DE CIÊNCIA E RESPONSABILIDADE SOBRE MONITORAMENTO DE EQUIPAMENTOS CORPORATIVOS
+
+### GRUPO OCUPACIONAL – CNPJ 26.231.266/0001-39
+
+Eu, ______________________________________________________________________________,
+
+CPF/Matrícula: ______________________________ Setor: _________________________________
+
+Função/Cargo: ______________________________________________________________________
+
+declaro que fui informado(a) e estou ciente de que os computadores, notebooks e demais recursos de Tecnologia da Informação disponibilizados pelo GRUPO OCUPACIONAL são ativos corporativos destinados prioritariamente ao exercício das atividades profissionais e poderão ser monitorados nos termos desta PSI.
+
+### 1. MONITORAMENTO E GRAVAÇÃO DE TELA
+
+Estou ciente de que o GRUPO OCUPACIONAL utiliza a solução WORKMONITOR para monitoramento dos equipamentos corporativos e de que, durante a utilização do equipamento, a ferramenta poderá realizar a captura e a gravação contínua das informações exibidas na tela da estação de trabalho.
+
+Compreendo que informações, aplicações, páginas, documentos e demais conteúdos exibidos ou acessados durante o uso do equipamento corporativo poderão ser registrados pela solução de monitoramento.
+
+Estou ciente de que também poderão ser registrados a atividade de teclado e mouse, incluindo as teclas digitadas, os aplicativos e sites utilizados e o respectivo tempo de uso, os horários de início e término da atividade no equipamento e, quando integrados ao Microsoft 365, informações da agenda corporativa do Outlook (horário, assunto, local e participantes dos compromissos).
+
+Reconheço que o monitoramento deverá observar as finalidades previstas na Política de Segurança da Informação e a legislação aplicável, não autorizando a utilização irrestrita das gravações.
+
+### 2. FINALIDADES DO MONITORAMENTO
+
+Estou ciente de que o monitoramento poderá ser utilizado para proteção dos ativos e informações corporativas, prevenção e investigação de incidentes de segurança, auditoria, conformidade, apuração de violações das políticas internas, acompanhamento das atividades profissionais e da jornada de trabalho, análise de produtividade, melhoria de processos e geração de indicadores relacionados ao uso dos recursos corporativos.
+
+### 3. INTELIGÊNCIA ARTIFICIAL E ANÁLISE DE PRODUTIVIDADE
+
+Estou ciente de que o WORKMONITOR possui mecanismos automatizados e recursos de Inteligência Artificial capazes de analisar informações relacionadas à utilização das estações corporativas e gerar indicadores, classificações, relatórios ou análises relacionadas à atividade e à produtividade.
+
+Compreendo que os indicadores gerados pela ferramenta constituem instrumentos auxiliares de gestão e deverão ser avaliados no contexto das atividades desempenhadas. Sempre que uma análise automatizada puder produzir consequência relevante ao colaborador, seus resultados deverão, quando aplicável, ser submetidos à análise humana antes da adoção de medidas administrativas ou disciplinares.
+
+### 4. ARMAZENAMENTO, SEGURANÇA E RETENÇÃO DAS GRAVAÇÕES
+
+Estou ciente de que as gravações serão armazenadas em infraestrutura de computação em nuvem hospedada na Amazon Web Services (AWS), na região de São Paulo (Brasil), pelo período ordinário de 90 (noventa) dias, ressalvadas hipóteses justificadas de preservação por período adicional, conforme previsto na PSI e na legislação aplicável.
+
+O GRUPO OCUPACIONAL adotará controles técnicos e administrativos de segurança compatíveis com a criticidade das informações, utilizando recursos de segurança disponibilizados pela infraestrutura AWS e pela aplicação WORKMONITOR, conforme as configurações e responsabilidades aplicáveis a cada parte, com o objetivo de proteger as gravações contra acesso não autorizado, alteração, perda, destruição ou divulgação indevida.
+
+As gravações serão tratadas como informações corporativas de acesso restrito.
+
+### 5. ACESSO ÀS GRAVAÇÕES
+
+Estou ciente de que, como regra geral, as gravações referentes à minha estação de trabalho poderão ser acessadas pelo gestor formalmente autorizado da minha área, observadas as respectivas atribuições profissionais e a necessidade de acesso.
+
+Quando necessário para investigação de incidentes, auditoria, conformidade, suporte técnico, proteção jurídica ou atendimento de obrigação legal, o acesso poderá ser concedido, mediante autorização adequada, a profissionais das áreas de Tecnologia da Informação, Segurança da Informação, Recursos Humanos, Jurídico, Compliance, Encarregado de Proteção de Dados ou Diretoria.
+
+Os usuários autorizados a consultar as gravações estarão sujeitos aos deveres de confidencialidade e não poderão utilizá-las para finalidade incompatível com suas atribuições.
+
+Estou ciente de que todas as consultas às gravações são registradas em log de auditoria, com identificação do usuário, data e hora da consulta.
+
+Gravações que contenham dados de saúde de pacientes ou outros dados pessoais sensíveis estão sujeitas a sigilo profissional e somente poderão ser consultadas quando estritamente necessário, por profissionais autorizados e sujeitos ao dever de sigilo.
+
+### 6. UTILIZAÇÃO PESSOAL DO EQUIPAMENTO
+
+Considerando que a tela do equipamento corporativo poderá ser gravada, comprometo-me a evitar a utilização do equipamento para acessar, inserir, armazenar ou transmitir informações pessoais que não tenham relação com minhas atividades profissionais.
+
+Compreendo que essa orientação também tem por finalidade proteger minha privacidade e a de terceiros, reduzindo a possibilidade de captura involuntária de informações particulares durante o monitoramento.
+
+Estou ciente de que redes sociais e aplicativos de mensagens (como WhatsApp, Instagram, LinkedIn e Facebook) podem ser utilizados nos equipamentos corporativos para atividades relacionadas ao trabalho, sendo vedado o seu uso para fins pessoais.
+
+### 7. CONDUTAS A SEREM EVITADAS
+
+Especialmente, deverão ser evitadas as seguintes condutas nos equipamentos corporativos:
+
+- acessar contas pessoais de e-mail;
+
+- acessar internet banking ou aplicativos bancários particulares;
+
+- consultar investimentos, cartões de crédito ou informações financeiras pessoais;
+
+- realizar compras particulares em lojas virtuais;
+
+- inserir números de cartão de crédito, códigos de segurança, informações bancárias ou dados de pagamento pessoais;
+
+- acessar portais médicos, exames, prontuários ou informações pessoais de saúde;
+
+- acessar documentos pessoais próprios ou de terceiros;
+
+- inserir CPF, RG, endereço, telefone, informações familiares ou outros dados pessoais sem relação com a atividade profissional;
+
+- acessar fotografias, vídeos, arquivos ou documentos particulares;
+
+- armazenar senhas pessoais em navegadores ou aplicativos corporativos;
+
+- utilizar serviços particulares de armazenamento em nuvem;
+
+- utilizar o equipamento corporativo para atividades particulares que envolvam informações confidenciais de terceiros.
+
+### 8. DADOS DE CLIENTES, PACIENTES E TERCEIROS
+
+Comprometo-me a acessar dados pessoais, informações confidenciais ou documentos pertencentes a clientes, pacientes, candidatos, fornecedores, parceiros, colaboradores ou terceiros somente quando houver necessidade relacionada ao exercício das minhas funções.
+
+Estou ciente de que a consulta de informações sem necessidade profissional, por curiosidade ou interesse particular, poderá caracterizar utilização inadequada dos recursos corporativos e violação das políticas internas.
+
+### 9. INTEGRIDADE DO SISTEMA DE MONITORAMENTO
+
+Comprometo-me a não desinstalar, desativar, bloquear, adulterar, interromper ou tentar contornar o funcionamento do WORKMONITOR ou de qualquer outro mecanismo de segurança e monitoramento instalado pela organização.
+
+Caso identifique comportamento anormal da ferramenta ou situação que possa representar risco à segurança ou à privacidade das informações, comprometo-me a comunicar imediatamente a Gerência de Tecnologia da Informação.
+
+### 10. DECLARAÇÃO DE CIÊNCIA
+
+Declaro que recebi informações claras sobre a existência, as principais finalidades, a retenção e as regras de acesso relacionadas ao monitoramento dos equipamentos corporativos;
+
+Declaro estar ciente de que o equipamento corporativo poderá ser monitorado durante sua utilização e de que a tela poderá ser registrada;
+
+Declaro estar ciente da utilização de mecanismos automatizados e de Inteligência Artificial para geração de indicadores relacionados às atividades profissionais;
+
+Declaro ter sido orientado(a) a evitar o uso do equipamento corporativo para atividades pessoais que possam expor informações particulares próprias ou de terceiros;
+
+Declaro estar ciente de que o uso de redes sociais e aplicativos de mensagens nos equipamentos corporativos é permitido apenas para atividades relacionadas ao trabalho;
+
+Comprometo-me a observar a Política de Segurança da Informação e as demais normas internas do GRUPO OCUPACIONAL.
+
+Este documento tem por finalidade registrar minha ciência acerca das práticas de monitoramento e das regras de utilização dos ativos corporativos, sem afastar os direitos e as obrigações previstos na legislação aplicável.
+
+O monitoramento fundamenta-se no legítimo interesse do GRUPO OCUPACIONAL, na execução do contrato de trabalho e no cumprimento de obrigações legais (art. 7º, II, V e IX, da LGPD). Esta assinatura registra ciência e não constitui consentimento.
+
+O GRUPO OCUPACIONAL ainda não designou Encarregado pelo Tratamento de Dados Pessoais. Dúvidas e solicitações sobre o tratamento dos meus dados podem ser encaminhadas à Diretoria pelo e-mail informatica@ocupacional.com.br.
+
+**Belo Horizonte/MG, ______ de ______________________________ de __________.**
+
+____________________________________________________________
+
+Assinatura do colaborador

@@ -1,0 +1,30 @@
+{{define "conteudo"}}{{$csrf := .Sessao.CSRF}}{{$e := .D.Editar}}
+<h1>Ativos sem agente</h1>
+<p class="sub">Celular, monitor, tablet e outros equipamentos que não rodam o agente, para emitir o Termo de Entrega.</p>
+<section class="cartao">
+  <h2>{{if $e}}Editar ativo{{else}}Novo ativo{{end}}</h2>
+  <form method="post" action="/termos/ativos" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">{{if $e}}<input type="hidden" name="id" value="{{$e.ID}}">{{end}}
+    <label>Tipo<select name="tipo" required><option value="">— escolha —</option>{{range .D.Tipos}}<option value="{{.}}"{{if $e}}{{if eq . $e.Tipo}} selected{{end}}{{end}}>{{rotuloTipoEq .}}</option>{{end}}</select></label>
+    <label>Condição<select name="condicao"><option value="">—</option>{{range .D.Condicoes}}<option value="{{.}}"{{if $e}}{{if eq . $e.Condicao}} selected{{end}}{{end}}>{{rotuloCond .}}</option>{{end}}</select></label>
+    <label>Fabricante<input name="fabricante" value="{{if $e}}{{$e.Fabricante}}{{end}}" maxlength="80"></label>
+    <label>Modelo<input name="modelo" value="{{if $e}}{{$e.Modelo}}{{end}}" maxlength="80"></label>
+    <label>Nº de série<input name="serial" value="{{if $e}}{{$e.Serial}}{{end}}" maxlength="80"></label>
+    <label>Patrimônio<input name="patrimonio" value="{{if $e}}{{$e.Patrimonio}}{{end}}" maxlength="80"></label>
+    <label>IMEI<input name="imei" value="{{if $e}}{{$e.IMEI}}{{end}}" maxlength="80"></label>
+    <label>Linha<input name="linha" value="{{if $e}}{{$e.Linha}}{{end}}" maxlength="80" placeholder="(31) 99999-9999"></label>
+    <label>Nota fiscal nº<input name="nf_numero" value="{{if $e}}{{$e.NFNumero}}{{end}}" maxlength="40"></label>
+    <label>Data da NF<input type="date" name="nf_data" value="{{if $e}}{{$e.NFData}}{{end}}"></label>
+    <label>Valor de referência (contábil)<input name="valor_referencia" value="{{if $e}}{{$e.Valor}}{{end}}" placeholder="1.500,00"></label>
+    {{if $e}}<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="ativo" value="1" style="width:auto"{{if $e.Ativo}} checked{{end}}> Ativo (aparece na emissão)</label>{{end}}
+    <label class="cheio">Observações<textarea name="observacoes" rows="2" maxlength="500">{{if $e}}{{$e.Obs}}{{end}}</textarea></label>
+    <div class="cheio"><button class="btn primario">Salvar</button>{{if $e}} <a class="btn" href="/termos/ativos">Cancelar</a>{{end}}</div>
+  </form>
+</section>
+<div class="rolagem"><table class="tabela lista">
+  <tr><th>Equipamento</th><th>Série / IMEI</th><th>Condição</th><th>Valor</th><th></th></tr>
+  {{range .D.Lista}}<tr{{if not .Ativo}} style="opacity:.55"{{end}}><td><b>{{.Nome}}</b></td><td><small>{{.Serial}}{{if .IMEI}} · IMEI {{.IMEI}}{{end}}{{if .Linha}} · {{.Linha}}{{end}}</small></td>
+    <td>{{.RotuloCondicao}}</td><td>{{.ValorFormatado}}</td><td class="acoes"><a class="btn pequeno" href="?editar={{.ID}}">Editar</a> <a class="btn pequeno" href="/termos/novo?equipamento=a{{.ID}}">Emitir termo</a></td></tr>
+  {{else}}<tr><td colspan="5" class="vazio">Nenhum ativo cadastrado.</td></tr>{{end}}
+</table></div>
+{{end}}

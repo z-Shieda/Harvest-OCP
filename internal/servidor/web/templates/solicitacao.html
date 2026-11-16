@@ -1,0 +1,122 @@
+{{define "conteudo"}}{{$s := .D.S}}{{$csrf := .Sessao.CSRF}}
+<p><a href="/solicitacoes">← Solicitações</a></p>
+<div class="cabecalho"><h1>{{$s.Numero}} · {{$s.Quantidade}} × {{$s.Item}}</h1><span class="selo {{$s.CorSituacao}}">{{$s.RotuloSituacao}}</span></div>
+
+{{if $s.Etapa}}<ol class="etapas-sol" aria-label="Andamento">
+  {{range $i, $e := .D.Etapas}}<li class="{{if lt (add $i 1) $s.Etapa}}feita{{else if eq (add $i 1) $s.Etapa}}atual{{end}}">{{$e}}</li>{{end}}
+</ol>{{end}}
+
+<div class="duas">
+<section class="cartao">
+  <h2>Pedido</h2>
+  <table class="kv">
+    <tr><th>Solicitante</th><td>{{$s.Solicitante}}{{if $s.ParaQuem}} · para {{$s.ParaQuem}}{{end}}</td></tr>
+    <tr><th>Setor</th><td>{{$s.Setor}}</td></tr>
+    <tr><th>Urgência</th><td>{{$s.RotuloUrgencia}}</td></tr>
+    <tr><th>Especificação</th><td style="white-space:pre-wrap">{{$s.Especificacao}}</td></tr>
+    <tr><th>Justificativa</th><td style="white-space:pre-wrap">{{$s.Justificativa}}</td></tr>
+    <tr><th>Pedido em</th><td>{{data $s.CriadoEm}}</td></tr>
+    {{if $s.TIEm}}<tr><th>Validado pela T.I</th><td>{{data $s.TIEm}} · {{$s.TIPor}}</td></tr>{{end}}
+    {{if $s.GestorID}}<tr><th>Gestor que autoriza</th><td>{{$s.Gestor}}{{if $s.AutorizadoEm}} · <span class="ok-texto">autorizou em {{data $s.AutorizadoEm}}</span>{{end}}</td></tr>{{end}}
+    {{if $s.DispensaGestor}}<tr><th>Autorização do gestor</th><td>dispensada: {{$s.DispensaGestor}}</td></tr>{{end}}
+    {{if $s.MotivoRecusa}}<tr><th>Recusada</th><td>{{$s.RecusadoPor}}: {{$s.MotivoRecusa}}</td></tr>{{end}}
+    {{if $s.CompraEm}}<tr><th>Compra</th><td>{{if $s.Comprado.Bool}}Comprado{{else}}Não comprado{{end}} · destino <b>{{$s.SetorDestino}}</b>
+      {{if $s.Fornecedor}}<br>Fornecedor: {{$s.Fornecedor}}{{end}}{{if $s.Valor}}<br>Valor: {{$s.ValorFormatado}}{{end}}{{if $s.PedidoNF}}<br>Pedido/NF: {{$s.PedidoNF}}{{end}}
+      {{if $s.Previsao}}<br>Previsão: {{dataCampo $s.Previsao}}{{end}}<br><small>{{$s.CompraPor}} · {{data $s.CompraEm}}</small></td></tr>{{end}}
+    {{if $s.EntregueEm}}<tr><th>Entregue</th><td>{{data $s.EntregueEm}} · {{$s.EntreguePor}}{{if $s.AtivoID}} · <a href="/termos/ativos?editar={{$s.AtivoID}}">ativo cadastrado</a>{{end}}</td></tr>{{end}}
+  </table>
+  {{if .D.PodeCancelar}}<details style="margin-top:12px"><summary>Cancelar a solicitação</summary>
+    <form method="post" action="/solicitacoes/{{$s.ID}}/cancelar" class="linha-form" onsubmit="return confirm('Cancelar {{$s.Numero}}?')"><input type="hidden" name="csrf" value="{{$csrf}}"><input name="motivo" placeholder="motivo (opcional)" maxlength="300"><button class="btn perigo pequeno">Cancelar</button></form></details>{{end}}
+</section>
+
+<section class="cartao destaque-aviso">
+  {{if and .D.TI (eq $s.Situacao "solicitada")}}
+  <h2>Validar (T.I)</h2>
+  <form method="post" action="/solicitacoes/{{$s.ID}}/validar" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label class="cheio">Especificação para o Suprimentos comprar<textarea name="especificacao" rows="3" required maxlength="1000">{{$s.Especificacao}}</textarea></label>
+    <label>Quantidade<input name="quantidade" type="number" min="1" max="500" value="{{$s.Quantidade}}"></label>
+    <label>Gestor que autoriza<select name="gestor_id">
+      <option value="">— escolha —</option>
+      {{range .D.Gestores}}<option value="{{.ID}}"{{if eq .ID $.D.Sugerido}} selected{{end}}>{{if .Nome}}{{.Nome}}{{else}}{{.Usuario}}{{end}} · {{.RotuloPapel}}</option>{{end}}
+    </select>{{if .D.Sugerido}}<span class="dica">Sugerido pelo setor {{$s.Setor}}.</span>{{else}}<span class="dica">Nenhum gestor ligado ao setor {{$s.Setor}} (Colaboradores → perfil e setores).</span>{{end}}</label>
+    <label class="cheio">Observação da T.I <small>(aparece na linha do tempo)</small><textarea name="obs" rows="2" maxlength="1000"></textarea></label>
+    {{if .D.EhAdmin}}<label class="cheio">Dispensar o gestor <small>(só administrador; vai direto ao Suprimentos)</small><input name="dispensa" maxlength="300" placeholder="motivo — deixe vazio para pedir a autorização"></label>{{end}}
+    <div class="cheio" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primario" name="acao" value="validar">Validar e enviar ao gestor</button></div>
+  </form>
+  <details style="margin-top:10px"><summary>Recusar o pedido</summary>
+    <form method="post" action="/solicitacoes/{{$s.ID}}/validar" class="linha-form"><input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="acao" value="recusar"><input name="motivo" required maxlength="500" placeholder="motivo"><button class="btn perigo pequeno">Recusar</button></form></details>
+
+  {{else if .D.PodeAutorizar}}
+  <h2>Autorizar a compra</h2>
+  <p>A T.I validou o pedido. Confira a especificação e a justificativa ao lado e decida.</p>
+  <form method="post" action="/solicitacoes/{{$s.ID}}/autorizar" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label class="cheio">Comentário <small>(obrigatório para recusar)</small><textarea name="motivo" rows="2" maxlength="500"></textarea></label>
+    <div class="cheio" style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn primario" name="decisao" value="autorizar">Autorizar a compra</button>
+      <button class="btn perigo" name="decisao" value="recusar">Não autorizar</button>
+    </div>
+  </form>
+
+  {{else if .D.PodeComprar}}
+  <h2>Registrar a compra (Suprimentos)</h2>
+  <form method="post" action="/solicitacoes/{{$s.ID}}/compra" enctype="multipart/form-data" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <div class="cheio" style="display:flex;gap:18px;flex-wrap:wrap">
+      <label style="display:flex;gap:8px;align-items:center"><input type="radio" name="comprado" value="sim" style="width:auto"{{if $s.CompraEm}}{{if $s.Comprado.Bool}} checked{{end}}{{end}} required> <b>Comprado</b></label>
+      <label style="display:flex;gap:8px;align-items:center"><input type="radio" name="comprado" value="nao" style="width:auto"{{if $s.CompraEm}}{{if not $s.Comprado.Bool}} checked{{end}}{{end}}> <b>Não comprado</b></label>
+    </div>
+    <label>Para qual setor foi{{template "campo_setor" (dict "Valor" (or $s.SetorDestino $s.Setor) "Obrigatorio" true)}}</label>
+    <label>Fornecedor <small>(opcional)</small><input name="fornecedor" value="{{$s.Fornecedor}}" maxlength="120"></label>
+    <label>Valor total <small>(opcional)</small><input name="valor" value="{{$s.Valor}}" placeholder="1.250,00"></label>
+    <label>Nº do pedido / NF <small>(opcional)</small><input name="pedido_nf" value="{{$s.PedidoNF}}" maxlength="60"></label>
+    <label>Previsão de entrega <small>(opcional)</small><input type="date" name="previsao" value="{{$s.Previsao}}"></label>
+    <div class="cheio">{{template "zona_anexos" (dict "MaxAnexos" .D.MaxAnexos "MaxAnexoMB" .D.MaxAnexoMB)}}</div>
+    <div class="cheio"><button class="btn primario">Salvar a compra</button></div>
+  </form>
+
+  {{else if and .D.TI (eq $s.Situacao "comprada")}}
+  <h2>Entregar (T.I)</h2>
+  <form method="post" action="/solicitacoes/{{$s.ID}}/entregar" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label class="cheio" style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="criar_ativo" value="1" style="width:auto"> Cadastrar como ativo (já com NF e valor da compra)</label>
+    <label>Tipo<select name="tipo">{{range .D.TiposEquip}}<option value="{{.}}">{{rotuloTipoEq .}}</option>{{end}}</select></label>
+    <label>Fabricante<input name="fabricante" maxlength="80"></label>
+    <label>Modelo<input name="modelo" maxlength="80"></label>
+    <label>Nº de série<input name="serial" maxlength="80"></label>
+    <label>Patrimônio<input name="patrimonio" maxlength="80"></label>
+    <p class="dica cheio">Computador com o agente aparece sozinho no inventário; aí não precisa cadastrar o ativo.</p>
+    {{if .D.TermosAtivo}}<label class="cheio" style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="emitir_termo" value="1" style="width:auto"> Emitir o Termo de Entrega em seguida (opcional)</label>{{end}}
+    <label class="cheio">Observação<input name="obs" maxlength="500"></label>
+    <div class="cheio"><button class="btn primario">Registrar a entrega</button></div>
+  </form>
+
+  {{else}}
+  <h2>Andamento</h2>
+  {{if eq $s.Situacao "solicitada"}}<p>Aguardando a T.I conferir o pedido.</p>
+  {{else if eq $s.Situacao "aguardando_gestor"}}<p>Aguardando a autorização de <b>{{$s.Gestor}}</b>.</p>
+  {{else if eq $s.Situacao "em_compra"}}<p>Autorizada. Agora está com o Suprimentos.</p>
+  {{else if eq $s.Situacao "comprada"}}<p>Comprada. A T.I avisa quando entregar.</p>
+  {{else}}<p>{{$s.RotuloSituacao}}.</p>{{end}}
+  {{end}}
+</section>
+</div>
+
+<div class="duas">
+<section class="cartao">
+  <h2>Linha do tempo</h2>
+  <ol class="linha-tempo">{{range .D.Eventos}}<li><small>{{data .Em}} · {{.Autor}}</small><div{{if eq .Tipo "comentario"}} class="balao"{{end}}>{{if eq .Tipo "anexo"}}📎 {{end}}{{.Texto}}</div></li>{{end}}</ol>
+</section>
+<section class="cartao">
+  <h2>Comentários e anexos</h2>
+  {{template "anexos" (dict "Lista" .D.Anexos "Base" (printf "/solicitacoes/%d/anexos" $s.ID))}}
+  <form method="post" action="/solicitacoes/{{$s.ID}}/comentar" enctype="multipart/form-data" class="form" style="margin-top:12px">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label class="cheio">Comentário<textarea name="texto" rows="3" maxlength="3000"></textarea></label>
+    <div class="cheio">{{template "zona_anexos" (dict "MaxAnexos" .D.MaxAnexos "MaxAnexoMB" .D.MaxAnexoMB)}}</div>
+    <div class="cheio"><button class="btn">Enviar</button></div>
+  </form>
+</section>
+</div>
+{{end}}

@@ -2,3 +2,9 @@
 # 1.21: chaves da assinatura da T.I nunca entram no Git
 *.chave
 ordem-migracao-*.txt
+
+# kits de instalação (binários) não vão para o Git
+kits/
+
+# credenciais locais (token do GitHub etc.) — nunca vão para o Git
+.segredos/

@@ -1,0 +1,90 @@
+{{define "conteudo"}}{{$f := .D.F}}{{$csrf := .Sessao.CSRF}}
+<p><a href="/admin/colaboradores">← Colaboradores</a></p>
+<div class="cabecalho"><h1>{{$f.NomeExibicao}}</h1> {{template "selo_ficha" $f}}</div>
+
+{{if .D.LinkConvite}}
+<section class="cartao destaque-aviso">
+  <h2>{{if .D.ConviteRenovado}}Convite renovado{{else}}Convite criado{{end}}</h2>
+  {{if .D.ErroEmailConvite}}<div class="aviso erro">O e-mail não foi colocado na fila: {{.D.ErroEmailConvite}}. Mande o link abaixo por outro canal (Teams, por exemplo).</div>
+  {{else}}<p>O e-mail entrou na fila de envio para <b>{{if $f.Email}}{{$f.Email}}{{else}}{{$f.Usuario}}{{end}}</b>. Se não chegar, mande o link abaixo por outro canal (Teams, por exemplo).</p>{{end}}
+  <div class="caixa-link"><input id="link-convite" value="{{.D.LinkConvite}}" readonly><button type="button" class="btn pequeno" data-copiar="link-convite">Copiar link</button></div>
+  <p class="dica">Este link aparece só agora: o sistema guarda apenas uma impressão (hash) dele. Ele é pessoal, de uso único e vale até {{data $f.ConviteExpira}}.</p>
+</section>
+{{end}}
+
+<div class="duas">
+<section class="cartao">
+  <h2>Conta</h2>
+  <table class="kv">
+    <tr><th>Usuário</th><td>{{$f.Usuario}}</td></tr>
+    <tr><th>E-mail</th><td>{{$f.Email}}</td></tr>
+    <tr><th>Perfil</th><td>{{if eq $f.Papel "admin"}}Administrador{{else if eq $f.Papel "tecnico"}}Técnico{{else}}Usuário{{end}}</td></tr>
+    <tr><th>Criada em</th><td>{{data $f.CriadoEm}}{{if $f.ConvidadoPor}} · convite de {{$f.ConvidadoPor}}{{end}}</td></tr>
+    <tr><th>Senha</th><td>{{if $f.TemSenha}}definida{{else if $f.ConviteExpirado}}<span class="selo vermelho">convite expirado</span>{{else if $f.ConvitePendente}}aguardando a pessoa (convite até {{data $f.ConviteExpira}}){{else}}sem senha{{end}}</td></tr>
+    {{if $f.Validada}}<tr><th>Ficha validada</th><td>{{data $f.ValidadaEm}} por {{$f.ValidadaPor}}</td></tr>{{end}}
+  </table>
+  {{if .D.PodeGerir}}
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+    {{if not $f.TemSenha}}
+    <form method="post" action="/admin/colaboradores/{{$f.AdminID}}/convite"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn primario pequeno">{{if $f.ConvitePendente}}Renovar convite{{else}}Enviar convite{{end}}</button></form>
+    {{if and $f.ConvitePendente (not $f.ConviteExpirado)}}<form method="post" action="/admin/colaboradores/{{$f.AdminID}}/convite" onsubmit="return confirm('Cancelar o convite? O link deixa de valer.')"><input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="cancelar" value="1"><button class="btn pequeno">Cancelar convite</button></form>{{end}}
+    {{end}}
+    {{if not .D.EhEu}}
+    {{if $f.Ativo}}<form method="post" action="/admin/colaboradores/{{$f.AdminID}}/ativo" onsubmit="return confirm('Desativar a conta? A pessoa deixa de entrar. Nada é apagado (os termos ficam guardados pelo prazo da LGPD).')"><input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="ativo" value="0"><button class="btn perigo pequeno">Desativar conta (desligamento)</button></form>
+    {{else}}<form method="post" action="/admin/colaboradores/{{$f.AdminID}}/ativo"><input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="ativo" value="1"><button class="btn pequeno">Reativar conta</button></form>{{end}}
+    {{end}}
+  </div>
+  {{else}}<p class="sub">Só um administrador mexe em contas de administradores e técnicos.</p>{{end}}
+</section>
+<section class="cartao">
+  <h2>Login de rede (Windows)</h2>
+  <p class="sub">Liga a conta ao usuário que o agente vê nas máquinas. É o que permite registrar, na assinatura, de qual máquina a pessoa assinou. Sem o vínculo, a máquina fica "não identificada".</p>
+  {{if $f.LoginRede}}<p>Atual: <code>{{$f.LoginRede}}</code></p>{{end}}
+  {{if .D.Sugestoes}}<p><b>Sugestões do inventário</b> (mesmo nome antes do @):</p>
+  <ul>{{range .D.Sugestoes}}<li><code>{{.Login}}</code>{{if .Nome}} — {{.Nome}}{{end}} <small>· {{.Maquinas}} máquina(s) · visto {{rel .UltimoVisto}}</small> <button type="button" class="btn link" onclick="document.getElementById('login_rede').value='{{.Login}}'">usar</button></li>{{end}}</ul>
+  {{else}}<p class="vazio">Nenhum login do inventário bate com o e-mail. Digite o login (ex.: DOMINIO\nome.sobrenome) se souber.</p>{{end}}
+</section>
+</div>
+
+{{if .D.EhAdmin}}{{if eq $f.Papel "usuario"}}
+<section class="cartao" id="perfil">
+  <h2>Perfil e setores</h2>
+  <p class="sub">O perfil decide as áreas do menu e os poderes (autorizar compras, registrar compras, ver as solicitações do setor). Os setores dizem por quais setores a pessoa responde como gestor.</p>
+  <form method="post" action="/admin/colaboradores/{{$f.AdminID}}/perfil" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label>Perfil<select name="perfil_id"><option value="0">Usuário (padrão)</option>{{range .D.Perfis}}<option value="{{.ID}}"{{if eq .ID $.D.PerfilAtual}} selected{{end}}>{{.Nome}}</option>{{end}}</select></label>
+    {{if .D.SetoresFixos}}<div class="cheio"><b>Gestor dos setores</b><br>{{range .D.SetoresFixos}}<label style="display:inline-flex;gap:6px;align-items:center;margin:4px 14px 4px 0"><input type="checkbox" name="setores" value="{{.}}" style="width:auto"{{if contem $.D.SetoresGestor .}} checked{{end}}> {{.}}</label>{{end}}</div>
+    {{else}}<label>Gestor dos setores <small>(separe por vírgula)</small><input name="setores_texto" value="{{join .D.SetoresGestor ", "}}" placeholder="Financeiro, RH"></label>{{end}}
+    <div class="cheio"><button class="btn primario">Salvar perfil</button></div>
+  </form>
+</section>
+{{end}}{{end}}
+
+<section class="cartao">
+  <h2>Ficha</h2>
+  {{if .D.Faltando}}<p class="sub">Falta: {{join .D.Faltando ", "}}.</p>{{end}}
+  {{if .D.PodeGerir}}
+  <form method="post" action="/admin/colaboradores/{{$f.AdminID}}/ficha" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    {{template "campos_ficha" .D}}
+    <label class="cheio">Login de rede<input id="login_rede" name="login_rede" value="{{$f.LoginRede}}" placeholder="DOMINIO\usuario (precisa aparecer no inventário)" autocomplete="off"></label>
+    <div class="cheio" style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn primario" name="acao" value="validar">Salvar e validar a ficha</button>
+      <button class="btn" name="acao" value="salvar">Só salvar</button>
+      {{if $f.Validada}}<button class="btn perigo" name="acao" value="revogar" formnovalidate>Revogar validação</button>{{end}}
+    </div>
+    <p class="dica cheio">Validar = a T.I conferiu os dados com o RH (empresa, vínculo e gestor principalmente). Só fichas validadas recebem termos. Se a pessoa mudar algo depois, a ficha volta para "a validar".</p>
+  </form>
+  {{else}}
+  <table class="kv">
+    <tr><th>CPF</th><td>{{$f.CPFFormatado}}</td></tr><tr><th>Cargo</th><td>{{$f.Cargo}}</td></tr><tr><th>Setor</th><td>{{$f.Setor}}</td></tr>
+    <tr><th>Empresa</th><td>{{$f.Empresa}}{{if $f.Unidade}} · {{$f.Unidade}}{{end}}</td></tr><tr><th>Vínculo</th><td>{{$f.RotuloVinculo}}</td></tr><tr><th>Regime</th><td>{{$f.RotuloRegime}}</td></tr>
+  </table>
+  {{end}}
+</section>
+
+<section class="cartao">
+  <h2>E-mails para esta pessoa</h2>
+  {{template "tabela_envios" (dict "Lista" .D.Envios "CSRF" $csrf "Voltar" (printf "/admin/colaboradores/%d" $f.AdminID))}}
+</section>
+{{end}}

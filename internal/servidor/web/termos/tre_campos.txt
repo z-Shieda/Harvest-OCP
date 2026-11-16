@@ -1,0 +1,44 @@
+# chave | Rótulo | tipo | quem | opções
+chamado_numero | Nº do chamado | auto | auto
+termo_numero | Nº do termo | auto | auto
+termo_versao | Versão do modelo | auto | auto
+termo_emitido_em | Emitido em | auto | auto
+colaborador_nome | Nome completo | auto | auto
+colaborador_cpf | CPF | auto | auto
+colaborador_matricula | Matrícula | auto | auto | opcional
+colaborador_email | E-mail corporativo | auto | auto
+colaborador_cargo | Cargo / função | auto | auto
+colaborador_setor | Setor | auto | auto
+colaborador_empresa | Empresa empregadora | auto | auto
+colaborador_unidade | Unidade | auto | auto | opcional
+colaborador_gestor | Gestor imediato | auto | auto
+colaborador_vinculo | Tipo de vínculo | auto | auto
+colaborador_regime | Regime de trabalho | auto | auto
+colaborador_telefone | Telefone | auto | auto | opcional
+equipamento_tipo | Tipo do equipamento | auto | auto
+equipamento_fabricante_modelo | Fabricante / modelo | auto | auto
+equipamento_serial | Nº de série | auto | auto
+equipamento_patrimonio | Nº de patrimônio | auto | auto
+equipamento_hostname | Nome do computador | auto | auto | opcional
+equipamento_so | Sistema operacional | auto | auto | opcional
+equipamento_hardware | Processador / RAM / disco | auto | auto | opcional
+equipamento_mac | Endereço MAC | auto | auto | opcional
+equipamento_imei_linha | IMEI / linha | auto | auto | opcional
+equipamento_condicao | Condição | auto | auto
+equipamento_nf | Nota fiscal / aquisição | auto | auto | opcional
+equipamento_valor | Valor de referência | auto | auto
+entregue_por | Entregue por | auto | auto
+entregue_em | Data e hora da entrega | auto | auto
+local_uso | Local de uso do equipamento | texto | colaborador | se=regime:hibrido,teletrabalho
+acessorios | Acessórios entregues | checklist | ti | itens=Carregador / fonte;Cabo de energia;Mouse;Teclado externo;Headset;Mochila / case;Dock / hub / adaptador;Monitor;Chip / linha telefônica;Outro | colunas=Entregue;Não | obs=Nº de série / observação | coluna=Item
+seguranca | Configuração de segurança | checklist | ti | itens=Criptografia do disco ativa (BitLocker);Antivírus / proteção ativa e atualizada;Agente de inventário instalado (integrado ao Harvest);Agente de monitoramento WorkMonitor instalado (PSI – Anexo II);Usuário sem privilégio de administrador;Autenticação em dois fatores (MFA) ativa na conta;Backup em nuvem corporativa configurado (OneDrive);Sistema operacional atualizado | colunas=Sim;Não | coluna=Item verificado
+estado | Estado do equipamento | checklist | ti | itens=Carcaça / tampa;Tela;Teclado;Touchpad;Dobradiças;Conector de carga;Portas USB / HDMI;Bateria (autonomia);Etiqueta de patrimônio | colunas=Perfeito;Riscado / marcas;Danificado;Não se aplica | coluna=Componente
+fotos_entrega | Fotos da entrega | fotos | ti | minimo=4
+obs_estado | Observações sobre o estado | textolongo | ti | opcional
+devolvido_em | Data e hora da devolução | datahora | devolucao
+recebido_por | Recebido por | auto | auto
+motivo_devolucao | Motivo | opcao | devolucao | opcoes=Desligamento;Troca de equipamento;Outro
+fotos_devolucao | Fotos da devolução | fotos | devolucao | minimo=4
+vistoria | Vistoria da devolução | checklist | devolucao | itens=Equipamento;Tela;Teclado / touchpad;Carregador / fonte;Demais acessórios (item 3);Etiqueta de patrimônio | colunas=Igual à entrega;Desgaste natural;Dano novo;Faltante | coluna=Componente
+encerramento | Encerramento técnico | checklist | devolucao | itens=Contas e acessos do colaborador bloqueados;Backup dos arquivos corporativos conferido;Formatação segura / reset realizada;Licenças liberadas e ativo atualizado no Harvest | colunas=Sim;Não
+pendencias_devolucao | Pendências / danos e valor | textolongo | devolucao | opcional

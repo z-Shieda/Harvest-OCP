@@ -1,0 +1,72 @@
+{{define "conteudo"}}{{$c := .D.Contagem}}{{$p := .D.Por}}{{$csrf := .Sessao.CSRF}}
+<div class="cabecalho"><h1>Termos</h1>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn primario" href="/termos/novo">Emitir termo</a><a class="btn" href="/admin/colaboradores#convidar">Convidar colaborador</a></div></div>
+<div class="numeros">
+  <a class="numero" href="#aguardando"><span>Aguardando assinatura</span><b>{{index $p "aguardando"}}</b></a>
+  <a class="numero" href="#rascunhos"><span>Em preenchimento (T.I)</span><b>{{index $p "rascunho"}}</b></a>
+  <a class="numero" href="#recentes"><span>Assinados</span><b>{{index $p "assinado"}}</b></a>
+  <a class="numero" href="#sem-termo"><span>Máquinas sem termo assinado</span><b>{{len .D.SemTermo}}</b></a>
+  <a class="numero" href="/admin/colaboradores?filtro=a_validar"><span>Fichas a validar</span><b>{{index $c "a_validar"}}</b></a>
+  <a class="numero" href="/admin/colaboradores?filtro=ficha_incompleta"><span>Fichas incompletas</span><b>{{index $c "ficha_incompleta"}}</b></a>
+</div>
+{{if .D.ErrosFila}}<div class="aviso erro"><b>{{.D.ErrosFila}}</b> e-mail(s) do módulo não foram enviados depois de 5 tentativas. {{if .Sessao.Admin.EhAdmin}}<a href="/admin/termos#envios">Ver a fila</a>{{end}}</div>{{end}}
+{{if eq .D.Empresas 0}}<div class="aviso erro">Nenhuma empresa cadastrada: os colaboradores não conseguem completar a ficha. {{if .Sessao.Admin.EhAdmin}}<a href="/admin/termos#empresas">Cadastrar empresas e unidades</a>{{else}}Peça a um administrador.{{end}}</div>{{end}}
+{{if .D.Atrasados}}<div class="aviso erro"><b>{{len .D.Atrasados}}</b> termo(s) aguardando há mais de {{.D.Config.AtencaoDias}} dias.</div>{{end}}
+
+<div class="duas">
+<section class="cartao" id="aguardando">
+  <h2>Aguardando assinatura</h2>
+  {{if .D.Aguardando}}<table class="tabela lista">
+    <tr><th>Nº</th><th>Colaborador</th><th>Termo</th><th>Há</th><th></th></tr>
+    {{range .D.Aguardando}}<tr><td>{{.NumeroTexto}}</td><td><b>{{.Pessoa}}</b>{{if .Equipamento}}<br><small>{{.Equipamento}}</small>{{end}}</td><td><small>{{.Sigla}}</small></td>
+      <td><small>{{.AguardandoDias}} dia(s)</small></td><td class="acoes"><a class="btn pequeno" href="/termos/{{.ID}}">Abrir</a></td></tr>{{end}}
+  </table>{{else}}<p class="vazio">Nenhum termo esperando assinatura.</p>{{end}}
+</section>
+<section class="cartao" id="rascunhos">
+  <h2>Em preenchimento pela T.I</h2>
+  {{if .D.Rascunhos}}<table class="tabela lista">
+    <tr><th>Nº</th><th>Colaborador</th><th>Termo</th><th></th></tr>
+    {{range .D.Rascunhos}}<tr><td>{{.NumeroTexto}}</td><td><b>{{.Pessoa}}</b>{{if .Equipamento}}<br><small>{{.Equipamento}}</small>{{end}}</td><td><small>{{.Sigla}}</small></td>
+      <td class="acoes"><a class="btn pequeno primario" href="/termos/{{.ID}}/preencher">Preencher</a></td></tr>{{end}}
+  </table>{{else}}<p class="vazio">Nada em preenchimento.</p>{{end}}
+</section>
+</div>
+
+<div class="duas">
+<section class="cartao" id="recentes">
+  <h2>Assinados recentemente</h2>
+  {{if .D.Recentes}}<table class="tabela lista">
+    <tr><th>Nº</th><th>Colaborador</th><th>Termo</th><th>Assinado</th><th></th></tr>
+    {{range .D.Recentes}}<tr><td>{{.NumeroTexto}}</td><td><b>{{.Pessoa}}</b>{{if .Equipamento}}<br><small>{{.Equipamento}}</small>{{end}}</td><td><small>{{.Sigla}}</small></td>
+      <td><small>{{brt .AssinadoEm}}</small></td><td class="acoes"><a class="btn pequeno" href="/termos/{{.ID}}/pdf" target="_blank">PDF</a> <a class="btn pequeno" href="/termos/{{.ID}}">Abrir</a></td></tr>{{end}}
+  </table>{{else}}<p class="vazio">Nenhum termo assinado ainda.</p>{{end}}
+  {{if .D.Desatualizados}}<p class="sub" style="margin-top:12px"><b>{{len .D.Desatualizados}}</b> termo(s) assinado(s) numa versão anterior à publicada (a revisão foi publicada como correção, sem reassinatura).</p>{{end}}
+</section>
+<section class="cartao">
+  <h2>Pedem atenção</h2>
+  {{if or .D.AValidar .D.Expirados .D.Atrasados}}<ul class="lista-atencao">
+    {{range .D.AValidar}}<li><a href="/admin/colaboradores/{{.AdminID}}"><b>{{.NomeExibicao}}</b></a> — ficha esperando validação</li>{{end}}
+    {{range .D.Expirados}}<li><a href="/admin/colaboradores/{{.AdminID}}"><b>{{.NomeExibicao}}</b></a> — convite expirado</li>{{end}}
+    {{range .D.Atrasados}}<li><a href="/termos/{{.ID}}"><b>{{.Pessoa}}</b></a> — termo nº {{.NumeroTexto}} aguardando há {{.AguardandoDias}} dias</li>{{end}}
+  </ul>{{else}}<p class="vazio">Nada pendente.</p>{{end}}
+  {{range .D.Tipos}}{{if not .PorEquipamento}}
+  <h3 style="margin-top:18px">{{.Nome}} para todos</h3>
+  <p class="sub">Emite e envia para assinatura a todas as fichas validadas que ainda não têm este termo (vínculos permitidos: {{.VinculosTexto}}). Deixe o setor em branco para todos.</p>
+  <form method="post" action="/termos/lote" class="linha-form" onsubmit="return confirm('Emitir e enviar este termo para todas as fichas validadas que ainda não o têm?')">
+    <input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="tipo" value="{{.ID}}">
+    {{template "campo_setor" (dict "Valor" "" "Placeholder" "todos os setores")}}
+    <button class="btn">Emitir e enviar</button>
+  </form>
+  {{end}}{{end}}
+</section>
+</div>
+
+<section class="cartao" id="sem-termo">
+  <h2>Máquinas sem termo de entrega assinado <small class="sub">(contato nos últimos 30 dias)</small></h2>
+  {{if .D.SemTermo}}<div class="rolagem"><table class="tabela lista">
+    <tr><th>Máquina</th><th>Usuário</th><th>Setor</th><th>Patrimônio</th><th></th></tr>
+    {{range .D.SemTermo}}<tr><td><a href="/maquinas/{{.ID}}"><b>{{.Hostname}}</b></a></td><td><small>{{.UsuarioAtual}}{{if not .UsuarioAtual}}{{.UltimoUsuario}}{{end}}</small></td><td>{{.Setor}}</td><td>{{.Patrimonio}}</td>
+      <td class="acoes"><a class="btn pequeno" href="/termos/novo?equipamento=m{{.ID}}">Emitir termo</a></td></tr>{{end}}
+  </table></div>{{else}}<p class="vazio">Todas as máquinas ativas têm termo assinado.</p>{{end}}
+</section>
+{{end}}

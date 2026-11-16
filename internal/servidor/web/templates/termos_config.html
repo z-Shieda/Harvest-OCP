@@ -1,0 +1,59 @@
+{{define "conteudo"}}{{$c := .D.Config}}{{$csrf := .Sessao.CSRF}}
+{{if .Sessao.Admin.EhAdmin}}<div class="admin-wrap">{{template "admin_secoes" (dict "Atual" "termos")}}<div class="admin-corpo">{{end}}
+<div class="cabecalho"><h1>Configurar termos</h1>{{if .D.Liberado}}<a class="btn" href="/termos">Ir para o painel de termos</a>{{end}}</div>
+{{if not .D.Seguro}}<div class="aviso erro"><b>Este painel está aberto em HTTP.</b> O módulo Termos lida com senha, CPF e código de aceite: em produção ele exige HTTPS (Railway, ou certificado/proxy no servidor local). Para testar na máquina de teste, marque "permitir HTTP".</div>{{end}}
+{{if not .D.SMTPOK}}<div class="aviso erro">O e-mail (SMTP) não está configurado: convites e avisos não saem. <a href="/admin#email">Configurar o e-mail</a>. Enquanto isso, o link do convite aparece na tela para mandar por outro canal.</div>{{end}}
+
+<section class="cartao">
+  <h2>Módulo</h2>
+  <form method="post" action="/admin/termos" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <div class="cheio">
+      <label class="chave"><input type="checkbox" name="ativo" value="1"{{if $c.Ativo}} checked{{end}}><span class="trilho-chave" aria-hidden="true"></span><span class="rotulo-chave"><b>Módulo Termos ligado</b><small>Desligar esconde o menu e as telas; os dados ficam guardados.</small></span></label>
+      <label class="chave" style="margin-top:6px"><input type="checkbox" name="permitir_http" value="1"{{if $c.PermitirHTTP}} checked{{end}}><span class="trilho-chave" aria-hidden="true"></span><span class="rotulo-chave"><b>Permitir HTTP (só para testes)</b><small>Liga o módulo sem HTTPS, com uma faixa de aviso em todas as telas dele. Fica registrado na auditoria.</small></span></label>
+    </div>
+    <label class="cheio">Domínios de e-mail aceitos nos convites<input name="dominios" value="{{.D.Dominios}}" placeholder="ocupacional.com.br, outra.com.br" required>
+      <span class="dica">Só e-mails desses domínios recebem conta. Separe por vírgula.</span></label>
+    <label class="cheio">E-mails do RH (recebem o PDF de cada termo assinado)<textarea name="emails_rh" rows="3" placeholder="rh@ocupacional.com.br">{{.D.EmailsRH}}</textarea>
+      <span class="dica">Um por linha. Usado a partir da fase de assinatura.</span></label>
+    <label>Validade do convite (dias)<input name="convite_dias" type="number" min="1" max="30" value="{{$c.ConviteDias}}"></label>
+    <label>Lembrete enquanto o termo aguarda (a cada N dias; 0 = sem lembrete)<input name="lembrete_dias" type="number" min="0" max="30" value="{{$c.LembreteDias}}"></label>
+    <label>"Pedem atenção" no Início: aguardando há mais de (dias)<input name="atencao_dias" type="number" min="1" max="90" value="{{$c.AtencaoDias}}"></label>
+    <div class="cheio"><button class="btn primario">Salvar</button></div>
+  </form>
+</section>
+
+<section class="cartao" id="empresas">
+  <h2>Empresas do grupo e unidades</h2>
+  <p class="sub">A empregadora vai no termo (razão social e CNPJ). O colaborador escolhe da lista na ficha — por isso o CNPJ fica certo. Unidades: uma por linha.</p>
+  {{range .D.Empresas}}
+  <details class="grupo"{{if not .Ativa}} style="opacity:.6"{{end}}>
+    <summary><b>{{.RazaoSocial}}</b>{{if .CNPJ}} · {{.CNPJFormatado}}{{end}} <small>· {{len .Unidades}} unidade(s)</small>{{if not .Ativa}} <span class="selo">desativada</span>{{end}}</summary>
+    <form method="post" action="/admin/termos/empresas" class="form" style="margin-top:10px">
+      <input type="hidden" name="csrf" value="{{$csrf}}"><input type="hidden" name="id" value="{{.ID}}">
+      <label>Razão social<input name="razao_social" value="{{.RazaoSocial}}" required maxlength="160"></label>
+      <label>CNPJ<input name="cnpj" value="{{.CNPJFormatado}}" placeholder="00.000.000/0000-00"></label>
+      <label class="cheio">Unidades<textarea name="unidades" rows="3">{{.UnidadesTexto}}</textarea></label>
+      <label class="cheio" style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="ativa" value="1"{{if .Ativa}} checked{{end}} style="width:auto"> Ativa (aparece na lista da ficha)</label>
+      <div class="cheio" style="display:flex;gap:8px"><button class="btn primario">Salvar</button></div>
+    </form>
+    <form method="post" action="/admin/termos/empresas/{{.ID}}/excluir" onsubmit="return confirm('Excluir esta empresa? Se houver pessoas vinculadas, ela só é desativada.')" style="margin-top:8px"><input type="hidden" name="csrf" value="{{$csrf}}"><button class="btn link">Excluir</button></form>
+  </details>
+  {{else}}<p class="vazio">Nenhuma empresa cadastrada.</p>{{end}}
+  <h3 style="margin-top:18px">Nova empresa</h3>
+  <form method="post" action="/admin/termos/empresas" class="form">
+    <input type="hidden" name="csrf" value="{{$csrf}}">
+    <label>Razão social<input name="razao_social" required maxlength="160"></label>
+    <label>CNPJ<input name="cnpj" placeholder="00.000.000/0000-00"></label>
+    <label class="cheio">Unidades<textarea name="unidades" rows="3" placeholder="Matriz&#10;Filial Centro"></textarea></label>
+    <div class="cheio"><button class="btn primario">Adicionar empresa</button></div>
+  </form>
+</section>
+
+<section class="cartao" id="envios">
+  <h2>Fila de e-mails do módulo</h2>
+  <p class="sub">Se o envio falhar, o sistema tenta de novo a cada 15 minutos, até 5 vezes. Depois fica com o erro e o botão Reenviar. Os envios também aparecem em <a href="/admin#email">Administração → Últimos envios</a>.</p>
+  {{template "tabela_envios" (dict "Lista" .D.Envios "CSRF" $csrf "Voltar" "/admin/termos#envios")}}
+</section>
+{{if .Sessao.Admin.EhAdmin}}</div></div>{{end}}
+{{end}}

@@ -12,6 +12,8 @@
 <div class="numeros">
   <div class="numero"><b>{{.D.Criados}}</b><span>abertos no período{{if .D.OrigemPublica}} ({{.D.OrigemPublica}} pela página sem login){{end}}</span></div>
   <div class="numero"><b>{{.D.Resolvidos}}</b><span>resolvidos no período</span></div>
+  <a class="numero" href="/solicitacoes?ver=todas"><b>{{.D.Sol.CriadasPeriodo}}</b><span>solicitações de equipamento no período ({{.D.Sol.EntreguesPeriodo}} entregues · {{.D.Sol.Abertas}} em andamento)</span></a>
+  <div class="numero"><b>{{add .D.Criados .D.Sol.CriadasPeriodo}}</b><span>atendimentos no período (chamados + solicitações)</span></div>
   <a class="numero{{if .D.Atrasados}} vermelho{{end}}" href="/chamados?status=abertos&atrasados=1"><b>{{.D.Atrasados}}</b><span>atrasados agora (de {{.D.EmAberto}} em aberto)</span></a>
   <div class="numero"><b>{{.D.Media}}</b><span>tempo médio até resolver (mediana {{.D.Mediana}})</span></div>
   <div class="numero{{if and (ge .D.PctPrazo 0) (lt .D.PctPrazo 80)}} amarelo{{end}}"><b>{{if ge .D.PctPrazo 0}}{{.D.PctPrazo}}%{{else}}—{{end}}</b><span>resolvidos dentro do prazo{{if .D.ComPrazo}} ({{.D.ComPrazo}} com prazo){{end}}</span></div>

@@ -18,9 +18,48 @@ Duas partes, ambas executável único (sem runtime/dependência externa):
   inicialização. A partir da 1.6 ele também **se auto-atualiza** quando o servidor avisa que há
   versão nova.
 
-> **VERSÃO ATUAL: servidor 1.18.0 / agente 1.17.0.** Pontos em aberto estão na seção "ONDE PARAMOS" logo abaixo.
+> **VERSÃO ATUAL: servidor 1.24.0 / agente 1.22.0 (kits em `kits/`; produção Railway via GitHub).** Pontos em aberto estão na seção "ONDE PARAMOS" logo abaixo.
 
-## ONDE PARAMOS (30/10/2026, sessão na máquina de teste) — ler primeiro
+## PRÓXIMA VERSÃO EM DESENVOLVIMENTO (16/11/2026) — ler primeiro
+
+- **Servidor 1.23.0 + agente 1.22.0 — módulo TERMOS** (termos de responsabilidade assinados eletronicamente:
+  Termo de Entrega de Equipamento por máquina + Anexo II da PSI (monitoramento) por pessoa, editor de termos
+  para o admin criar novos, contas por convite, código por e-mail no aceite, PDF, aviso ao RH, devolução,
+  identificação da máquina na assinatura pelo usuário logado + IP).
+- **Especificação completa: [`docs/SDD-1.23-TERMOS.md`](SDD-1.23-TERMOS.md)** (decisões D1–D15, modelo de dados,
+  rotas, roadmap por fases 0–6, critérios de aceite e pendências). Versão viva da SDD:
+  https://claude.ai/artifact/866RY2ghFRTRZ4zxh9gUcu
+- Modelos de origem em `docs/termos/` (Termo_Entrega_Equipamento_Harvest_v1.docx, PSI_v4_Grupo_Ocupacional.docx).
+- Começar pela **fase 1 (Base)**; a fase 3 depende de o SMTP estar enviando (pendência da 1.10.1).
+- **FASE 1 FEITA (16/11/2026, sem commit — o Daniel commita/push):** `termos_banco.go` (migrações, ficha, empresas,
+  config `termos_*`), `convites.go` (convite com hash, `SessaoPara`), `termos_fila.go` (fila `termo_envios`, 15 min × 5,
+  `DestinoTermo`), `termos.go` (rotas/telas, `comTermos` = módulo ligado + HTTPS ou "permitir HTTP"), e-mail com anexo
+  (`montarMensagem` em email.go), login por e-mail e conta `ativo` (autenticacao.go), templates `termos*.html`,
+  `colaborador(es).html`, `convite.html`, `minha_ficha.html`, partes `campos_ficha`/`tabela_envios` no layout,
+  `static/termos.js`. Testes em `termos_test.go`. Versão do servidor já em 1.23.0 (cmd/servidor/main.go).
+  Decisões do Daniel: chave "permitir HTTP (testes)"; SMTP incerto → link do convite sempre na tela.
+- **FASES 2 E 3 FEITAS (16/11/2026):** `internal/pdf`, `termos_campos.go` (marcação + campos DSL), `termos_render.go`
+  (blocos → HTML/texto/PDF), `termos_modelos.go` (tabelas termo_*, tipos, versões, documentos), `termos_seed.go` +
+  `web/termos/*.txt` (TRE-v1.0, Anexo II, PSI v4), `termos_editor.go`, `termos_valores.go` (gestão do ativo, ativos
+  manuais, campos auto), `termos_ciclo.go` (emissão, envio, código, reemissão), `termos_maquina.go` (evento quem,
+  identificação, segurança), `termos_assinatura.go`, `termos_telas.go`. Agente 1.22.0: `quem_windows.go`, bloco
+  Segurança no `coleta.ps1`. Testes: `termos_fase3_test.go` (fluxo completo). Kit de teste entregue em
+  `kits/Inventario-v1.23.0-INSTALAR-SERVIDOR.zip` (scripts do kit vieram do Daniel; o .ps1 do kit é o mesmo da 1.22).
+- **Navegação nova (16/11/2026):** menu lateral agrupado no `layout.html` (item ativo por caminho: funções `ativo`/`pode`),
+  Administração em seções (`data-grupo` nas `<section>` + `static/admin.js`, parte `admin_secoes` no layout),
+  **perfis e permissões** em `permissoes.go` (config `perm_<area>_<papel>`, rotas registradas com `pA(area, …)` no
+  `servidor.go`; GET = consulta, POST exige Técnico/Admin salvo chamados/meus_termos). Quadro de design com as 3 propostas:
+  https://claude.ai/artifact/5GznjJdKScaDAMoMDSF3Ma (escolhida a 1).
+- **1.24.0 (16/11/2026):** Solicitações de equipamento (`solicitacoes.go`, `solicitacoes_telas.go`, templates
+  `solicitacao*.html`, `static/solicitacoes.js`) e perfis personalizados (`perfis.go`, coluna `admins.perfil_id` e
+  `setores_gestor`; `Admin.PerfilID/PerfilNome`; poderes `ver_setor`/`autorizar`/`comprar`). SDD em `docs/SDD-1.24-SOLICITACOES.md`.
+  Aviso sonoro de solicitação nova NÃO foi feito (só e-mail + contador no menu).
+- **Próximo: fase 4** (devolução, lembretes automáticos, cartão no Início) depois do teste do Daniel.
+- Ambiente do assistente: Go não vem instalado; dá para extrair o `.deb` do golang-1.24 do archive.ubuntu.com
+  (`apt-get download` + `dpkg -x`) e usar `GOPROXY=direct GOSUMDB=off`. A pasta montada não deixa apagar arquivos
+  (ficou um `.git/index.lock`) e o git vê mudança de permissão em tudo → no Windows: `git config core.filemode false`.
+
+## ONDE PARAMOS (30/10/2026, sessão na máquina de teste)
 
 - **Nome do projeto: HARVEST** (dado pelo Daniel; repo Harvest-OCP). 1.18: assinatura "Desenvolvido por
   Daniel Costa · T.I Ocupacional" (https://www.linkedin.com/in/ccostadaniel/) no login e rodapé;

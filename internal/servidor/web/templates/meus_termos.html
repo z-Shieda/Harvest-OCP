@@ -1,0 +1,22 @@
+{{define "conteudo"}}
+<h1>Meus termos</h1>
+{{if .D.Pendentes}}
+<section class="cartao destaque-aviso">
+  <h2>Para assinar</h2>
+  <table class="tabela lista">
+    <tr><th>Termo</th><th>Equipamento</th><th>Enviado em</th><th></th></tr>
+    {{range .D.Pendentes}}<tr><td><b>{{.TipoNome}}</b><br><small>nº {{.NumeroTexto}} · {{.Sigla}}</small></td><td>{{.Equipamento}}</td><td><small>{{brt .EnviadoEm}}</small></td>
+      <td class="acoes"><a class="btn primario pequeno" href="/meus-termos/{{.ID}}/assinar">Ler e assinar</a></td></tr>{{end}}
+  </table>
+</section>
+{{else}}<section class="cartao"><p class="ok-texto">Nenhum termo esperando a sua assinatura.</p></section>{{end}}
+<section class="cartao">
+  <h2>Assinados e encerrados</h2>
+  {{if .D.Outros}}<table class="tabela lista">
+    <tr><th>Termo</th><th>Equipamento</th><th>Situação</th><th>Assinado em</th><th></th></tr>
+    {{range .D.Outros}}<tr><td><b>{{.TipoNome}}</b><br><small>nº {{.NumeroTexto}} · {{.Sigla}}</small></td><td>{{.Equipamento}}</td><td><span class="selo {{.CorSituacao}}">{{.RotuloSituacao}}</span></td>
+      <td><small>{{brt .AssinadoEm}}</small></td><td class="acoes">{{if .AssinadoEm}}<a class="btn pequeno" href="/meus-termos/{{.ID}}/pdf" target="_blank">PDF</a>{{end}} <a class="btn pequeno" href="/meus-termos/{{.ID}}/assinar">Ver</a></td></tr>{{end}}
+  </table>{{else}}<p class="vazio">Nenhum ainda.</p>{{end}}
+</section>
+<p class="sub">Os termos são guardados durante o vínculo e por até 5 anos depois, e vistos só pela T.I, pelo RH e pela Diretoria. Dúvidas: abra um <a href="/chamados/novo">chamado</a>.</p>
+{{end}}

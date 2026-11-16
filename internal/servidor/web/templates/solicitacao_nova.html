@@ -1,0 +1,25 @@
+{{define "conteudo"}}
+<p><a href="/solicitacoes">← Solicitações</a></p>
+<h1>Pedir equipamento</h1>
+<section class="cartao">
+  <p class="sub">Escolha um item do catálogo da T.I ou descreva o que precisa. A T.I confere a especificação, o gestor autoriza e o Suprimentos compra; você recebe um e-mail a cada etapa.</p>
+  <form method="post" action="/solicitacoes/nova" enctype="multipart/form-data" class="form">
+    <input type="hidden" name="csrf" value="{{.Sessao.CSRF}}">
+    <label class="cheio">Item do catálogo<select name="catalogo_id" data-catalogo>
+      <option value="">— outro item (descreva abaixo) —</option>
+      {{range .D.Catalogo}}<option value="{{.ID}}" data-espec="{{.Especificacao}}">{{if .Categoria}}{{.Categoria}} · {{end}}{{.Nome}}</option>{{end}}
+    </select></label>
+    <label class="cheio" data-item-livre>O que você precisa<input name="item" maxlength="120" placeholder="ex.: leitor de código de barras USB"></label>
+    <label class="cheio">Especificação <small>(a T.I confere)</small><textarea name="especificacao" rows="2" maxlength="1000" data-espec-campo></textarea></label>
+    <label>Quantidade<input name="quantidade" type="number" min="1" max="500" value="1" required></label>
+    <label>Urgência<select name="urgencia">{{range .D.Urgencias}}<option value="{{.Valor}}"{{if eq .Valor "normal"}} selected{{end}}>{{.Rotulo}}</option>{{end}}</select></label>
+    <label>Setor{{template "campo_setor" (dict "Valor" .D.Setor "Obrigatorio" true)}}</label>
+    <label>Para quem <small>(se não for para você)</small><input name="para_quem" maxlength="120" placeholder="nome de quem vai usar"></label>
+    {{if .D.Pessoas}}<label class="cheio">Pedir em nome de <small>(só a T.I)</small><select name="em_nome_de"><option value="">— eu mesmo —</option>{{range .D.Pessoas}}<option value="{{.AdminID}}">{{.NomeExibicao}}{{if .Setor}} · {{.Setor}}{{end}}</option>{{end}}</select></label>{{end}}
+    <label class="cheio">Para que é (justificativa)<textarea name="justificativa" rows="3" required minlength="10" maxlength="2000" placeholder="ex.: o teclado atual está com teclas falhando; uso o dia todo para digitar laudos"></textarea></label>
+    <div class="cheio">{{template "zona_anexos" (dict "MaxAnexos" .D.MaxAnexos "MaxAnexoMB" .D.MaxAnexoMB)}}</div>
+    <div class="cheio"><button class="btn primario">Enviar para a T.I</button></div>
+  </form>
+</section>
+<script src="/static/solicitacoes.js" defer></script>
+{{end}}
